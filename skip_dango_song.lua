@@ -11,6 +11,7 @@ local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
+local re_msg = re.msg;
 local re_on_frame = re.on_frame;
 local re_on_draw_ui = re.on_draw_ui;
 local re_on_config_save = re.on_config_save;
@@ -19,10 +20,6 @@ local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
 local imgui_tree_pop = imgui.tree_pop;
 local imgui_checkbox = imgui.checkbox;
-local imgui_text = imgui.text;
-
-local log = log;
-local log_info = log.info;
 
 local pcall = pcall;
 local error = error;
@@ -92,8 +89,8 @@ end
 
 local function assertSafety(obj, objName)
     if obj:get_reference_count() <= 1 then
-        log_info(objName .. " was disposed by the game, breaking");
         error("");
+		re_msg(objName .. " was disposed by the game, breaking");
     end
 end
 -- Main Function
