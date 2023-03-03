@@ -12,11 +12,15 @@ local json_load_file = nil;
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
+local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_hook = sdk.hook;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_frame = re.on_frame;
 local re_on_pre_application_entry = re.on_pre_application_entry;
 local re_on_draw_ui = re.on_draw_ui;
+local re_on_config_save = re.on_config_save;
 
 local imgui = imgui;
 local imgui_button = imgui.button;
@@ -30,8 +34,7 @@ local imgui_slider_int = imgui.slider_int;
 local imgui_slider_float = imgui.slider_float;
 local imgui_spacing = imgui.spacing;
 local imgui_end_window = imgui.end_window;
--- Persistent settings (defaults)
-local screen_w, screen_h = nil, nil;
+
 local settings = { 
     enableMsg = true,
     autoskipCountdown = false,
@@ -50,7 +53,7 @@ local settings = {
     text_y = 50,
     text_size = 16
 };
--- Persistence Functions
+
 local jsonAvailable = json ~= nil;
 if jsonAvailable then
     json_load_file = json.load_file;
@@ -67,13 +70,13 @@ if jsonAvailable then
         settings.padAnimSkipBtn = math_floor(settings.padAnimSkipBtn);
     end
 end
+
 local function save_settings()
     if jsonAvailable then
         json_dump_file("bth_settings.json", settings);
     end
 end
 
--- loading keycode dicts separate from main logic
 local PadKeys = require("bth.PadKeys");
 local PlaystationKeys = require("bth.PlaystationKeys");
 local XboxKeys = require("bth.XboxKeys");
@@ -81,7 +84,7 @@ local NintendoKeys = require("bth.NintendoKeys");
 local KeyboardKeys = require("bth.KeyboardKeys");
 
 -- UI drawing state toggles
-local drawWin = false;
+local drawWin = nil;
 local drawDone = false;
 local drawSettings = false;
 
@@ -90,20 +93,41 @@ local setAnimSkipBtn = false;
 local setCDSkipBtn = false;
 local setAnimSkipKey = false;
 local setCDSkipKey = false;
-local setWinPos = false;
 
 -- Input managers
-local hwKB = nil;
-local hwPad = nil;
 local padType = 0;
-local padKeyLUT = XboxKeys; -- most probable default
+local padKeyLUT = XboxKeys;
 
 -- Quest manager/actual functionality toggles
-local questManager = nil;
 local skipCountdown = false;
 local skipPostAnim = false;
 
+-- Cache
+local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
+local hardwareKeyboard_type_def = hardKeyboard_field:get_type();
+local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
+local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
+
+local hard_field = sdk_find_type_definition("snow.Pad"):get_field("hard");
+local padDevice_type_def = hard_field:get_type();
+local andOn_method = padDevice_type_def:get_method("andOn(snow.Pad.Button)");
+local get_on_method = padDevice_type_def:get_method("get_on");
+local get_deviceKindDetails_method = padDevice_type_def:get_method("get_deviceKindDetails");
+
+local questManager_type_def = sdk_find_type_definition("snow.QuestManager");
+local updateQuestEndFlow_method = questManager_type_def:get_method("updateQuestEndFlow");
+local EndFlow_field = questManager_type_def:get_field("_EndFlow");
+local QuestEndFlowTimer_field = questManager_type_def:get_field("_QuestEndFlowTimer");
+
+local EndFlow_type_def = sdk_find_type_definition("snow.QuestManager.EndFlow");
+local EndFlow_Start = EndFlow_type_def:get_field("Start"):get_data(nil); -- 0
+local EndFlow_WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil); -- 1
+local EndFlow_CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil); -- 8
+local EndFlow_None = EndFlow_type_def:get_field("None"):get_data(nil); -- 16
+
 local get_FrameTimeMillisecond_method = sdk_find_type_definition("via.Application"):get_method("get_FrameTimeMillisecond");
+local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
+
 -- Button code to label decoder
 local function pad_btncode_to_label(keycode)
     label = "";
@@ -141,7 +165,6 @@ local padAnimSkipLabel = nil;
 local carve_str = nil;
 local anim_str = nil;
 local autoskip_str = nil;
-
 local function update_strings()
     padCDSkipLabel = pad_btncode_to_label(settings.padCDSkipBtn);
     padAnimSkipLabel = pad_btncode_to_label(settings.padAnimSkipBtn);
@@ -180,135 +203,107 @@ local function update_strings()
         autoskip_str = autoskip_str .. "Off";
     end
 end
+update_strings();
 
-update_strings() -- settings were loaded, need to update strings
-
--- chat message on clear
-local chatManager = nil;
-local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
-local function push_message()
-    if not chatManager or chatManager:get_reference_count() <= 1 then
-        chatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
+--[[ Event callback hook for behaviour updates
+QuestManager.EndFlow
+ 0 == Start;
+ 1 == WaitEndTimer;
+ 2 == InitCameraDemo;
+ 3 == WaitFadeCameraDemo;
+ 4 == LoadCameraDemo;
+ 5 == LoadInitCameraDemo;
+ 6 == LoadWaitCameraDemo;
+ 7 == StartCameraDemo;
+ 8 == CameraDemo;
+ 9 == Stamp;
+ 10 == WaitFadeOut;
+ 11 == InitEventCut;
+ 12 == WaitLoadEventCut;
+ 13 == WaitPlayEventCut;
+ 14 == WaitEndEventCut;
+ 15 == End;
+ 16 == None;]]--
+local QuestManager = nil;
+local ChatManager = nil;
+local hwKB = nil;
+local hwPad = nil;
+sdk_hook(updateQuestEndFlow_method, function(args)
+    if settings.enableKeyboard or settings.enableController or settings.autoskipCountdown or settings.autoSkipPostAnim then
+        QuestManager = sdk_to_managed_object(args[2]);
     end
-    if chatManager then
-        reqAddChatInfomation_method:call(chatManager, "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str, 2289944406);
-    end
-end
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if QuestManager then
+        local endFlow = EndFlow_field:get_data(QuestManager);
+        local questTimer = QuestEndFlowTimer_field:get_data(QuestManager);
+        if endFlow > EndFlow_Start and endFlow < EndFlow_None then
+            if settings.enableKeyboard and (not hwKB or hwKB:get_reference_count() <= 1) then
+                local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+                if GameKeyboard_singleton then
+                    hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+                end
+            end
 
--- Quest Clear GUI
-local hardwareKeyboard_type_def = sdk_find_type_definition("snow.GameKeyboard.HardwareKeyboard");
-local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
+            if settings.enableController and (not hwPad or hwPad:get_reference_count() <= 1) then
+                local Pad_singleton = sdk_get_managed_singleton("snow.Pad");
+                if Pad_singleton then
+                    hwPad = hard_field:get_data(Pad_singleton);
+                end
+            end
 
-local padDevice_type_def = sdk_find_type_definition("snow.Pad.Device");
-local andOn_method = padDevice_type_def:get_method("andOn(snow.Pad.Button)");
-re_on_frame(function()
-    if not drawWin or (not hwKB and not hwPad) then
-        return;
-    end
-    skipPostAnim = (hwKB and getTrg_method:call(hwKB, settings.kbAnimSkipKey)) or (hwPad and andOn_method:call(hwPad, settings.padAnimSkipBtn)) or false;
-    skipCountdown = (hwKB and getTrg_method:call(hwKB, settings.kbCDSkipKey)) or (hwPad and andOn_method:call(hwPad, settings.padCDSkipBtn)) or false;
-end);
+            if hwKB and not hwPad then
+                drawWin = 1;
+            elseif not hwKB and hwPad then
+                drawWin = 2;
+            elseif hwKB and hwPad then
+                drawWin = 3;
+            elseif not hwKB and not hwPad then
+                drawWin = nil;
+            end
 
--- Event callback hook for behaviour updates
-local GameKeyboard_singleton = nil;
-local Pad_singleton = nil;
-local questManager_type_def = sdk_find_type_definition("snow.QuestManager");
-local EndFlow_field = questManager_type_def:get_field("_EndFlow");
-local QuestEndFlowTimer_field = questManager_type_def:get_field("_QuestEndFlowTimer");
-
-local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
-local hard_field = sdk_find_type_definition("snow.Pad"):get_field("hard");
-
-local get_deviceKindDetails_method = padDevice_type_def:get_method("get_deviceKindDetails");
-re_on_pre_application_entry("UpdateBehavior", function()
-    -- grabbing the quest manager
-    if settings.autoskipCountdown or settings.autoskipPostAnim or settings.enableKeyboard or settings.enableController then
-        if not questManager or questManager:get_reference_count() <= 1 then
-            questManager = sdk_get_managed_singleton("snow.QuestManager");
-        end
-    else
-        questManager = nil;
-    end
-    -- grabbing the keyboard manager
-    if settings.enableKeyboard and not hwKB then
-        if not GameKeyboard_singleton or GameKeyboard_singleton:get_reference_count() <= 1 then
-            GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-        end
-        if GameKeyboard_singleton then
-            hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton); -- getting hardware keyboard manager
-        end
-    else
-        GameKeyboard_singleton = nil;
-        hwKB = nil;
-    end
-    -- grabbing the gamepad manager
-    if settings.enableController and not hwPad then
-        if not Pad_singleton or Pad_singleton:get_reference_count() <= 1 then
-            Pad_singleton = sdk_get_managed_singleton("snow.Pad");
-        end
-        if Pad_singleton then
-            hwPad = hard_field:get_data(Pad_singleton); -- getting hardware keyboard manager
-        end
-    else
-        Pad_singleton = nil;
-        hwPad = nil;
-    end
-
-    if questManager then
-        -- getting Quest End state
-        -- 0: still in quest, 1: ending countdown, 8: ending animation, 16: quest over
-        local endFlow = EndFlow_field:get_data(questManager);
-
-        -- getting shared quest end state timer
-        -- used for both 60/20sec carve timer and ending animation timing
-        local questTimer = QuestEndFlowTimer_field:get_data(questManager);
-        
-        if endFlow > 0 and endFlow < 16 then
-            -- enabling main window draw if in the quest ending state
-            drawWin = true;
             if settings.enableMsg and not drawDone and questTimer < 59.0 then
-                push_message();
+                if not ChatManager or ChatManager:get_reference_count() <= 1 then
+                    ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
+                end
+                if ChatManager then
+                    reqAddChatInfomation_method:call(ChatManager, "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str, 2289944406);
+                end
                 drawDone = true;
             end
         else
-            -- disabling draw and resetting timer skip otherwise
-            -- if skipCountdown is left set to true, every consequent carve timer will be skipped :(
             skipCountdown = false;
             skipPostAnim = false;
-            drawWin = false;
+            drawWin = nil;
+            drawDone = false;
         end
-
-        if questTimer > 1.0 then
-            -- Skipping the carve timer if selected
-            if endFlow == 1 and (skipCountdown or settings.autoskipCountdown) then
-                questManager:set_field("_QuestEndFlowTimer", 1.0);
-            end
-
-            -- Skipping the post anim if selected
-            if endFlow == 8 and (skipPostAnim or settings.autoskipPostAnim) then
-                questManager:set_field("_QuestEndFlowTimer", 1.0);
-            end
+        if questTimer > 1.0 and ((endFlow == EndFlow_WaitEndTimer and (skipCountdown or settings.autoskipCountdown)) or (endFlow == EndFlow_CameraDemo and (skipPostAnim or settings.autoskipPostAnim))) then
+            QuestManager:set_field("_QuestEndFlowTimer", 0.0);
         end
-    end
-    if hwPad then
-        padType = get_deviceKindDetails_method:call(hwPad);
-        if padType then
-            if padType < 10 then
-                padKeyLUT = XboxKeys;
-            elseif padType > 15 then
-                padKeyLUT = NintendoKeys;
-            else
-                padKeyLUT = PlaystationKeys;
-            end
-        else
-            padKeyLUT = XboxKeys; -- defaulting to Xbox Keys
-        end
+        QuestManager = nil;
     end
 end);
 
--- Hook for when the main RE Framework window is being drawn
-local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
-local get_on_method = padDevice_type_def:get_method("get_on");
+re_on_pre_application_entry("UpdateBehavior", function()
+    local deviceKindDetails = hwPad and get_deviceKindDetails_method:call(hwPad) or nil;
+    if deviceKindDetails then
+        if padType ~= deviceKindDetails then
+            padType = deviceKindDetails;
+            padkeyLUT = (padType < 10 and XboxKeys) or (padType > 15 and NintendoKeys) or PlaystationKeys;
+        end
+    else
+        padKeyLUT = XboxKeys;
+    end
+end);
+
+-- Quest Clear GUI
+re_on_frame(function()
+    if drawWin then
+        skipPostAnim = drawWin == 1 and getTrg_method:call(hwKB, settings.kbAnimSkipKey) or drawWin == 2 and andOn_method:call(hwPad, settings.padAnimSkipBtn) or drawWin == 3 and (getTrg_method:call(hwKB, settings.kbAnimSkipKey) or andOn_method:call(hwPad, settings.padAnimSkipBtn)) or false;
+        skipCountdown = drawWin == 1 and getTrg_method:call(hwKB, settings.kbCDSkipKey) or drawWin == 2 and andOn_method:call(hwPad, settings.padCDSkipBtn) or drawWin == 3 and (getTrg_method:call(hwKB, settings.kbCDSkipKey) or andOn_method:call(hwPad, settings.padCDSkipBtn)) or false;
+    end
+end);
+
 local padBtnPrev = 0;
 re_on_draw_ui(function()
    -- Puts a simple confirmation text into the main window
@@ -330,6 +325,12 @@ re_on_draw_ui(function()
             if imgui_tree_node("~~Keyboard Settings~~") then
                 changed, settings.enableKeyboard = imgui_checkbox("Enable Keyboard", settings.enableKeyboard);
                 if settings.enableKeyboard then
+                    if not hwKB or hwKB:get_reference_count() <= 1 then
+                        local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+                        if GameKeyboard_singleton then
+                            hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+                        end
+                    end
                     imgui_text("Timer Skip");
                     imgui_same_line();
                     if imgui_button(KeyboardKeys[settings.kbCDSkipKey]) then
@@ -353,6 +354,12 @@ re_on_draw_ui(function()
             if imgui_tree_node("~~Controller Settings~~") then
                 changed, settings.enableController = imgui_checkbox("Enable Controller", settings.enableController);
                 if settings.enableController then
+                    if not hwPad or hwPad:get_reference_count() <= 1 then
+                        local Pad_singleton = sdk_get_managed_singleton("snow.Pad");
+                        if Pad_singleton then
+                            hwPad = hard_field:get_data(Pad_singleton);
+                        end
+                    end
                     imgui_text("Timer Skip");
                     imgui_same_line();
                     if imgui_button(padCDSkipLabel) then
@@ -375,21 +382,13 @@ re_on_draw_ui(function()
 
             if changed then
                 if not settings.enableMsg then
-                    chatManager = nil;
+                    ChatManager = nil;
                 end
                 if not settings.enableKeyboard then
-                    GameKeyboard_singleton = nil;
                     hwKB = nil;
-                    if questManager and (not settings.autoskipCountdown and not settings.autoskipPostAnim and not settings.enableController) then
-                        questManager = nil;
-                    end
                 end
                 if not settings.enableController then
-                    Pad_singleton = nil;
                     hwPad = nil;
-                    if questManager and (not settings.autoskipCountdown and not settings.autoskipPostAnim and not settings.enableKeyboard) then
-                        questManager = nil;
-                    end
                 end
                 save_settings();
                 update_strings();
@@ -465,7 +464,8 @@ re_on_draw_ui(function()
             setAnimSkipBtn = false;
             setCDSkipKey = false;
             setAnimSkipKey = false;
-            setWinPos = false;
         end
     end
 end);
+
+re_on_config_save(save_settings);
