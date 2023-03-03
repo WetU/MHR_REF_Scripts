@@ -41,7 +41,10 @@ local function getFadeManager()
 	if not FadeManager or FadeManager:get_reference_count() <= 1 then
 		FadeManager = sdk_get_managed_singleton("snow.FadeManager");
 	end
-	return FadeManager;
+	if FadeManager then
+		return FadeManager;
+	end
+	return nil;
 end
 
 local function isLoading()
@@ -53,17 +56,14 @@ local function isLoading()
 end
 
 local function skipAction(action)
-	if action ~= nil then
+	if action then
 		notifyActionEnd_method:call(action);
 	end
 end
 
 local function ClearFade_main()
-	local fadeManager = getFadeManager();
-	if fadeManager ~= nil then
-		set_FadeMode_method:call(fadeManager, FINISHED);
-		fadeManager:set_field("fadeOutInFlag", false);
-	end
+	set_FadeMode_method:call(getFadeManager(), FINISHED);
+	getFadeManager():set_field("fadeOutInFlag", false);
 end
 
 local function ClearFade()
@@ -73,20 +73,11 @@ end
 
 local function ClearFadeWithAction(args)
 	local ActionArg = sdk_to_managed_object(args[3]);
-	if ActionArg ~= nil then
+	if ActionArg then
 		skipAction(ActionArg);
 	end
 	ClearFade_main();
 	return sdk_CALL_ORIGINAL;
-end
-
-local function skipMovie(movie)
-	if isLoading() and movie ~= nil then
-		local DurationTime = get_DurationTime_method:call(movie);
-		if DurationTime ~= nil then
-			seek_method:call(movie, DurationTime);
-		end
-	end
 end
 
 -- Fast forward movies to the end to mute audio
@@ -95,7 +86,12 @@ sdk_hook(play_method, function(args)
 	currentMovie = sdk_to_managed_object(args[2]);
 	return sdk_CALL_ORIGINAL;
 end, function(ret)
-	skipMovie(currentMovie);
+	if isLoading() and currentMovie then
+		local DurationTime = get_DurationTime_method:call(currentMovie);
+		if DurationTime then
+			seek_method:call(currentMovie, DurationTime);
+		end
+	end
 	currentMovie = nil;
 	return ret;
 end);
@@ -129,10 +125,9 @@ end, function(ret)
 end);
 
 -- Fake title skip input for HEALTH/Capcom
-local function isTitleSkip(retval)
+sdk_hook(getTitleDispSkipTrg_method, nil, function(retval)
 	if isLoading() then
 		return sdk_to_ptr(1);
 	end
 	return retval;
-end
-sdk_hook(getTitleDispSkipTrg_method, nil, isTitleSkip);
+end);

@@ -26,16 +26,15 @@ function region_lock_fix.on_set_is_invisible(session_steam)
 		return;
 	end
 
+	local distance = 1;
 	if region_lock_fix_config.distance_filter == "Worldwide" then
-		set_lobby_distance_filter_method:call(session_steam, 3);
+		distance = 3;
 	elseif region_lock_fix_config.distance_filter == "Far" then
-		set_lobby_distance_filter_method:call(session_steam, 2);
+		distance = 2;
 	elseif region_lock_fix_config.distance_filter == "Close" then
-		set_lobby_distance_filter_method:call(session_steam, 0);
-	else -- "Default"
-		set_lobby_distance_filter_method:call(session_steam, 1);
+		distance = 0;
 	end
-
+	set_lobby_distance_filter_method:call(session_steam, distance);
 	last_session_steam_object = session_steam;
 end
 

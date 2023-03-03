@@ -34,7 +34,6 @@ function misc_fixes.on_req_online_warning()
 	if not config.current_config.hide_online_warning.enabled then
 		return;
 	end
-
 	return sdk_SKIP_ORIGINAL;
 end
 
@@ -86,9 +85,7 @@ function misc_fixes.init_module()
 	config = require("Better_Matchmaking.config");
 	table_helpers = require("Better_Matchmaking.table_helpers");
 
-	sdk_hook(reqOnlineWarning_method, function()
-		return misc_fixes.on_req_online_warning();
-	end);
+	sdk_hook(reqOnlineWarning_method, misc_fixes.on_req_online_warning);
 
 	sdk_hook(onChangedGameStatus_method, function(args)
 		misc_fixes.on_changed_game_status(sdk_to_int64(args[3]));

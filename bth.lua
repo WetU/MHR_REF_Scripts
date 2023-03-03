@@ -53,11 +53,11 @@ local settings = {
 };
 -- Persistence Functions
 local jsonAvailable = json ~= nil;
-if jsonAvailable == true then
+if jsonAvailable then
     json_load_file = json.load_file;
     json_dump_file = json.dump_file;
     local loadedTable = json_load_file("bth_settings.json");
-    if loadedTable ~= nil then
+    if loadedTable then
         for key, _ in pairs(loadedTable) do
             settings[key] = loadedTable[key];
         end
@@ -69,7 +69,7 @@ if jsonAvailable == true then
     end
 end
 local function save_settings()
-    if jsonAvailable == true then
+    if jsonAvailable then
         json_dump_file("bth_settings.json", settings);
     end
 end
@@ -210,9 +210,8 @@ local function push_message()
     if not chatManager or chatManager:get_reference_count() <= 1 then
         chatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
     end
-    if chatManager ~= nil then
-        local chat_msg = "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str;
-        reqAddChatInfomation_method:call(chatManager, chat_msg, 2289944406);
+    if chatManager then
+        reqAddChatInfomation_method:call(chatManager, "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str, 2289944406);
     end
 end
 
@@ -252,72 +251,75 @@ re_on_pre_application_entry("UpdateBehavior", function() -- unnamed/inline funct
     -- grabbing the quest manager
     if not questManager or questManager:get_reference_count() <= 1 then
         questManager = sdk_get_managed_singleton("snow.QuestManager");
-        if not questManager then -- if still nothing then aborting
-            return nil;
-        end
     end
 
-    -- grabbing the keyboard manager    
-    if not hwKB then
-        if not GameKeyboard_singleton or GameKeyboard_singleton:get_reference_count() <= 1 then
-            GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-        end
-        hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton); -- getting hardware keyboard manager
-    end
-    -- grabbing the gamepad manager
-    if not hwPad then
-        if not Pad_singleton or Pad_singleton:get_reference_count() <= 1 then
-            Pad_singleton = sdk_get_managed_singleton("snow.Pad");
-        end
-        hwPad = hard_field:get_data(Pad_singleton); -- getting hardware keyboard manager
-        if hwPad then
-            padType = get_deviceKindDetails_method:call(hwPad);
-            if padType ~= nil then
-                if padType < 10 then
-                    padKeyLUT = XboxKeys;
-                elseif padType > 15 then
-                    padKeyLUT = NintendoKeys;
-                else
-                    padKeyLUT = PlaystationKeys;
-                end
-            else
-                padKeyLUT = XboxKeys; -- defaulting to Xbox Keys
+    if questManager then
+        -- grabbing the keyboard manager    
+        if not hwKB then
+            if not GameKeyboard_singleton or GameKeyboard_singleton:get_reference_count() <= 1 then
+                GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+            end
+            if GameKeyboard_singleton then
+                hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton); -- getting hardware keyboard manager
             end
         end
-    end
-
-    -- getting Quest End state
-    -- 0: still in quest, 1: ending countdown, 8: ending animation, 16: quest over
-    local endFlow = EndFlow_field:get_data(questManager);
-
-    -- getting shared quest end state timer
-    -- used for both 60/20sec carve timer and ending animation timing
-    local questTimer = QuestEndFlowTimer_field:get_data(questManager);
-    
-    if endFlow > 0 and endFlow < 16 then
-        -- enabling main window draw if in the quest ending state
-        drawWin = true;
-        if settings.enableMsg and not drawDone and questTimer < 59 then
-            push_message();
-            drawDone = true;
-        end
-    else
-        -- disabling draw and resetting timer skip otherwise
-        -- if skipCountdown is left set to true, every consequent carve timer will be skipped :(
-        skipCountdown = false;
-        skipPostAnim = false;
-        drawWin = false;
-    end
-
-    if questTimer > 1.0 then
-        -- Skipping the carve timer if selected
-        if endFlow == 1 and (skipCountdown or settings.autoskipCountdown) then
-            questManager:set_field("_QuestEndFlowTimer", 1.0);
+        -- grabbing the gamepad manager
+        if not hwPad then
+            if not Pad_singleton or Pad_singleton:get_reference_count() <= 1 then
+                Pad_singleton = sdk_get_managed_singleton("snow.Pad");
+            end
+            if Pad_singleton then
+                hwPad = hard_field:get_data(Pad_singleton); -- getting hardware keyboard manager
+                if hwPad then
+                    padType = get_deviceKindDetails_method:call(hwPad);
+                    if padType ~= nil then
+                        if padType < 10 then
+                            padKeyLUT = XboxKeys;
+                        elseif padType > 15 then
+                            padKeyLUT = NintendoKeys;
+                        else
+                            padKeyLUT = PlaystationKeys;
+                        end
+                    else
+                        padKeyLUT = XboxKeys; -- defaulting to Xbox Keys
+                    end
+                end
+            end
         end
 
-        -- Skipping the post anim if selected
-        if endFlow == 8 and (skipPostAnim or settings.autoskipPostAnim) then
-            questManager:set_field("_QuestEndFlowTimer", 1.0);
+        -- getting Quest End state
+        -- 0: still in quest, 1: ending countdown, 8: ending animation, 16: quest over
+        local endFlow = EndFlow_field:get_data(questManager);
+
+        -- getting shared quest end state timer
+        -- used for both 60/20sec carve timer and ending animation timing
+        local questTimer = QuestEndFlowTimer_field:get_data(questManager);
+        
+        if endFlow > 0 and endFlow < 16 then
+            -- enabling main window draw if in the quest ending state
+            drawWin = true;
+            if settings.enableMsg and not drawDone and questTimer < 59.0 then
+                push_message();
+                drawDone = true;
+            end
+        else
+            -- disabling draw and resetting timer skip otherwise
+            -- if skipCountdown is left set to true, every consequent carve timer will be skipped :(
+            skipCountdown = false;
+            skipPostAnim = false;
+            drawWin = false;
+        end
+
+        if questTimer > 1.0 then
+            -- Skipping the carve timer if selected
+            if endFlow == 1 and (skipCountdown or settings.autoskipCountdown) then
+                questManager:set_field("_QuestEndFlowTimer", 1.0);
+            end
+
+            -- Skipping the post anim if selected
+            if endFlow == 8 and (skipPostAnim or settings.autoskipPostAnim) then
+                questManager:set_field("_QuestEndFlowTimer", 1.0);
+            end
         end
     end
 end);

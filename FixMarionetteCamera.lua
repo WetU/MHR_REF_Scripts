@@ -21,11 +21,11 @@ local imgui_tree_pop = imgui.tree_pop;
 local settings = {};
 local jsonAvailable = json ~= nil;
 
-if jsonAvailable == true then
+if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
 	local loadedSettings = json_load_file("Fix_Marionette_Camera.json");
-	settings = loadedSettings ~= nil and loadedSettings or {enable = true};
+	settings = loadedSettings or {enable = true};
 end
 if settings.enable == nil then
 	settings.enable = true;
@@ -48,9 +48,9 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 	if not CameraManager or CameraManager:get_reference_count() <= 1 then
 		CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 	end
-	if CameraManager ~= nil then
+	if CameraManager then
 		local marionetteType = marionetteType_field:get_data(CameraManager);
-		if marionetteType ~= nil and NotReset[marionetteType] == true then
+		if NotReset[marionetteType] then
 			retval = NoReset;
 		end
 	end
@@ -58,7 +58,7 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 end);
 ---- re Callbacks ----
 local function save_config()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		json_dump_file("Fix_Marionette_Camera.json", settings);
 	end
 end
@@ -69,8 +69,8 @@ re_on_draw_ui(function()
 	if imgui_tree_node("Fix Marionette Camera") then
 		local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-		if changed == true then
-			if settings.enable == false then
+		if changed then
+			if not settings.enable then
 				CameraManager = nil;
 			end
 			save_config();

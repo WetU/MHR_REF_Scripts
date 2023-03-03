@@ -30,11 +30,11 @@ local error = error;
 local settings = {};
 local jsonAvailable = json ~= nil;
 
-if jsonAvailable == true then
+if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
 	local savedConfig = json_load_file("Skip_Dango_Song.json");
-	settings = savedConfig ~= nil and savedConfig or {skipDangoSong = true, skipEating = true, skipMotley = true};
+	settings = savedConfig or {skipDangoSong = true, skipEating = true, skipMotley = true};
 end
 if settings.skipDangoSong == nil then
 	settings.skipDangoSong = true;
@@ -47,7 +47,10 @@ if settings.skipMotley == nil then
 end
 -- Cache
 local GuiDangoLog_field = sdk_find_type_definition("snow.gui.GuiManager"):get_field("<refGuiDangoLog>k__BackingField");
-local reqDangoLogStart_method = GuiDangoLog_field:get_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local GuiDangoLog_type_def = GuiDangoLog_field:get_type();
+local reqDangoLogStart_method = GuiDangoLog_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local doOpen_method = GuiDangoLog_type_def:get_method("doOpen");
+local doClose_method = GuiDangoLog_type_def:get_method("doClose");
 
 local kitchenFsm_type_def = sdk_find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 local set_IsCookDemoSkip_method = kitchenFsm_type_def:get_method("set_IsCookDemoSkip(System.Boolean)");
@@ -80,27 +83,42 @@ local bbq_events = {
     [EventId_type_def:get_field("evc3034"):get_data(nil)] = settings.skipMotley, --hub
     [EventId_type_def:get_field("evc3505"):get_data(nil)] = settings.skipMotley  --plaza
 };
+
+local function save_config()
+	if jsonAvailable then
+		json_dump_file("Skip_Dango_Song.json", settings);
+	end
+end
+
+local function assertSafety(obj, objName)
+    if obj:get_reference_count() <= 1 then
+        log_info(objName .. " was disposed by the game, breaking");
+        error("");
+    end
+end
 -- Main Function
 local DemoHandler = nil;
 local DemoHandlerType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
-local isRunning = false;
+local isOpenedDangoLog = false;
 sdk_hook(play_method, function(args)
-	if settings.skipDangoSong == true or settings.skipEating == true or settings.skipMotley == true then
+	if settings.skipDangoSong or settings.skipEating or settings.skipMotley then
 		DemoHandler = sdk_to_managed_object(args[2]);
-		if DemoHandler ~= nil then
+		if DemoHandler then
 			local EventId = get_EventId_method:call(DemoHandler);
-			if EventId ~= nil then
-				DemoHandlerType = (cooking_events[EventId] == true and 1) or (eating_events[EventId] == true and 2) or (bbq_events[EventId] == true and 3) or nil;
+			if EventId then
+				DemoHandlerType = (cooking_events[EventId] and 1) or (eating_events[EventId] and 2) or (bbq_events[EventId] and 3) or nil;
 			end
-			if DemoHandlerType == nil then
+			if not DemoHandlerType then
 				DemoHandler = nil;
 			end
 		end
 	end
 	return sdk_CALL_ORIGINAL;
 end, function()
-	if DemoHandler ~= nil and DemoHandlerType ~= nil then
-		if (get_LoadState_method:call(DemoHandler) == LOADSTATE_ACTIVE) and (get_Playing_method:call(DemoHandler) == true) then
+	if DemoHandler and DemoHandlerType then
+		local LoadState = get_LoadState_method:call(DemoHandler);
+		local isPlaying = get_Playing_method:call(DemoHandler);
+		if LoadState == LOADSTATE_ACTIVE and isPlaying then
 			reqFinish_method:call(DemoHandler, 0.0);
 			if DemoHandlerType ~= 2 then
 				DemoHandler = nil;
@@ -116,45 +134,32 @@ end, function()
 	end
 end);
 
-local function assertSafety(obj, objName)
-    if obj:get_reference_count() <= 1 then
-        log_info(objName .. " was disposed by the game, breaking");
-        error("");
-    end
-end
+sdk_hook(doOpen_method, nil, function()
+	isOpenedDangoLog = true;
+end);
 
-re_on_frame(function()
-	if not isRunning and DemoHandlerType == 2 then
-		isRunning = true;
-		pcall(function()
-			assertSafety(DemoHandler, "DemoHandler");
-			if get_LoadState_method:call(DemoHandler) >= LOADSTATE_UNLOADED then
-				DemoHandler = nil;
-				DemoHandlerType = nil;
-				local guiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-				local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-				if guiManager ~= nil and kitchenFsm ~= nil then
-					assertSafety(guiManager, "guiManager");
-					local GuiDangoLog = GuiDangoLog_field:get_data(guiManager);
-					assertSafety(kitchenFsm, "kitchenFsm");
-					local DangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
-					if GuiDangoLog ~= nil and DangoLogParam ~= nil then
-						assertSafety(GuiDangoLog, "GuiDangoLog");
-						assertSafety(DangoLogParam, "DangoLogParam");
-						reqDangoLogStart_method:call(GuiDangoLog, DangoLogParam, 5.0);
-					end
-				end
-			end
-		end);
-		isRunning = false;
-	end
+sdk_hook(doClose_method, nil, function()
+	isOpenedDangoLog = false;
 end);
 ---- re Callbacks ----
-local function save_config()
-	if jsonAvailable == true then
-		json_dump_file("Skip_Dango_Song.json", settings);
+re_on_frame(function()
+	if not isOpenedDangoLog and DemoHandler and DemoHandlerType == 2 then
+		local guiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
+		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+		if guiManager and kitchenFsm then
+			pcall(function()
+				assertSafety(DemoHandler, "DemoHandler");
+				if get_LoadState_method:call(DemoHandler) >= LOADSTATE_UNLOADED then
+					DemoHandler = nil;
+					DemoHandlerType = nil;
+					assertSafety(guiManager, "guiManager");
+					assertSafety(kitchenFsm, "kitchenFsm");
+					reqDangoLogStart_method:call(GuiDangoLog_field:get_data(guiManager), KitchenDangoLogParam_field:get_data(kitchenFsm), 5.0);
+				end
+			end);
+		end
 	end
-end
+end);
 
 re_on_config_save(save_config);
 
@@ -164,11 +169,10 @@ re_on_draw_ui(function()
         changed, settings.skipDangoSong = imgui_checkbox("Skip the song", settings.skipDangoSong);
         changed, settings.skipEating = imgui_checkbox("Skip eating", settings.skipEating);
         changed, settings.skipMotley = imgui_checkbox("Skip Motley Mix", settings.skipMotley);
-		if changed == true then
-			if settings.skipDangoSong == false and settings.skipEating == false and settings.skipMotley == false then
+		if changed then
+			if not settings.skipDangoSong and not settings.skipEating and not settings.skipMotley then
 				DemoHandler = nil;
 				DemoHandlerType = nil;
-				isRunning = nil;
 			end
 			save_config();
 		end

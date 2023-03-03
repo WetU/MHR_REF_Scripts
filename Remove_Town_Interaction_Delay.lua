@@ -15,7 +15,7 @@ sdk_hook(changeAllMarkerEnable_method, function(args)
 		if not QuestManager or QuestManager:get_reference_count() <= 1 then
 			QuestManager = sdk_get_managed_singleton("snow.QuestManager")
 		end
-		if questStatus_field:get_data(QuestManager) == 0 then
+		if QuestManager and questStatus_field:get_data(QuestManager) == 0 then
 			return sdk_SKIP_ORIGINAL;
 		end
 	end

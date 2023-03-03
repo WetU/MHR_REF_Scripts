@@ -49,7 +49,6 @@ local function FindIndex(table, value)
             return i;
         end
     end
-
     return nil;
 end
 
@@ -66,11 +65,11 @@ end
 local Languages = {"en-US", "ko-KR"};
 local config = {};
 local jsonAvailable = json ~= nil;
-if jsonAvailable == true then
+if jsonAvailable then
     json_load_file = json.load_file;
     json_dump_file = json.dump_file;
     local loadedConfig = json_load_file("AutoSupply.json");
-    config = loadedConfig ~= nil and loadedConfig or {Enabled = true, EnableNotification = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "en_US"};
+    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "en_US"};
 end
 
 if config.Enabled == nil then
@@ -78,6 +77,9 @@ if config.Enabled == nil then
 end
 if config.EnableNotification == nil then
     config.EnableNotification = true;
+end
+if config.EnableCohoot == nil then
+    config.EnableCohoot = true;
 end
 if config.DefaultSet == nil then
     config.DefaultSet = 1;
@@ -106,7 +108,7 @@ if config.Language == nil or FindIndex(Languages, config.Language) == nil then
 end
 
 local function save_config()
-    if jsonAvailable == true then
+    if jsonAvailable then
         json_dump_file("AutoSupply.json", config);
     end
 end
@@ -188,9 +190,10 @@ local function GetItemLoadout(loadoutIndex)
     end
 
 	local ItemMySet = getItemMySet_method:call(DataManager);
-	if ItemMySet ~= nil then
+	if ItemMySet then
 		return getData_method:call(ItemMySet, loadoutIndex);
 	end
+    return nil;
 end
 
 local function ApplyItemLoadout(loadoutIndex)
@@ -199,16 +202,18 @@ local function ApplyItemLoadout(loadoutIndex)
     end
 
 	local ItemMySet = getItemMySet_method:call(DataManager);
-	if ItemMySet ~= nil then
+	if ItemMySet then
 		return applyItemMySet_method:call(ItemMySet, loadoutIndex);
 	end
+    return nil;
 end
 
 local function GetItemLoadoutName(loadoutIndex)
 	local ItemLoadout = GetItemLoadout(loadoutIndex);
-	if ItemLoadout ~= nil then
+	if ItemLoadout then
 		return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
 	end
+    return nil;
 end
 
 ----------- Equipment Loadout Managementt ----
@@ -218,9 +223,10 @@ local function GetCurrentWeaponType()
     end
 
 	local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
-	if MasterPlayer ~= nil then
+	if MasterPlayer then
 		return playerWeaponType_field:get_data(MasterPlayer);
 	end
+    return nil;
 end
 
 local function GetEquipmentLoadout(loadoutIndex)
@@ -229,40 +235,45 @@ local function GetEquipmentLoadout(loadoutIndex)
     end
 
 	local PlEquipMySetList = PlEquipMySetList_field:get_data(EquipDataManager);
-	if PlEquipMySetList ~= nil then
+	if PlEquipMySetList then
 		return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
 	end
+    return nil;
 end
 
 local function GetEquipmentLoadoutWeaponType(loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
-	if EquipmentLoadout ~= nil then
+	if EquipmentLoadout then
 		local WeaponData = getWeaponData_method:call(EquipmentLoadout);
-		if WeaponData ~= nil then
+		if WeaponData then
 			return get_PlWeaponType_method:call(WeaponData);
 		end
 	end
+    return nil;
 end
 
 local function GetEquipmentLoadoutName(loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
-	if EquipmentLoadout ~= nil then
+	if EquipmentLoadout then
 		return get_Name_method:call(EquipmentLoadout);
 	end
+    return nil;
 end
 
 local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
-	if EquipmentLoadout ~= nil then
+	if EquipmentLoadout then
 		return get_IsUsing_method:call(EquipmentLoadout);
 	end
+    return nil;
 end
 
 local function EquipmentLoadoutIsEquipped(loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
-	if EquipmentLoadout ~= nil then
+	if EquipmentLoadout then
 		return isSamePlEquipPack_method:call(EquipmentLoadout);
 	end
+    return nil;
 end
 
 --------------- Temporary Data ----------------
@@ -344,7 +355,6 @@ local function GetWeaponName(weaponType)
     if weaponType == nil then
 		return "<ERROR>:GetWeaponName failed";
 	end
-    
 	return Localized().WeaponNames[weaponType];
 end
 
@@ -403,7 +413,7 @@ end
 ---------------      CORE      ----------------
 local function GetWeaponTypeItemLoadoutName(weaponType)
     local got = config.WeaponTypeConfig[weaponType + 1];
-    if got == nil or got == -1 then
+    if not got or got == -1 then
         return UseDefaultItemSet();
     end
     return GetItemLoadoutName(got);
@@ -411,10 +421,10 @@ end
 
 local function GetLoadoutItemLoadoutIndex(loadoutIndex)
     local got = config.EquipLoadoutConfig[loadoutIndex + 1];
-    if got == nil or got == -1 then
+    if not got or got == -1 then
         local weaponType = GetEquipmentLoadoutWeaponType(loadoutIndex);
         got = config.WeaponTypeConfig[weaponType + 1];
-        if got == nil or got == -1 then
+        if not got or got == -1 then
             return WeaponTypeNotSetUseDefault(GetWeaponName(weaponType), GetItemLoadoutName(config.DefaultSet));
         end
         return UseWeaponTypeItemSet(GetWeaponName(weaponType), GetItemLoadoutName(got));
@@ -425,12 +435,11 @@ end
 local function AutoChooseItemLoadout(expectedLoadoutIndex)
     local cacheHit = false;
     local loadoutMismatch = false;
-
     if expectedLoadoutIndex then
         cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
         local got = config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
-        if got ~= nil and got ~= -1 then
+        if got and got ~= -1 then
             return got, "Loadout", GetEquipmentLoadoutName(expectedLoadoutIndex);
         end
     else
@@ -440,12 +449,11 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
                 lastHitLoadoutIndex = cachedLoadoutIndex;
                 cacheHit = true;
                 local got = config.EquipLoadoutConfig[cachedLoadoutIndex + 1];
-                if got ~= nil and got ~= -1 then
+                if got and got ~= -1 then
                     return got, "Loadout", GetEquipmentLoadoutName(cachedLoadoutIndex);
                 end
             end
         end
-
         if not cacheHit then
             local found = false;
             for i = 1, 112, 1 do
@@ -455,7 +463,7 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
                     expectedLoadoutIndex = loadoutIndex;
                     lastHitLoadoutIndex = loadoutIndex;
                     local got = config.EquipLoadoutConfig[i];
-                    if got ~= nil and got ~= -1 then
+                    if got and got ~= -1 then
                         return got, "Loadout", GetEquipmentLoadoutName(loadoutIndex);
                     end
                     break;
@@ -466,7 +474,6 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
             end
         end
     end
-
     local weaponType;
     if expectedLoadoutIndex then
         weaponType = GetEquipmentLoadoutWeaponType(expectedLoadoutIndex);
@@ -474,85 +481,90 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
         weaponType = GetCurrentWeaponType();
     end
     local got = config.WeaponTypeConfig[weaponType + 1];
-    if got ~= nil and got ~= -1 then
+    if got and got ~= -1 then
         return got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
     end
-
     return config.DefaultSet, "Default", "", loadoutMismatch;
 end
 
 ------------------------
 local function Restock(loadoutIndex)
-    local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(loadoutIndex);
-    local loadout = GetItemLoadout(itemLoadoutIndex);
-    local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
-    local msg = "";
-    if isEnoughItem_method:call(loadout) then
-        ApplyItemLoadout(itemLoadoutIndex);
-        if matchedType == "Loadout" then
-            msg = FromLoadout(matchedName, itemLoadoutName);
-        elseif matchedType == "WeaponType" then
-            msg = FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
-        else
-            msg = FromDefault(itemLoadoutName, loadoutMismatch);
-        end
-
-        local paletteIndex = get_PaletteSetIndex_method:call(loadout);
-        if paletteIndex == nil then
-            msg = msg .. "\n" .. PaletteNilError();
-        else
-            if not SystemDataManager or SystemDataManager:get_reference_count() <= 1 then
-                SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
-            end
-            local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
-            local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
-            local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
-            if paletteList then
-                local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
-                if palette then
-                    msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
-                end
+    if config.Enabled then
+        local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(loadoutIndex);
+        local loadout = GetItemLoadout(itemLoadoutIndex);
+        local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+        local msg = "";
+        if isEnoughItem_method:call(loadout) then
+            ApplyItemLoadout(itemLoadoutIndex);
+            if matchedType == "Loadout" then
+                msg = FromLoadout(matchedName, itemLoadoutName);
+            elseif matchedType == "WeaponType" then
+                msg = FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
             else
-                msg = msg .. "\n" .. PaletteListEmpty();
+                msg = FromDefault(itemLoadoutName, loadoutMismatch);
             end
-            setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
+
+            local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+            if not paletteIndex then
+                msg = msg .. "\n" .. PaletteNilError();
+            else
+                if not SystemDataManager or SystemDataManager:get_reference_count() <= 1 then
+                    SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
+                end
+                if SystemDataManager then
+                    local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
+                    local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
+                    local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
+                    if paletteList then
+                        local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
+                        if palette then
+                            msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
+                        end
+                    else
+                        msg = msg .. "\n" .. PaletteListEmpty();
+                    end
+                    setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
+                end
+            end
+        else
+            msg = OutOfStock(itemLoadoutName);
         end
-    else
-        msg = OutOfStock(itemLoadoutName);
+        SendMessage(msg);
     end
-    SendMessage(msg);
 end
 
 local function Supply()
-    if not ProgressOwlNestManager or ProgressOwlNestManager:get_reference_count() <= 1 then
-        ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
-    end
-    if not VillageAreaManager or VillageAreaManager:get_reference_count() <= 1 then
-        VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-    end
-    if ProgressOwlNestManager ~= nil and VillageAreaManager ~= nil then
-        local progressOwlNestSaveData = get_SaveData_method:call(ProgressOwlNestManager);
-        if progressOwlNestSaveData ~= nil then
-            local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
-            local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
-            if kamuraStack ~= nil and kamuraStack >= config.CohootMaxStock then
-                local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                if savedAreaNo ~= KAMURA then
-                    set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                    supply_method:call(ProgressOwlNestManager);
-                    set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                else
-                    supply_method:call(ProgressOwlNestManager);
+    if config.EnableCohoot then
+        if not ProgressOwlNestManager or ProgressOwlNestManager:get_reference_count() <= 1 then
+            ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
+        end
+        if not VillageAreaManager or VillageAreaManager:get_reference_count() <= 1 then
+            VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+        end
+        if ProgressOwlNestManager and VillageAreaManager then
+            local progressOwlNestSaveData = get_SaveData_method:call(ProgressOwlNestManager);
+            if progressOwlNestSaveData then
+                local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
+                local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
+                if kamuraStack >= config.CohootMaxStock then
+                    local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
+                    if savedAreaNo ~= KAMURA then
+                        set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                    else
+                        supply_method:call(ProgressOwlNestManager);
+                    end
                 end
-            end
-            if elgadoStack ~= nil and elgadoStack >= config.CohootMaxStock then
-                local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                if savedAreaNo ~= ELGADO then
-                    set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                    supply_method:call(ProgressOwlNestManager);
-                    set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                else
-                    supply_method:call(ProgressOwlNestManager);
+                if elgadoStack >= config.CohootMaxStock then
+                    local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
+                    if savedAreaNo ~= ELGADO then
+                        set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                    else
+                        supply_method:call(ProgressOwlNestManager);
+                    end
                 end
             end
         end
@@ -564,24 +576,21 @@ sdk_hook(applyEquipMySet_method, nil, function(retval)
 	return retval;
 end);
 
-sdk_hook(onVillageStart_method, nil, function(retval)
-    if config.Enabled == true then
-	    Restock();
-        Supply();
-    end
-	return retval;
+sdk_hook(onVillageStart_method, nil, function()
+    Restock();
+    Supply();
 end);
-
 ----------------------------------------------
 re_on_draw_ui(function()
     local font = Fonts[config.Language];
-    if font ~= nil then
+    if font then
         imgui_push_font(font);
     end
     if imgui_tree_node("AutoSupply") then
         local changed = false;
         changed, config.Enabled = imgui_checkbox("Enabled", config.Enabled);
         changed, config.EnableNotification = imgui_checkbox("EnableNotification", config.EnableNotification);
+        changed, config.EnableCohoot = imgui_checkbox("EnableCohootSupply", config.EnableCohoot);
 
         local langIdx = FindIndex(Languages, config.Language);
         changed, langIdx = imgui_combo("Language", langIdx, Languages);
@@ -617,24 +626,26 @@ re_on_draw_ui(function()
             imgui_tree_pop();
         end
 
-        if changed == true then
-            if config.Enabled ~= true then
+        if changed then
+            if not config.Enabled then
                 ChatManager = nil;
                 DataManager = nil;
                 PlayerManager = nil;
                 EquipDataManager = nil;
                 SystemDataManager = nil;
+            end
+            if not config.EnableNotification then
+                ChatManager = nil;
+            end
+            if not config.EnableCohoot then
                 ProgressOwlNestManager = nil;
                 VillageAreaManager = nil;
-            end
-            if config.EnableNotification ~= true then
-                ChatManager = nil;
             end
             save_config();
         end
         imgui_tree_pop();
     end
-    if font ~= nil then
+    if font then
         imgui_pop_font();
     end
 end);

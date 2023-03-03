@@ -3,6 +3,7 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 local sdk_hook = sdk.hook;
 
 local log = log;
@@ -85,19 +86,18 @@ function timeout_fix.get_search_time()
 	return os_clock() - t0;
 end
 
-function timeout_fix.on_post_timeout_matchmaking()
+function timeout_fix.on_post_timeout_matchmaking(retval)
 	local timeout_fix_config = config.current_config.timeout_fix;
 
 	if not timeout_fix_config.enabled then
-		return;
+		return retval;
 	end
 
 	if not session_manager or session_manager:get_reference_count() <= 1 then
 		session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
-
 		if not session_manager then
 			log_info("[Better Matchmaking] No session manager");
-			return;
+			return retval;
 		end
 	end
 
@@ -149,6 +149,7 @@ function timeout_fix.on_post_timeout_matchmaking()
 			req_matchmaking_random_mystery_quest_method:call(session_manager, quest_type.min_level, quest_type.max_level, quest_type.party_limit, enemy_id_pointer);
 		end
 	end
+	return retval;
 end
 
 function timeout_fix.on_req_matchmaking(quest_id)
@@ -233,9 +234,8 @@ end
 
 function timeout_fix.on_req_online()
 	if not config.current_config.hide_online_warning.enabled then
-		return;
+		return sdk_CALL_ORIGINAL;
 	end
-
 	return sdk_SKIP_ORIGINAL;
 end
 
@@ -264,11 +264,7 @@ function timeout_fix.init_module()
 	--	return retval;
 	--end);
 
-	sdk_hook(funcOnTimeoutMatchmaking_method, nil,
-	function(retval)
-		timeout_fix.on_post_timeout_matchmaking();
-		return retval;
-	end);
+	sdk_hook(funcOnTimeoutMatchmaking_method, nil, timeout_fix.on_post_timeout_matchmaking);
 
 	sdk_hook(req_matchmaking_method, function(args)
 		timeout_fix.on_req_matchmaking(sdk_to_int64(args[3]) & 0xFFFFFFFF);

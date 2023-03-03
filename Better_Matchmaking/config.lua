@@ -1,6 +1,11 @@
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
+local json_load_file = nil;
+local json_dump_file = nil;
+local jsonAvailable = json ~= nil;
+if jsonAvailable == true then
+	json_load_file = json.load_file;
+	json_dump_file = json.dump_file;
+end
 
 local log = log;
 local log_info = log.info;
@@ -51,22 +56,21 @@ function config.init()
 end
 
 function config.load()
-	local loaded_config = json_load_file(config.config_file_name);
-	if loaded_config ~= nil then
-		log_info("[Better Matchmaking] config.json loaded successfully");
-		config.current_config = table_helpers.merge(config.default_config, loaded_config);
-	else
-		log_error("[Better Matchmaking] Failed to load config.json");
-		config.current_config = table_helpers.deep_copy(config.default_config);
+	if jsonAvailable == true then
+		local loaded_config = json_load_file(config.config_file_name);
+		if loaded_config ~= nil then
+			log_info("[Better Matchmaking] config.json loaded successfully");
+			config.current_config = table_helpers.merge(config.default_config, loaded_config);
+		else
+			log_error("[Better Matchmaking] Failed to load config.json");
+			config.current_config = table_helpers.deep_copy(config.default_config);
+		end
 	end
 end
 
 function config.save()
-	-- save current config to disk, replacing any existing file
-	if json_dump_file(config.config_file_name, config.current_config) then
-		log_info("[Better Matchmaking] config.json saved successfully");
-	else
-		log_error("[Better Matchmaking] Failed to save config.json");
+	if jsonAvailable == true then
+		json_dump_file(config.config_file_name, config.current_config);
 	end
 end
 

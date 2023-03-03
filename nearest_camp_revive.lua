@@ -25,13 +25,12 @@ local imgui_tree_pop = imgui.tree_pop;
 local settings = {};
 local jsonAvailable = json ~= nil;
 
-if jsonAvailable == true then
+if jsonAvailable then
     json_dump_file = json.dump_file;
     json_load_file = json.load_file;
 	local loadedSettings = json_load_file("Nearest_camp_revive.json");
-    settings = loadedSettings ~= nil and loadedSettings or {enable = true};
+    settings = loadedSettings or {enable = true};
 end
-
 if settings.enable == nil then
     settings.enable = true
 end
@@ -89,28 +88,37 @@ local startToPlayPlayerDieMusic_method = sdk_find_type_definition("snow.wwise.Ww
 
 local skipCreateNeko = false;
 local skipWarpNeko = false;
-local reviveCamp;
-local nekoTaku;
+local reviveCamp = nil;
+local nekoTaku = nil;
 
 local function getCurrentMapNo()
     if not QuestMapManager or QuestMapManager:get_reference_count() <= 1 then
         QuestMapManager = sdk_get_managed_singleton("snow.QuestMapManager");
     end
-    return get_CurrentMapNo_method:call(QuestMapManager);
+    if QuestMapManager then
+        return get_CurrentMapNo_method:call(QuestMapManager);
+    end
+    return nil;
 end
 
 local function getCurrentPosition()
     if not PlayerManager or PlayerManager:get_reference_count() <= 1 then
         PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
     end
-    return get_Position_method:call(get_Transform_method:call(get_GameObject_method:call(findMasterPlayer_method:call(PlayerManager))));
+    if PlayerManager then
+        return get_Position_method:call(get_Transform_method:call(get_GameObject_method:call(findMasterPlayer_method:call(PlayerManager))));
+    end
+    return nil;
 end
 
 local function getCampList()
     if not StagePointManager or StagePointManager:get_reference_count() <= 1 then
         StagePointManager = sdk_get_managed_singleton("snow.stage.StagePointManager");
     end
-    return tentPositionList_field:get_data(StagePointManager);
+    if StagePointManager then
+        return tentPositionList_field:get_data(StagePointManager);
+    end
+    return nil;
 end
 
 local function calculateDistance(point1, point2)
@@ -121,7 +129,10 @@ local function getFastTravelPt(index)
     if not StagePointManager or StagePointManager:get_reference_count() <= 1 then
         StagePointManager = sdk_get_managed_singleton("snow.stage.StagePointManager");
     end
-    return pointArray_field:get_data(fastTravelPointList_mItems_field:get_data(fastTravelPointList_field:get_data(StagePointManager)):get_element(index)):get_element(0);
+    if StagePointManager then
+        return pointArray_field:get_data(fastTravelPointList_mItems_field:get_data(fastTravelPointList_field:get_data(StagePointManager)):get_element(index)):get_element(0);
+    end
+    return nil;
 end
 
 local function findNearestCamp(camps, nekoTakuPos)
@@ -139,7 +150,6 @@ local function findNearestCamp(camps, nekoTakuPos)
                 nearestDistance = distance;
                 nearestCampIndex = i;
             end
-
             if distance < nearestDistance and camp.x ~= 0.0 then
                 nearestDistance = distance;
                 nearestCamp = camp;
@@ -149,11 +159,9 @@ local function findNearestCamp(camps, nekoTakuPos)
     end
 
     local fastTravelPt = getFastTravelPt(nearestCampIndex);
-
     if not fastTravelPt then
         fastTravelPt = nearestCamp;
     end
-
     if nearestCampIndex ~= 0 then
         skipCreateNeko = true;
         skipWarpNeko = true;
@@ -166,7 +174,7 @@ local function findNearestCamp(camps, nekoTakuPos)
 end
 
 local function SaveSettings()
-    if jsonAvailable == true then
+    if jsonAvailable then
 	    json_dump_file("Nearest_camp_revive.json", settings);
     end
 end
@@ -175,10 +183,13 @@ re_on_draw_ui(function()
 	if imgui_tree_node("Nearest Camp Revive") then
         local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-        if changed == true and settings.enable == false then
-            QuestMapManager = nil;
-            PlayerManager = nil;
-            StagePointManager = nil;
+        if changed then
+            if not settings.enable then
+                QuestMapManager = nil;
+                PlayerManager = nil;
+                StagePointManager = nil;
+            end
+            SaveSettings();
         end
 		imgui_tree_pop();
 	end
@@ -187,27 +198,25 @@ end);
 re_on_config_save(SaveSettings);
 
 sdk_hook(startToPlayPlayerDieMusic_method, function()
-    if not settings.enable then
-        return sdk_CALL_ORIGINAL;
-    end
-    
-    local camps = getCampList();
-    local mapNo = getCurrentMapNo();
-    skipCreateNeko = false;
-    skipWarpNeko = false;
-    reviveCamp = nil;
-    nekoTaku = nil;
+    if settings.enable then
+        local camps = getCampList();
+        local mapNo = getCurrentMapNo();
+        skipCreateNeko = false;
+        skipWarpNeko = false;
+        reviveCamp = nil;
+        nekoTaku = nil;
 
-    if camps and nekoTakuList[mapNo] then
-        findNearestCamp(camps, nekoTakuList[mapNo]);
+        if camps and nekoTakuList[mapNo] then
+            findNearestCamp(camps, nekoTakuList[mapNo]);
+        end
     end
     return sdk_CALL_ORIGINAL;
 end);
 sdk_hook(setPlWarpInfo_Nekotaku_method, function(args)
     if skipWarpNeko then
         skipWarpNeko = false;
-        local self = sdk_to_managed_object(args[2]);
-        setPlWarpInfo_method:call(self, reviveCamp, 0, 20);
+        local obj = sdk_to_managed_object(args[2]);
+        setPlWarpInfo_method:call(obj, reviveCamp, 0, 20);
         return sdk_SKIP_ORIGINAL;
     end
     return sdk_CALL_ORIGINAL;
@@ -215,8 +224,8 @@ end);
 sdk_hook(createNekotaku_method, function(args)
     if skipCreateNeko then
         skipCreateNeko = false;
-        local self = sdk_to_managed_object(args[2]);
-        createNekotaku_method:call(self, args[3], nekoTaku, args[5]);
+        local obj = sdk_to_managed_object(args[2]);
+        createNekotaku_method:call(obj, args[3], nekoTaku, args[5]);
         return sdk_SKIP_ORIGINAL;
     end
     return sdk_CALL_ORIGINAL;

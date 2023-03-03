@@ -87,7 +87,4 @@ function table_helpers.tostring(table)
 	end
 end
 
-function table_helpers.init_module()
-end
-
 return table_helpers;

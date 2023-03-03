@@ -63,15 +63,15 @@ local ipairs = ipairs;
 local type = type;
 
 local jsonAvailable = json ~= nil;
-if jsonAvailable == true then
+if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
 	local loadedSettings = json_load_file("NoKillCam+SlowMo_settings.json");
-	settings = loadedSettings ~= nil and loadedSettings or settings;
+	settings = loadedSettings or settings;
 end
 
 local function SaveSettings()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		json_dump_file("NoKillCam+SlowMo_settings.json", settings);
 	end
 end
@@ -197,39 +197,50 @@ local function GetMonsterActivateType(isEndQuest)
 		if not questManager or questManager:get_reference_count() <= 1 then
 			questManager = sdk_get_managed_singleton("snow.QuestManager");
 		end
-		if questManager ~= nil and isHyakuryuQuest_method:call(questManager) then
-			log_debug("Skip isRampage");
-			return false;
-		else
-			return true;
+		if questManager then
+			if isHyakuryuQuest_method:call(questManager) then
+				log_debug("Skip isRampage");
+				return false;
+			else
+				return true;
+			end
 		end
 	end
-
 	log_debug("SkipDefault");
 	return false;
 end
 
 local function GetPadDown(kc)
 	-- grabbing the gamepad manager
-    if not hwPad then
+    if not hwPad or hwPad:get_reference_count() <= 1 then
 		if not PadSingleton or PadSingleton:get_reference_count() <= 1 then
 			PadSingleton = sdk_get_managed_singleton("snow.Pad");
 		end
-        hwPad = hard_field:get_data(PadSingleton); -- getting hardware keyboard manager
+		if PadSingleton then
+        	hwPad = hard_field:get_data(PadSingleton); -- getting hardware keyboard manager
+		end
     end
-	return orTrg_method:call(hwPad, kc);
+	if hwPad then
+		return orTrg_method:call(hwPad, kc);
+	end
+	return nil;
 end
 
 local function GetKeyDown(kc)
 	-- grabbing the keyboard manager    
-    if not hwKB then
+    if not hwKB or hwKB:get_reference_count() <= 1 then
 		if not GameKeyboardSingleton or GameKeyboardSingleton:get_reference_count() <= 1 then
 			GameKeyboardSingleton = sdk_get_managed_singleton("snow.GameKeyboard");
 		end
-        hwKB = hardKeyboard_field:get_data(GameKeyboardSingleton); -- getting hardware keyboard manager
+		if GameKeyboardSingleton then
+        	hwKB = hardKeyboard_field:get_data(GameKeyboardSingleton); -- getting hardware keyboard manager
+		end
     end
-	--return getTrg:call(hwKB, kc);
-	return getTrg_method:call(hwKB, kc);
+	if hwKB then
+		--return getTrg:call(hwKB, kc);
+		return getTrg_method:call(hwKB, kc);
+	end
+	return nil;
 end
 
 local function GetLobbyManager()
@@ -330,14 +341,15 @@ end
 
 local function SetTimeScale(value)
 	if useSlowMoThisTime then
+		if SceneManager then
+			scene_set_TimeScale_method:call(sdk_call_native_func(SceneManager, SceneManager_type_def, "get_CurrentScene"), value);
+		end
 		if not timeManager or timeManager:get_reference_count() <= 1 then
 			timeManager = sdk_get_managed_singleton("snow.TimeScaleManager");
 		end
-		scene_set_TimeScale_method:call(sdk_call_native_func(SceneManager, SceneManager_type_def, "get_CurrentScene"), value);
-		if timeManager ~= nil then
+		if timeManager then
 			timeManager_set_TimeScale_method:call(timeManager, value);
 		end
-
 		if settings.useMotionBlurInSlowMo and GetMotionBlur() then
 			GetMotionBlur():set_field("_ExposureFrame", 100 * (1.0 - value));
 		end
@@ -412,30 +424,28 @@ local function PreRequestCamChange(args)
 		--somewhat annoyingly this is used for many different cameras, but we'll turn that into a feature anyway
 		if not questManager or questManager:get_reference_count() <= 1 then
 			questManager = sdk_get_managed_singleton("snow.QuestManager");
-			if not questManager then
-				return sdk_CALL_ORIGINAL;
-			end
 		end
-		
-		local endFlow = endFlow_field:get_data(questManager);
-		--idk, this was just the first value i found that actually changes the instant you complete the quest
-		local endCapture = endCaptureFlag_field:get_data(questManager);
-		
-		log_debug("ENDFLOW: "..endFlow);
-		log_debug("ENDCAPTURE: "..endCapture);
-		
-		--endFlow 0 = Start
-		--endFlow 1 = WaitEndTimer
-		--endFlow 2 = InitCameraDemo		
-		--endCapture 0 = Wait
-		--endCapture 1 = Request
-		--endCapture 2 = CaptureEnd
-		if endFlow <= 1 and endCapture == 2 then
-			if settings.disableKillCam then				
+		if questManager then
+			local endFlow = endFlow_field:get_data(questManager);
+			--idk, this was just the first value i found that actually changes the instant you complete the quest
+			local endCapture = endCaptureFlag_field:get_data(questManager);
+			
+			log_debug("ENDFLOW: "..endFlow);
+			log_debug("ENDCAPTURE: "..endCapture);
+			
+			--endFlow 0 = Start
+			--endFlow 1 = WaitEndTimer
+			--endFlow 2 = InitCameraDemo		
+			--endCapture 0 = Wait
+			--endCapture 1 = Request
+			--endCapture 2 = CaptureEnd
+			if endFlow <= 1 and endCapture == 2 then
+				if settings.disableKillCam then				
+					return sdk_SKIP_ORIGINAL;
+				end
+			elseif settings.disableOtherCams then
 				return sdk_SKIP_ORIGINAL;
 			end
-		elseif settings.disableOtherCams then
-			return sdk_SKIP_ORIGINAL;
 		end
 	end
 	return sdk_CALL_ORIGINAL;
@@ -505,42 +515,38 @@ local function PreDie(args)
 end
 
 local function PostDie(retval)
-	if not dieEnemy then
-		return retval;
-	end
-
-	if get_isBossEnemy:call(dieEnemy) then
-		if getNowDieInfo_method:call(dieEnemy) == 65535 then
-			--dont trigger for non death related leavings
-			return retval;
-		end
-		
-		local isEndQuest = false;
-		if not questManager or questManager:get_reference_count() <= 1 then
-			questManager = sdk_get_managed_singleton("snow.QuestManager");
-			if not questManager then
+	if dieEnemy then
+		if get_isBossEnemy:call(dieEnemy) then
+			if getNowDieInfo_method:call(dieEnemy) == 65535 then
+				--dont trigger for non death related leavings
 				return retval;
 			end
+			
+			local isEndQuest = false;
+			if not questManager or questManager:get_reference_count() <= 1 then
+				questManager = sdk_get_managed_singleton("snow.QuestManager");
+			end
+			if questManager then			
+				local endFlow = endFlow_field:get_data(questManager);
+				local endCapture = endCaptureFlag_field:get_data(questManager);
+				
+				log_debug("DIE ENDFLOW: "..endFlow);
+				log_debug("DIE ENDCAPTURE: "..endCapture);
+				
+				isEndQuest = endCapture >= 2;	
+				
+				if not settings.activateForAllMonsters and not isEndQuest then
+					return retval;
+				end
+				
+				lastHitEnemy = dieEnemy;
+				if GetMonsterActivateType(isEndQuest) then
+					CheckShouldActivate();
+				end
+			end
 		end
-		
-		local endFlow = endFlow_field:get_data(questManager);
-		local endCapture = endCaptureFlag_field:get_data(questManager);
-		
-		log_debug("DIE ENDFLOW: "..endFlow);
-		log_debug("DIE ENDCAPTURE: "..endCapture);
-		
-		isEndQuest = endCapture >= 2;	
-		
-		if not settings.activateForAllMonsters and not isEndQuest then
-			return retval;
-		end
-		
-		lastHitEnemy = dieEnemy;
-		if GetMonsterActivateType(isEndQuest) then
-			CheckShouldActivate();
-		end
+		dieEnemy = nil;
 	end
-
 	return retval;
 end
 

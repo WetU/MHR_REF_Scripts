@@ -11,8 +11,8 @@ local imgui_combo = imgui.combo;
 
 local Vector2f = Vector2f;
 local Vector2f_new = Vector2f.new;
-local tostring = tostring;
 
+local tostring = tostring;
 local require = require;
 
 local customization_menu = {};
@@ -40,8 +40,7 @@ function customization_menu.draw()
 	imgui_set_next_window_pos(customization_menu.window_position, 1 << 3, customization_menu.window_pivot);
 	imgui_set_next_window_size(customization_menu.window_size, 1 << 3);
 
-	customization_menu.is_opened = imgui_begin_window(
-		"Better Matchmaking v" .. config.current_config.version, customization_menu.is_opened, customization_menu.window_flags);
+	customization_menu.is_opened = imgui_begin_window("Better Matchmaking v" .. config.current_config.version, customization_menu.is_opened, customization_menu.window_flags);
 
 	if not customization_menu.is_opened then
 		imgui_end_window();
@@ -163,8 +162,6 @@ end
 function customization_menu.init_module()
 	table_helpers = require("Better_Matchmaking.table_helpers");
 	config = require("Better_Matchmaking.config");
-
-	customization_menu.init();
 end
 
 return customization_menu;

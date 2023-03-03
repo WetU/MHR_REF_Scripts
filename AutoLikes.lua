@@ -22,18 +22,14 @@ local imgui_tree_pop = imgui.tree_pop;
 local settings = {};
 local jsonAvailable = json ~= nil;
 
-if jsonAvailable == true then
+if jsonAvailable then
 	json_load_file = json.load_file;
 	json_dump_file = json.dump_file;
 	local loadedSettings = json_load_file("AutoLikes.json");
-	if loadedSettings ~= nil then
-		settings = loadedSettings;
-		if settings.enable == nil then
-			settings.enable = true;
-		end
-	else
-		settings = { enable = true };
-	end
+	settings = loadedSettings or {enable = true};
+end
+if settings.enable == nil then
+	settings.enable = true;
 end
 -- Cache
 local guiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
@@ -54,48 +50,36 @@ local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data
 local guiManager = nil;
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
-	if settings.enable == true then
+	if settings.enable then
 		if not guiManager or guiManager:get_reference_count() <= 1 then
 			guiManager = sdk_to_managed_object(args[2]);
 		end
-		if guiManager ~= nil then
+		if guiManager then
 			local refGoodRelationship = get_refGuiHud_GoodRelationship_method:call(guiManager);
-			if refGoodRelationship ~= nil then
+			if refGoodRelationship then
 				local OtherPlayerInfos = OtherPlayerInfos_field:get_data(refGoodRelationship);
-				if OtherPlayerInfos ~= nil then
+				if OtherPlayerInfos and iter_Num then
 					local isChanged = false;
-					if iter_Num ~= nil then
-						for i = 0, iter_Num, 1 do
-							local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
-							if not OtherPlayerInfo then
-								if i == iter_Num then
-									break;
-								else
-									goto continue;
-								end
-							else
-								local OtherPlayerHunterId = OtherPlayerInfo:get_field("_uniqueHunterId");
-								if not OtherPlayerHunterId or isInBlockList_method:call(refGoodRelationship, OtherPlayerHunterId) == true then
-									if i == iter_Num then
-										break;
-									else
-										goto continue;
-									end
-								else
-									isChanged = true;
-									OtherPlayerInfo:set_field("_good", true);
-									set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-								end
-							end
-							::continue::
+					for i = 0, iter_Num, 1 do
+						local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
+						if not OtherPlayerInfo then
+							goto continue;
 						end
+						local OtherPlayerHunterId = OtherPlayerInfo:get_field("_uniqueHunterId");
+						if not OtherPlayerHunterId or isInBlockList_method:call(refGoodRelationship, OtherPlayerHunterId) then
+							goto continue;
+						end
+						OtherPlayerInfo:set_field("_good", true);
+						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+						isChanged = true;
+						::continue::
 					end
-					if isChanged == true then
+					if isChanged then
 						refGoodRelationship:set_field("_OtherPlayerInfos", OtherPlayerInfos);
 					end
 				end
 				refGoodRelationship:set_field("_gaugeAngleY", gaugeAngleMax_field:get_data(refGoodRelationship));
-				refGoodRelationship:set_field("WaitTime", 0);
+				refGoodRelationship:set_field("WaitTime", 0.0);
 			end
 		end
 	end
@@ -103,7 +87,7 @@ sdk_hook(openGoodRelationshipHud_method, function(args)
 end);
 ---- re Callbacks ----
 local function save_config()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		json_dump_file("AutoLikes.json", settings);
 	end
 end
@@ -114,8 +98,8 @@ re_on_draw_ui(function()
 	if imgui_tree_node("Auto Likes") then
 		local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-		if changed == true then
-			if settings.enable == false then
+		if changed then
+			if not settings.enable then
 				guiManager = nil;
 			end
 			save_config();

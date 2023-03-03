@@ -29,11 +29,11 @@ local config = {};
 local configPath = "VIP_Dango_Ticket_Config.json";
 local jsonAvailable = json ~= nil;
 
-if jsonAvailable == true then
+if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
     local file = json_load_file(configPath);
-	config = file ~= nil and file or {InfiniteDangoTickets = false, TicketByDefault = false, ShowAllDango = false, skewerLvs = {4, 3, 1}};
+	config = file or {InfiniteDangoTickets = false, TicketByDefault = false, ShowAllDango = false, skewerLvs = {4, 3, 1}};
 end
 if config.InfiniteDangoTickets == nil then
 	config.InfiniteDangoTickets = false;
@@ -49,7 +49,7 @@ if config.skewerLvs == nil then
 end
 
 local function save_config()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		json_dump_file(configPath, config);
 	end
 end
@@ -100,7 +100,7 @@ function(args)
 	if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
 		FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
 	end
-	if FacilityManager ~= nil then
+	if FacilityManager then
 		DangoTicketState = getMealTicketFlag_method:call(mealFunc_field:get_data(kitchen_field:get_data(FacilityManager)));
 		if DangoTicketState then
 			SavedDango = sdk_to_managed_object(args[2]);
@@ -132,7 +132,7 @@ function(args)
 	if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
 		FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
 	end
-	if FacilityManager ~= nil then
+	if FacilityManager then
 		local KitchenMealFunc = mealFunc_field:get_data(kitchen_field:get_data(FacilityManager));
 		if config.TicketByDefault then
 			setMealTicketFlag_method:call(KitchenMealFunc, true);
@@ -152,7 +152,7 @@ function(retval)
 		if not FlagManager or FlagManager:get_reference_count() <= 1 then
 			FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
 		end
-		if FacilityManager ~= nil and FlagManager ~= nil then
+		if FacilityManager and FlagManager then
 			for i, dango in ipairs(dangoDataList_ToArray_method:call(dangoDataList_field:get_data(mealFunc_field:get_data(kitchen_field:get_data(FacilityManager))))) do
 				local param_data = dangoData_param_field:get_data(dango);
 				if isUnlocked_method:call(FlagManager, param_Id_field:get_data(param_data)) then
@@ -170,7 +170,7 @@ function(retval)
 		if not DataManager or DataManager:get_reference_count() <= 1 then
 			DataManager = sdk_get_managed_singleton("snow.data.DataManager");
 		end
-		if DataManager ~= nil then
+		if DataManager then
 			tryAddGameItem_method:call(plItemBox_field:get_data(DataManager), 68157564, 1);
 		end
 	end
@@ -207,10 +207,10 @@ re_on_draw_ui(function()
 				imgui_tree_pop();
 			end
 			if changed == true then
-				if config.InfiniteDangoTickets == false then
+				if not config.InfiniteDangoTickets then
 					DataManager = nil;
 				end
-				if config.TicketByDefault == false and config.ShowAllDango == false then
+				if not config.TicketByDefault and not config.ShowAllDango then
 					FacilityManager = nil;
 					FlagManager = nil;
 				end
