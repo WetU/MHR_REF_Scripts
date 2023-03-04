@@ -236,8 +236,8 @@ sdk_hook(updateQuestEndFlow_method, function(args)
 end, function()
     if QuestManager then
         local endFlow = EndFlow_field:get_data(QuestManager);
-        local questTimer = QuestEndFlowTimer_field:get_data(QuestManager);
         if endFlow > EndFlow_Start and endFlow < EndFlow_None then
+            local questTimer = QuestEndFlowTimer_field:get_data(QuestManager);
             if settings.enableKeyboard and (not hwKB or hwKB:get_reference_count() <= 1) then
                 local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
                 if GameKeyboard_singleton then
@@ -262,21 +262,25 @@ end, function()
                     reqAddChatInfomation_method:call(ChatManager, "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str, 2289944406);
                 end
             end
+
+            if questTimer > 1.0 and ((endFlow == EndFlow_WaitEndTimer and (skipCountdown or settings.autoskipCountdown)) or (endFlow == EndFlow_CameraDemo and (skipPostAnim or settings.autoskipPostAnim))) then
+                QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+            end
         else
             skipCountdown = false;
             skipPostAnim = false;
             drawWin = nil;
             drawDone = false;
         end
-        if questTimer > 1.0 and ((endFlow == EndFlow_WaitEndTimer and (skipCountdown or settings.autoskipCountdown)) or (endFlow == EndFlow_CameraDemo and (skipPostAnim or settings.autoskipPostAnim))) then
-            QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-        end
         QuestManager = nil;
     end
 end);
 
 re_on_pre_application_entry("UpdateBehavior", function()
-    local deviceKindDetails = hwPad and get_deviceKindDetails_method:call(hwPad) or nil;
+    if not hwPad then
+        return;
+    end
+    local deviceKindDetails = get_deviceKindDetails_method:call(hwPad);
     if deviceKindDetails then
         if padType ~= deviceKindDetails then
             padType = deviceKindDetails;
