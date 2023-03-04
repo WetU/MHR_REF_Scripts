@@ -139,6 +139,7 @@ function timeout_fix.on_post_timeout_matchmaking(retval)
 			skip_next_hook = true;
 			req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
 		end
+
 	elseif quest_type == quest_types.anomaly_investigation then
 		if timeout_fix_config.quest_types.anomaly_investigation then
 			local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);

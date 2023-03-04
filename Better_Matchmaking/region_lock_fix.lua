@@ -21,7 +21,6 @@ function region_lock_fix.on_set_is_invisible(session_steam)
 		if session_steam ~= last_session_steam_object then
 			set_lobby_distance_filter_method:call(session_steam, 1);
 		end
-
 		last_session_steam_object = session_steam;
 		return;
 	end

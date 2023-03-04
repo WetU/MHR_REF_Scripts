@@ -2,7 +2,7 @@ local json = json;
 local json_load_file = nil;
 local json_dump_file = nil;
 local jsonAvailable = json ~= nil;
-if jsonAvailable == true then
+if jsonAvailable then
 	json_load_file = json.load_file;
 	json_dump_file = json.dump_file;
 end
@@ -18,7 +18,6 @@ local table_helpers;
 
 config.current_config = nil;
 config.config_file_name = "Better Matchmaking/config.json";
-
 config.default_config = {};
 
 function config.init()
@@ -56,9 +55,9 @@ function config.init()
 end
 
 function config.load()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		local loaded_config = json_load_file(config.config_file_name);
-		if loaded_config ~= nil then
+		if loaded_config then
 			log_info("[Better Matchmaking] config.json loaded successfully");
 			config.current_config = table_helpers.merge(config.default_config, loaded_config);
 		else
@@ -69,7 +68,7 @@ function config.load()
 end
 
 function config.save()
-	if jsonAvailable == true then
+	if jsonAvailable then
 		json_dump_file(config.config_file_name, config.current_config);
 	end
 end

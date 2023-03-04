@@ -150,8 +150,13 @@ re_on_frame(function()
 					DemoHandler = nil;
 					DemoHandlerType = nil;
 					assertSafety(guiManager, "guiManager");
+					local GuiDangoLog = GuiDangoLog_field:get_data(guiManager);
 					assertSafety(kitchenFsm, "kitchenFsm");
-					reqDangoLogStart_method:call(GuiDangoLog_field:get_data(guiManager), KitchenDangoLogParam_field:get_data(kitchenFsm), 5.0);
+					local KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
+					if GuiDangoLog and KitchenDangoLogParam then
+						assertSafety(GuiDangoLog, "GuiDangoLog");
+						reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
+					end
 				end
 			end);
 		end

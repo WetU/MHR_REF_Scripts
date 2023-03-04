@@ -244,7 +244,6 @@ end, function()
                     hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
                 end
             end
-
             if settings.enableController and (not hwPad or hwPad:get_reference_count() <= 1) then
                 local Pad_singleton = sdk_get_managed_singleton("snow.Pad");
                 if Pad_singleton then
@@ -252,24 +251,16 @@ end, function()
                 end
             end
 
-            if hwKB and not hwPad then
-                drawWin = 1;
-            elseif not hwKB and hwPad then
-                drawWin = 2;
-            elseif hwKB and hwPad then
-                drawWin = 3;
-            elseif not hwKB and not hwPad then
-                drawWin = nil;
-            end
+            drawWin = ((hwKB and hwPad) and 3) or (hwPad and 2) or (hwKB and 1) or nil;
 
             if settings.enableMsg and not drawDone and questTimer < 59.0 then
+                drawDone = true;
                 if not ChatManager or ChatManager:get_reference_count() <= 1 then
                     ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
                 end
                 if ChatManager then
                     reqAddChatInfomation_method:call(ChatManager, "<COL RED>    FAST RETURN</COL>" .. '\n' .. carve_str .. '\n' .. anim_str .. '\n' .. autoskip_str, 2289944406);
                 end
-                drawDone = true;
             end
         else
             skipCountdown = false;
@@ -299,10 +290,12 @@ end);
 -- Quest Clear GUI
 re_on_frame(function()
     if drawWin then
-        skipPostAnim = drawWin == 1 and getTrg_method:call(hwKB, settings.kbAnimSkipKey) or drawWin == 2 and andOn_method:call(hwPad, settings.padAnimSkipBtn) or drawWin == 3 and (getTrg_method:call(hwKB, settings.kbAnimSkipKey) or andOn_method:call(hwPad, settings.padAnimSkipBtn)) or false;
-        skipCountdown = drawWin == 1 and getTrg_method:call(hwKB, settings.kbCDSkipKey) or drawWin == 2 and andOn_method:call(hwPad, settings.padCDSkipBtn) or drawWin == 3 and (getTrg_method:call(hwKB, settings.kbCDSkipKey) or andOn_method:call(hwPad, settings.padCDSkipBtn)) or false;
+        skipPostAnim = (drawWin == 1 and getTrg_method:call(hwKB, settings.kbAnimSkipKey)) or (drawWin == 2 and andOn_method:call(hwPad, settings.padAnimSkipBtn)) or (drawWin == 3 and (getTrg_method:call(hwKB, settings.kbAnimSkipKey) or andOn_method:call(hwPad, settings.padAnimSkipBtn))) or false;
+        skipCountdown = (drawWin == 1 and getTrg_method:call(hwKB, settings.kbCDSkipKey)) or (drawWin == 2 and andOn_method:call(hwPad, settings.padCDSkipBtn)) or (drawWin == 3 and (getTrg_method:call(hwKB, settings.kbCDSkipKey) or andOn_method:call(hwPad, settings.padCDSkipBtn))) or false;
     end
 end);
+
+re_on_config_save(save_settings);
 
 local padBtnPrev = 0;
 re_on_draw_ui(function()
@@ -467,5 +460,3 @@ re_on_draw_ui(function()
         end
     end
 end);
-
-re_on_config_save(save_settings);

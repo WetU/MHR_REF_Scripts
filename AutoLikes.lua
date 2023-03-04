@@ -5,7 +5,6 @@ local json_dump_file = nil;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_hook = sdk.hook;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
@@ -46,14 +45,10 @@ local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.In
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 
 local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data(nil) - 1;
--- Call Objects
-local guiManager = nil;
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
 	if settings.enable then
-		if not guiManager or guiManager:get_reference_count() <= 1 then
-			guiManager = sdk_to_managed_object(args[2]);
-		end
+		local guiManager = sdk_to_managed_object(args[2]);
 		if guiManager then
 			local refGoodRelationship = get_refGuiHud_GoodRelationship_method:call(guiManager);
 			if refGoodRelationship then
@@ -99,9 +94,6 @@ re_on_draw_ui(function()
 		local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
 		if changed then
-			if not settings.enable then
-				guiManager = nil;
-			end
 			save_config();
 		end
 		imgui_tree_pop();

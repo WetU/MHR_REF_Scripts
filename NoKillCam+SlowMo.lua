@@ -96,8 +96,6 @@ local hwKB = nil;
 local hwPad = nil;
 
 local GameCamera = nil;
-local PadSingleton = nil;
-local GameKeyboardSingleton = nil;
 local timeManager = nil;
 
 local SceneManager = sdk_get_native_singleton("via.SceneManager");
@@ -213,9 +211,7 @@ end
 local function GetPadDown(kc)
 	-- grabbing the gamepad manager
     if not hwPad or hwPad:get_reference_count() <= 1 then
-		if not PadSingleton or PadSingleton:get_reference_count() <= 1 then
-			PadSingleton = sdk_get_managed_singleton("snow.Pad");
-		end
+		local PadSingleton = sdk_get_managed_singleton("snow.Pad");
 		if PadSingleton then
         	hwPad = hard_field:get_data(PadSingleton); -- getting hardware keyboard manager
 		end
@@ -229,9 +225,7 @@ end
 local function GetKeyDown(kc)
 	-- grabbing the keyboard manager    
     if not hwKB or hwKB:get_reference_count() <= 1 then
-		if not GameKeyboardSingleton or GameKeyboardSingleton:get_reference_count() <= 1 then
-			GameKeyboardSingleton = sdk_get_managed_singleton("snow.GameKeyboard");
-		end
+		local GameKeyboardSingleton = sdk_get_managed_singleton("snow.GameKeyboard");
 		if GameKeyboardSingleton then
         	hwKB = hardKeyboard_field:get_data(GameKeyboardSingleton); -- getting hardware keyboard manager
 		end
