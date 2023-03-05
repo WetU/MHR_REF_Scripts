@@ -1,5 +1,3 @@
-local require = require;
-local pcall = pcall;
 local pairs = pairs;
 
 local math = math;
@@ -17,8 +15,6 @@ local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
-local re_on_frame = re.on_frame;
-local re_on_pre_application_entry = re.on_pre_application_entry;
 local re_on_draw_ui = re.on_draw_ui;
 local re_on_config_save = re.on_config_save;
 
@@ -30,8 +26,6 @@ local imgui_tree_node = imgui.tree_node;
 local imgui_tree_pop = imgui.tree_pop;
 local imgui_text = imgui.text;
 local imgui_same_line = imgui.same_line;
-local imgui_slider_int = imgui.slider_int;
-local imgui_slider_float = imgui.slider_float;
 local imgui_spacing = imgui.spacing;
 local imgui_end_window = imgui.end_window;
 
@@ -40,11 +34,8 @@ local settings = {
     autoskipCountdown = false,
     autoskipPostAnim = true,
     enableKeyboard = true,
-    enableController = true,
     kbCDSkipKey = 36,
     kbAnimSkipKey = 35,
-    padCDSkipBtn = 4096,
-    padAnimSkipBtn = 8192,
     win_x = 0,
     win_y = 0,
     win_size_x = 0.5,
@@ -66,8 +57,6 @@ if jsonAvailable then
         -- the lua equivalent of converting to int
         settings.kbCDSkipKey = math_floor(settings.kbCDSkipKey);
         settings.kbAnimSkipKey = math_floor(settings.kbAnimSkipKey);
-        settings.padCDSkipBtn = math_floor(settings.padCDSkipBtn);
-        settings.padAnimSkipBtn = math_floor(settings.padAnimSkipBtn);
     end
 end
 
@@ -77,42 +66,19 @@ local function save_settings()
     end
 end
 
-local PadKeys = require("bth.PadKeys");
-local PlaystationKeys = require("bth.PlaystationKeys");
-local XboxKeys = require("bth.XboxKeys");
-local NintendoKeys = require("bth.NintendoKeys");
-local KeyboardKeys = require("bth.KeyboardKeys");
-
 -- UI drawing state toggles
-local drawWin = nil;
 local drawDone = false;
 local drawSettings = false;
 
 -- Settings logic state toggles
-local setAnimSkipBtn = false;
-local setCDSkipBtn = false;
 local setAnimSkipKey = false;
 local setCDSkipKey = false;
-
--- Input managers
-local padType = 0;
-local padKeyLUT = XboxKeys;
-
--- Quest manager/actual functionality toggles
-local skipCountdown = false;
-local skipPostAnim = false;
 
 -- Cache
 local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
 local hardwareKeyboard_type_def = hardKeyboard_field:get_type();
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
-
-local hard_field = sdk_find_type_definition("snow.Pad"):get_field("hard");
-local padDevice_type_def = hard_field:get_type();
-local andOn_method = padDevice_type_def:get_method("andOn(snow.Pad.Button)");
-local get_on_method = padDevice_type_def:get_method("get_on");
-local get_deviceKindDetails_method = padDevice_type_def:get_method("get_deviceKindDetails");
 
 local questManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local updateQuestEndFlow_method = questManager_type_def:get_method("updateQuestEndFlow");
@@ -125,82 +91,38 @@ local EndFlow_WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data
 local EndFlow_CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil); -- 8
 local EndFlow_None = EndFlow_type_def:get_field("None"):get_data(nil); -- 16
 
-local get_FrameTimeMillisecond_method = sdk_find_type_definition("via.Application"):get_method("get_FrameTimeMillisecond");
 local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
--- Button code to label decoder
-local function pad_btncode_to_label(keycode)
-    label = "";
-    for k, v in pairs(PadKeys) do
-        if keycode & k > 0 and padKeyLUT[PadKeys[k]] ~= nil then
-            label = label .. padKeyLUT[PadKeys[k]] .. "+";
-        end
-    end
-    if #label > 0 then
-        return label:sub(0, -2);
-    end
-    return "None";
-end
-
--- Internal Timer Functions
-local timer = 0;
-local timerLen = 200; -- timer length in millisecs
-local function timer_reset()
-    timer = 0;
-end
-
-local function timer_tick()
-    -- timer tick function, returns true if timerLen has been reached
-    timer = timer + get_FrameTimeMillisecond_method:call(nil);
-    if timer >= timerLen then
-        timer_reset();
-        return true;
-    end
-    return false;
-end
-
 -- Strings and update function
-local padCDSkipLabel = nil;
-local padAnimSkipLabel = nil;
 local carve_str = nil;
 local anim_str = nil;
 local autoskip_str = nil;
 local function update_strings()
-    padCDSkipLabel = pad_btncode_to_label(settings.padCDSkipBtn);
-    padAnimSkipLabel = pad_btncode_to_label(settings.padAnimSkipBtn);
-    carve_str = "Skip Timer: ";
-    anim_str = "Skip Anim.: ";
-    autoskip_str = "Autoskip: ";
-    if settings.enableKeyboard or settings.enableController then
+    if settings.enableMsg then
+        carve_str = "Skip Timer: ";
+        anim_str = "Skip Anim.: ";
+        autoskip_str = "Autoskip: ";
         if settings.enableKeyboard then
             carve_str = carve_str .. KeyboardKeys[settings.kbCDSkipKey];
             anim_str = anim_str .. KeyboardKeys[settings.kbAnimSkipKey];
-            if settings.enableController then
-                carve_str = carve_str .. "/";
-                anim_str = anim_str .. "/";
-            end
+        else
+            carve_str = carve_str .. "N/A";
+            anim_str = anim_str .. "N/A";
         end
-        if settings.enableController then
-            carve_str = carve_str .. padCDSkipLabel;
-            anim_str = anim_str .. padAnimSkipLabel;
-        end
-    else
-        carve_str = carve_str .. "N/A";
-        anim_str = anim_str .. "N/A";
-    end
 
-    if settings.autoskipCountdown or settings.autoskipPostAnim then
-        if settings.autoskipCountdown then
-            autoskip_str = autoskip_str .. "Timer";
-            if settings.autoSkipPostAnim then
-                autoskip_str = autoskip_str .. " & ";
+        if settings.autoskipCountdown or settings.autoskipPostAnim then
+            if settings.autoskipCountdown then
+                autoskip_str = autoskip_str .. "Timer";
+                if settings.autoSkipPostAnim then
+                    autoskip_str = autoskip_str .. " & ";
+                end
             end
+            if settings.autoskipPostAnim then
+                autoskip_str = autoskip_str .. "Anim.";
+            end
+        else
+            autoskip_str = autoskip_str .. "Off";
         end
-        if settings.autoskipPostAnim then
-            autoskip_str = autoskip_str .. "Anim.";
-        end
-    else
-        autoskip_str = autoskip_str .. "Off";
     end
 end
 update_strings();
@@ -227,9 +149,8 @@ QuestManager.EndFlow
 local QuestManager = nil;
 local ChatManager = nil;
 local hwKB = nil;
-local hwPad = nil;
 sdk_hook(updateQuestEndFlow_method, function(args)
-    if settings.enableKeyboard or settings.enableController or settings.autoskipCountdown or settings.autoSkipPostAnim then
+    if settings.enableKeyboard or settings.autoskipCountdown or settings.autoSkipPostAnim then
         QuestManager = sdk_to_managed_object(args[2]);
     end
     return sdk_CALL_ORIGINAL;
@@ -244,14 +165,6 @@ end, function()
                     hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
                 end
             end
-            if settings.enableController and (not hwPad or hwPad:get_reference_count() <= 1) then
-                local Pad_singleton = sdk_get_managed_singleton("snow.Pad");
-                if Pad_singleton then
-                    hwPad = hard_field:get_data(Pad_singleton);
-                end
-            end
-
-            drawWin = ((hwKB and hwPad) and 3) or (hwPad and 2) or (hwKB and 1) or nil;
 
             if settings.enableMsg and not drawDone and questTimer < 59.0 then
                 drawDone = true;
@@ -263,39 +176,14 @@ end, function()
                 end
             end
 
-            if questTimer > 1.0 and ((endFlow == EndFlow_WaitEndTimer and (skipCountdown or settings.autoskipCountdown)) or (endFlow == EndFlow_CameraDemo and (skipPostAnim or settings.autoskipPostAnim))) then
+            if questTimer > 1.0 and (endFlow == EndFlow_WaitEndTimer and (settings.autoskipCountdown or (hwKB and getTrg_method:call(hwKB, settings.kbCDSkipKey))))
+                                or (endFlow == EndFlow_CameraDemo and (settings.autoskipPostAnim or (hwKB and getTrg_method:call(hwKB, settings.kbAnimSkipKey)))) then
                 QuestManager:set_field("_QuestEndFlowTimer", 0.0);
             end
         else
-            skipCountdown = false;
-            skipPostAnim = false;
-            drawWin = nil;
             drawDone = false;
         end
         QuestManager = nil;
-    end
-end);
-
-re_on_pre_application_entry("UpdateBehavior", function()
-    if not hwPad then
-        return;
-    end
-    local deviceKindDetails = get_deviceKindDetails_method:call(hwPad);
-    if deviceKindDetails then
-        if padType ~= deviceKindDetails then
-            padType = deviceKindDetails;
-            padkeyLUT = (padType < 10 and XboxKeys) or (padType > 15 and NintendoKeys) or PlaystationKeys;
-        end
-    else
-        padKeyLUT = XboxKeys;
-    end
-end);
-
--- Quest Clear GUI
-re_on_frame(function()
-    if drawWin then
-        skipPostAnim = (drawWin == 1 and getTrg_method:call(hwKB, settings.kbAnimSkipKey)) or (drawWin == 2 and andOn_method:call(hwPad, settings.padAnimSkipBtn)) or (drawWin == 3 and (getTrg_method:call(hwKB, settings.kbAnimSkipKey) or andOn_method:call(hwPad, settings.padAnimSkipBtn))) or false;
-        skipCountdown = (drawWin == 1 and getTrg_method:call(hwKB, settings.kbCDSkipKey)) or (drawWin == 2 and andOn_method:call(hwPad, settings.padCDSkipBtn)) or (drawWin == 3 and (getTrg_method:call(hwKB, settings.kbCDSkipKey) or andOn_method:call(hwPad, settings.padCDSkipBtn))) or false;
     end
 end);
 
@@ -333,45 +221,12 @@ re_on_draw_ui(function()
                     if imgui_button(KeyboardKeys[settings.kbCDSkipKey]) then
                         setCDSkipKey = true;
                         setAnimSkipKey = false;
-                        setAnimSkipBtn = false;
-                        setCDSkipBtn = false;
                     end
                     imgui_text("Anim. Skip");
                     imgui_same_line();
                     if imgui_button(KeyboardKeys[settings.kbAnimSkipKey]) then
                         setAnimSkipKey = true;
                         setCDSkipKey = false;
-                        setAnimSkipBtn = false;
-                        setCDSkipBtn = false;
-                    end
-                end
-                imgui_tree_pop();
-            end
-
-            if imgui_tree_node("~~Controller Settings~~") then
-                changed, settings.enableController = imgui_checkbox("Enable Controller", settings.enableController);
-                if settings.enableController then
-                    if not hwPad or hwPad:get_reference_count() <= 1 then
-                        local Pad_singleton = sdk_get_managed_singleton("snow.Pad");
-                        if Pad_singleton then
-                            hwPad = hard_field:get_data(Pad_singleton);
-                        end
-                    end
-                    imgui_text("Timer Skip");
-                    imgui_same_line();
-                    if imgui_button(padCDSkipLabel) then
-                        setCDSkipBtn = true;
-                        setAnimSkipBtn = false;
-                        setCDSkipKey = false;
-                        setAnimSkipKey = false;
-                    end
-                    imgui_text("Anim. Skip");
-                    imgui_same_line();
-                    if imgui_button(padAnimSkipLabel) then
-                        setAnimSkipBtn = true;
-                        setCDSkipBtn = false;
-                        setCDSkipKey = false;
-                        setAnimSkipKey = false;
                     end
                 end
                 imgui_tree_pop();
@@ -383,9 +238,6 @@ re_on_draw_ui(function()
                 end
                 if not settings.enableKeyboard then
                     hwKB = nil;
-                end
-                if not settings.enableController then
-                    hwPad = nil;
                 end
                 save_settings();
                 update_strings();
@@ -413,52 +265,11 @@ re_on_draw_ui(function()
                         break;
                     end
                 end
-            elseif setCDSkipBtn then
-                settings.padCDSkipBtn = 0;
-                padCDSkipLabel = pad_btncode_to_label(settings.padCDSkipBtn);
-                local padBtnPressed = get_on_method:call(hwPad); -- get held buttons
-                if padBtnPressed > 0 then -- if they press anything
-                    if padBtnPressed == padBtnPrev then -- is it a new combination?
-                        if timer_tick() then -- start timer, wait for it to finish
-                            settings.padCDSkipBtn = padBtnPressed; -- timer ran out, update settings
-                            save_settings();  -- autosave
-                            padCDSkipLabel = pad_btncode_to_label(settings.padCDSkipBtn);  -- decoding btn label
-                            update_strings();
-                            padBtnPrev = 0;  -- resetting button 'memory'
-                            setCDSkipBtn = false; -- done setting this button
-                        end
-                    else -- not a new combo
-                        padBtnPrev = padBtnPressed; -- save this combo for a bit
-                        timer_reset();
-                    end
-                end
-            elseif setAnimSkipBtn then
-                settings.padAnimSkipBtn = 0;
-                -- checking if held button changed
-                local padBtnPressed = get_on_method:call(hwPad); -- get held buttons
-                if padBtnPressed > 0 then -- if they press anything
-                    padAnimSkipLabel = pad_btncode_to_label(settings.padAnimSkipBtn);
-                    if padBtnPressed == padBtnPrev then -- is it a new combination?
-                        if timer_tick() then -- start timer, wait for it to finish
-                            settings.padAnimSkipBtn = padBtnPressed; -- timer ran out, update settings
-                            save_settings();  -- autosave
-                            padAnimSkipLabel = pad_btncode_to_label(settings.padAnimSkipBtn);  -- decoding btn label
-                            update_strings();
-                            padBtnPrev = 0;  -- resetting button 'memory'
-                            setAnimSkipBtn = false; -- done setting this button
-                        end
-                    else -- not a new combo
-                        padBtnPrev = padBtnPressed; -- save this combo for a bit
-                        timer_reset();
-                    end
-                end 
             end
             imgui_spacing();
             imgui_end_window();
         else
             drawSettings = false;
-            setCDSkipBtn = false;
-            setAnimSkipBtn = false;
             setCDSkipKey = false;
             setAnimSkipKey = false;
         end
