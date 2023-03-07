@@ -20,8 +20,4 @@ timeout_fix.init_module();
 region_lock_fix.init_module();
 misc_fixes.init_module();
 
-re_on_draw_ui(function()
-	if imgui_button("Better Matchmaking v" .. config.current_config.version) then
-		pcall(customization_menu.draw);
-	end
-end);
+re_on_draw_ui(customization_menu.draw);
