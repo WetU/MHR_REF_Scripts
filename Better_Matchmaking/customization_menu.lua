@@ -43,11 +43,11 @@ function customization_menu.draw()
 	end
 
 	if customization_menu.is_opened then
+		local changed = false;
 		if imgui_begin_window("Better Matchmaking v" .. config.current_config.version, true, customization_menu.window_flags) then
 			local status_string = tostring(customization_menu.status);
 			imgui_text("Status: " .. status_string);
 
-			local changed = false;
 			local index = 1;
 
 			if imgui_tree_node("Timeout Fix") then
@@ -108,12 +108,11 @@ function customization_menu.draw()
 			end
 
 			imgui_end_window();
-
+		else
+			customization_menu.is_opened = false;
 			if changed then
 				config.save();
 			end
-		else
-			customization_menu.is_opened = false;
 		end
 	end
 end

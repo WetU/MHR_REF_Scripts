@@ -307,8 +307,8 @@ re_on_draw_ui(function()
 	end
 	
     if isDrawOptionWindow then
+		local changed = false;
         if imgui_begin_window("[Enhance Dango Kitchen] Options", true, 64) then
-			local changed = false;
 			changed, settings.skipDangoSong = imgui_checkbox("Skip the song", settings.skipDangoSong);
 			changed, settings.skipEating = imgui_checkbox("Skip eating", settings.skipEating);
 			changed, settings.skipMotley = imgui_checkbox("Skip Motley Mix", settings.skipMotley);
@@ -331,6 +331,9 @@ re_on_draw_ui(function()
 					imgui_tree_pop();
 				end
 			end
+			imgui_end_window();
+        else
+            isDrawOptionWindow = false;
 			if changed then
 				if not settings.skipDangoSong and not settings.skipEating and not settings.skipMotley then
 					GuiManager = nil;
@@ -351,9 +354,6 @@ re_on_draw_ui(function()
 				end
 				save_config();
 			end
-			imgui_end_window();
-        else
-            isDrawOptionWindow = false;
         end
     end
 end);
