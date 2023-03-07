@@ -144,6 +144,7 @@ sdk_hook(get_SkillActiveRate_method, function(args)
 		SavedDangoChance = skillActiveRate_field:get_data(Param);
 		Param:set_field("_SkillActiveRate", 100);
 	end
+	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if Param and SavedDangoChance then
 		Param:set_field("_SkillActiveRate", SavedDangoChance);
@@ -161,30 +162,31 @@ sdk_hook(setDangoDetailWindow_method, function(args)
 			guiKitchen_SpecialSkewerDangoLv_set_Item_method:call(guiKitchen_SpecialSkewerDangoLv_field:get_data(sdk_to_managed_object(args[2])), i, newSkewerLv);
 		end
 	end
+	return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(updateList_method, function(args)
-	if not settings.TicketByDefault and not settings.EnableSkewerLv then
-		return;
-	end
-	if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
-		FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
-	end
-	if FacilityManager then
-		local KitchenMealFunc = mealFunc_field:get_data(kitchen_field:get_data(FacilityManager));
-		if KitchenMealFunc then
-			if settings.TicketByDefault then
-				setMealTicketFlag_method:call(KitchenMealFunc, true);
-			end
-			if settings.EnableSkewerLv then
-				for i = 0, 2, 1 do
-					local newSkewerLv = sdk_create_instance("System.UInt32");
-					newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
-					mealFunc_SpecialSkewerDangoLv_set_Item_method:call(mealFunc_SpecialSkewerDangoLv_field:get_data(KitchenMealFunc), i, newSkewerLv);
+	if settings.TicketByDefault or settings.EnableSkewerLv then
+		if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
+			FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
+		end
+		if FacilityManager then
+			local KitchenMealFunc = mealFunc_field:get_data(kitchen_field:get_data(FacilityManager));
+			if KitchenMealFunc then
+				if settings.TicketByDefault then
+					setMealTicketFlag_method:call(KitchenMealFunc, true);
+				end
+				if settings.EnableSkewerLv then
+					for i = 0, 2, 1 do
+						local newSkewerLv = sdk_create_instance("System.UInt32");
+						newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
+						mealFunc_SpecialSkewerDangoLv_set_Item_method:call(mealFunc_SpecialSkewerDangoLv_field:get_data(KitchenMealFunc), i, newSkewerLv);
+					end
 				end
 			end
 		end
 	end
+	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if settings.ShowAllDango then
 		if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
@@ -274,6 +276,7 @@ sdk_hook(requestAutoSaveAll_method, function()
 			KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
 		end
 	end
+	return sdk_CALL_ORIGINAL;
 end, function()
 	if GuiDangoLog and KitchenDangoLogParam then
 		reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
