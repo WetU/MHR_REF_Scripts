@@ -3,11 +3,6 @@ local require = require;
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;
 
-local imgui = imgui;
-local imgui_button = imgui.button;
-
-local pcall = pcall;
-
 local config = require("Better_Matchmaking.config");
 local customization_menu = require("Better_Matchmaking.customization_menu");
 local timeout_fix = require("Better_Matchmaking.timeout_fix");
