@@ -6,9 +6,6 @@ local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 local sdk_hook = sdk.hook;
 
-local log = log;
-local log_info = log.info;
-
 local os = os;
 local os_clock = os.clock;
 
@@ -96,7 +93,6 @@ function timeout_fix.on_post_timeout_matchmaking(retval)
 	if not session_manager or session_manager:get_reference_count() <= 1 then
 		session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
 		if not session_manager then
-			log_info("[Better Matchmaking] No session manager");
 			return retval;
 		end
 	end

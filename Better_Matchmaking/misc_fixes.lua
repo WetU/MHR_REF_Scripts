@@ -7,9 +7,6 @@ local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
-local log = log;
-local log_info = log.info;
-
 local require = require;
 
 local misc_fixes = {};
@@ -47,7 +44,6 @@ function misc_fixes.on_set_open_network_error_window_selection(gui_manager)
 	if not quest_manager or quest_manager:get_reference_count() <= 1 then
 		quest_manager = sdk_get_managed_singleton("snow.QuestManager");
 		if not quest_manager then
-			log_info("[Better Matchmaking] quest manager is missing");
 			return sdk_CALL_ORIGINAL;
 		end
 	end

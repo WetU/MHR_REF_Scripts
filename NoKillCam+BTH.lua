@@ -1,0 +1,268 @@
+---------------------------Settings----------------------
+local settings = {
+	NoKillCam = {
+		disableKillCam = true,
+	},
+	BTH = {
+		autoSkipCountdown = false,
+		autoSkipPostAnim = true,
+		enableKeyboard = true,
+		kbCDSkipKey = 36,
+		kbAnimSkipKey = 35
+	}
+};
+----------------------------------------------------------
+local sdk = sdk;
+local sdk_find_type_definition = sdk.find_type_definition;
+local sdk_get_managed_singleton = sdk.get_managed_singleton;
+local sdk_to_int64 = sdk.to_int64;
+local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_hook = sdk.hook;
+local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
+
+local re = re;
+local re_on_draw_ui = re.on_draw_ui;
+local re_on_config_save = re.on_config_save;
+
+local imgui = imgui;
+local imgui_tree_node = imgui.tree_node;
+local imgui_checkbox = imgui.checkbox;
+local imgui_tree_pop = imgui.tree_pop;
+local imgui_button = imgui.button;
+local imgui_begin_window = imgui.begin_window;
+local imgui_text = imgui.text;
+local imgui_same_line = imgui.same_line;
+local imgui_spacing = imgui.spacing;
+local imgui_end_window = imgui.end_window;
+
+local json = json;
+local json_dump_file = nil;
+local json_load_file = nil;
+
+local require = require;
+local pairs = pairs;
+
+local jsonAvailable = json ~= nil;
+if jsonAvailable then
+	json_dump_file = json.dump_file;
+	json_load_file = json.load_file;
+	local loadedSettings = json_load_file("NoKillCam+BTH.json");
+	settings = loadedSettings or settings;
+end
+
+local function SaveSettings()
+	if jsonAvailable then
+		json_dump_file("NoKillCam+BTH.json", settings);
+	end
+end
+
+-- Common Cache
+local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
+local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
+-- No Kill Cam Cache
+local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
+local RequestActive_method = sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive");
+-- BTH Cache
+local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
+local hardwareKeyboard_type_def = hardKeyboard_field:get_type();
+local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
+local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
+
+local updateQuestEndFlow_method = QuestManager_type_def:get_method("updateQuestEndFlow");
+local QuestEndFlowTimer_field = QuestManager_type_def:get_field("_QuestEndFlowTimer");
+
+local EndFlow_type_def = sdk_find_type_definition("snow.QuestManager.EndFlow");
+local EndFlow_Start = EndFlow_type_def:get_field("Start"):get_data(nil); -- 0
+local EndFlow_WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil); -- 1
+local EndFlow_CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil); -- 8
+local EndFlow_None = EndFlow_type_def:get_field("None"):get_data(nil); -- 16
+-- Remove Town Interaction Delay cache
+local questStatus_field = QuestManager_type_def:get_field("_QuestStatus");
+local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable");
+
+local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
+--[[
+QuestManager.EndFlow
+ 0 == Start;
+ 1 == WaitEndTimer;
+ 2 == InitCameraDemo;
+ 3 == WaitFadeCameraDemo;
+ 4 == LoadCameraDemo;
+ 5 == LoadInitCameraDemo;
+ 6 == LoadWaitCameraDemo;
+ 7 == StartCameraDemo;
+ 8 == CameraDemo;
+ 9 == Stamp;
+ 10 == WaitFadeOut;
+ 11 == InitEventCut;
+ 12 == WaitLoadEventCut;
+ 13 == WaitPlayEventCut;
+ 14 == WaitEndEventCut;
+ 15 == End;
+ 16 == None;
+
+QuestManager.CaptureStatus
+ 0 == Wait;
+ 1 == Request;
+ 2 == CaptureEnd;
+]]--
+
+-- Common Object
+local QuestManager = nil;
+
+-- No Kill Cam
+sdk_hook(RequestActive_method, function(args)
+	if settings.NoKillCam.disableKillCam then
+		if (sdk_to_int64(args[3]) & 0xFFFFFFFF == 3) then --type 3 == 'demo' camera type
+			if not QuestManager or QuestManager:get_reference_count() <= 1 then
+				QuestManager = sdk_get_managed_singleton("snow.QuestManager");
+			end
+			if QuestManager then
+				local endFlow = EndFlow_field:get_data(QuestManager);
+				local endCapture = EndCaptureFlag_field:get_data(QuestManager);
+				if endFlow <= EndFlow_WaitEndTimer and endCapture == EndCaptureFlag_CaptureEnd then
+					return sdk_SKIP_ORIGINAL;
+				end
+			end
+		end
+	end
+	return sdk_CALL_ORIGINAL;
+end);
+
+-- BTH
+local hwKB = nil;
+
+local KeyboardKeys = require("bth.KeyboardKeys");
+
+-- UI drawing state toggles
+local drawSettings = false;
+-- Settings logic state toggles
+local setAnimSkipKey = false;
+local setCDSkipKey = false;
+
+sdk_hook(updateQuestEndFlow_method, function(args)
+	if (settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim) and (not QuestManager or QuestManager:get_reference_count() <= 1) then
+       	QuestManager = sdk_to_managed_object(args[2]);
+	end
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if (settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim) and QuestManager then
+		local endFlow = EndFlow_field:get_data(QuestManager);
+		if endFlow > EndFlow_Start and endFlow < EndFlow_None then
+			local questTimer = QuestEndFlowTimer_field:get_data(QuestManager);
+			if settings.BTH.enableKeyboard and (not hwKB or hwKB:get_reference_count() <= 1) then
+				local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+				if GameKeyboard_singleton then
+					hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+				end
+			end
+
+			if questTimer > 1.0 and (endFlow == EndFlow_WaitEndTimer and (settings.BTH.autoSkipCountdown or (hwKB and getTrg_method:call(hwKB, settings.BTH.kbCDSkipKey))))
+								or (endFlow == EndFlow_CameraDemo and (settings.BTH.autoSkipPostAnim or (hwKB and getTrg_method:call(hwKB, settings.BTH.kbAnimSkipKey)))) then
+				QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+			end
+		end
+    end
+end);
+
+-- Remove Town Interaction Delay
+sdk_hook(changeAllMarkerEnable_method, function(args)
+	if (sdk_to_int64(args[3]) & 1) ~= 1 then
+		if not QuestManager or QuestManager:get_reference_count() <= 1 then
+			QuestManager = sdk_get_managed_singleton("snow.QuestManager")
+		end
+		if QuestManager and questStatus_field:get_data(QuestManager) == 0 then
+			return sdk_SKIP_ORIGINAL;
+		end
+	end
+	return sdk_CALL_ORIGINAL;
+end);
+
+-------------------------UI GARBAGE----------------------------------
+local padBtnPrev = 0;
+re_on_draw_ui(function()
+	local changed = false;
+    if imgui_tree_node("No Kill-Cam + BTH") then
+		changed, settings.NoKillCam.disableKillCam = imgui_checkbox("Disable KillCam", settings.NoKillCam.disableKillCam);
+		imgui_spacing();
+		if imgui_button("Fast Return Settings") then
+			drawSettings = true;
+		end
+		if drawSettings then
+			if imgui_begin_window("Fast Return Settings", true, 64) then
+				if imgui_tree_node("~~Autoskip Settings~~") then
+					changed, settings.BTH.autoSkipCountdown = imgui_checkbox('Autoskip Carve Timer', settings.BTH.autoSkipCountdown);
+					changed, settings.BTH.autoSkipPostAnim = imgui_checkbox('Autoskip Ending Anim.', settings.BTH.autoSkipPostAnim);
+					imgui_tree_pop();
+				end
+
+				if imgui_tree_node("~~Keyboard Settings~~") then
+					changed, settings.BTH.enableKeyboard = imgui_checkbox("Enable Keyboard", settings.BTH.enableKeyboard);
+					if settings.BTH.enableKeyboard then
+						if not hwKB or hwKB:get_reference_count() <= 1 then
+							local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+							if GameKeyboard_singleton then
+								hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+							end
+						end
+						imgui_text("Timer Skip");
+						imgui_same_line();
+						if imgui_button(KeyboardKeys[settings.BTH.kbCDSkipKey]) then
+							setCDSkipKey = true;
+							setAnimSkipKey = false;
+						end
+						imgui_text("Anim. Skip");
+						imgui_same_line();
+						if imgui_button(KeyboardKeys[settings.BTH.kbAnimSkipKey]) then
+							setAnimSkipKey = true;
+							setCDSkipKey = false;
+						end
+					end
+					imgui_tree_pop();
+				end
+	
+				if setCDSkipKey then
+					settings.BTH.kbCDSkipKey = 0;
+					for k, _ in pairs(KeyboardKeys) do
+						if getDown_method:call(hwKB, k) then
+							settings.BTH.kbCDSkipKey = k;
+							save_settings();
+							setCDSkipKey = false;
+							break;
+						end
+					end
+				elseif setAnimSkipKey then
+					settings.BTH.kbAnimSkipKey = 0;
+					for k, _ in pairs(KeyboardKeys) do
+						if getDown_method:call(hwKB, k) then
+							settings.BTH.kbAnimSkipKey = k;
+							save_settings();
+							setAnimSkipKey = false;
+							break;
+						end
+					end
+				end
+				imgui_spacing();
+				imgui_end_window();
+			else
+				drawSettings = false;
+				setCDSkipKey = false;
+				setAnimSkipKey = false;
+			end
+		end
+        imgui_tree_pop();
+	else
+		if changed then
+			if not settings.BTH.enableKeyboard then
+				hwKB = nil;
+				if not settings.NoKillCam.disableKillCam and not settings.BTH.autoSkipCountdown and not settings.BTH.autoSkipPostAnim then
+					QuestManager = nil;
+				end
+			end
+			SaveSettings();
+		end
+    end
+end);
+
+re_on_config_save(SaveSettings);

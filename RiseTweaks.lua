@@ -10,6 +10,7 @@ local sdk_hook = sdk.hook;
 
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;
+local re_on_config_save = re.on_config_save;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -17,11 +18,6 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_slider_int = imgui.slider_int;
 local imgui_tree_pop = imgui.tree_pop;
 local imgui_drag_float = imgui.drag_float;
-local imgui_button = imgui.button;
-
-local ipairs = ipairs;
-local type = type;
-local require = require;
 
 local fps_option = {30.0, 60.0, 90.0, 120.0, 144.0, 165.0, 240.0, 600.0};
 local config = {};
@@ -33,7 +29,6 @@ if jsonAvailable then
 	local config_file = json_load_file(config_path);
 	config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2], enableQuality = false, desiredQuality = 1.0};
 end
-
 if config.enableFPS == nil then
 	config.enableFPS = true;
 end
@@ -96,7 +91,7 @@ sdk_hook(playEventCommon_method, nil, fps_handler); -- only bother setting fps f
 
 function quality_handler(retval)
 	if config.enableQuality then
-		if not Renderer or Renderer:get_reference_count() <= 1 then
+		if not Renderer then
 			Renderer = sdk_get_native_singleton("via.render.Renderer");
 		end
 		if Renderer then
@@ -107,9 +102,17 @@ function quality_handler(retval)
 end
 sdk_hook(setSamplerQuality_method, nil, quality_handler); -- set image quality whenever the scene changes, this seems to be be called whenever a graphical setting is changed that would cause the game to redo the sampler.
 
+local function save_config()
+	if jsonAvailable then
+		json_dump_file(config_path, config);
+	end
+end
+
+re_on_config_save(save_config);;
+
 re_on_draw_ui(function()
+	local changed = false;
 	if imgui_tree_node("RiseTweaks") then
-		local changed = false;
 		if imgui_tree_node("Frame Rate") then
 			changed, config.enableFPS = imgui_checkbox("Enable", config.enableFPS);
 			if config.enableFPS then
@@ -118,39 +121,30 @@ re_on_draw_ui(function()
 					changed, config.desiredFPS = imgui_slider_int("Frame Rate", config.desiredFPS, 10, 600);
 				end
 			end
-			if changed then
-				if not config.enableFPS then
-					StmOptionManager = nil;
-					Application = nil;
-				else
-					fps_handler();
-				end
-			end
 			imgui_tree_pop();
 		end
 		
-		changed = false;
 		if imgui_tree_node("Image Quality") then
 			changed, config.enableQuality = imgui_checkbox("Enable", config.enableQuality);
 			if config.enableQuality then
 				changed, config.desiredQuality = imgui_drag_float("Image Quality", config.desiredQuality, 0.05, 0.1, 4.0);
 			end
-			if changed then
-				if not config.enableQuality then
-					Renderer = nil;
-				else				
-					quality_handler();
-				end
-			end
 			imgui_tree_pop();
 		end
-		
-		if imgui_button("Save Settings") then
-			if json_load_file(config_path) ~= config then
-				json_dump_file(config_path, config);
+	else
+		if changed then
+			if not config.enableFPS then
+				StmOptionManager = nil;
+				Application = nil;
+			else
+				fps_handler();
 			end
+			if not config.enableQuality then
+				Renderer = nil;
+			else
+				quality_handler();
+			end
+			save_config();
 		end
-		
-		imgui_tree_pop();
 	end
 end);

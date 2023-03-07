@@ -62,15 +62,16 @@ end
 re_on_config_save(save_config);
 
 re_on_draw_ui(function()
+	local changed = false;
 	if imgui_tree_node("Fix Marionette Camera") then
-		local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
+		imgui_tree_pop();
+	else
 		if changed then
 			if not settings.enable then
 				CameraManager = nil;
 			end
 			save_config();
 		end
-		imgui_tree_pop();
 	end
 end);

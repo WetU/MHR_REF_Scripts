@@ -2,7 +2,6 @@ local type = type;
 local next = next;
 local setmetatable = setmetatable;
 local assert = assert;
-local ipairs = ipairs;
 local pairs = pairs;
 
 local string = string;
@@ -50,7 +49,7 @@ function table_helpers.merge(...)
 	local tables_to_merge = { ... };
 	assert(#tables_to_merge > 1, "There should be at least two tables to merge them");
 
-	for key, table in ipairs(tables_to_merge) do
+	for key, table in pairs(tables_to_merge) do
 		assert(type(table) == "table", string_format("Expected a table as function parameter %d", key));
 	end
 

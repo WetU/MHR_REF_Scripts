@@ -7,10 +7,6 @@ if jsonAvailable then
 	json_dump_file = json.dump_file;
 end
 
-local log = log;
-local log_info = log.info;
-local log_error = log.error;
-
 local require = require;
 
 local config = {};
@@ -58,10 +54,8 @@ function config.load()
 	if jsonAvailable then
 		local loaded_config = json_load_file(config.config_file_name);
 		if loaded_config then
-			log_info("[Better Matchmaking] config.json loaded successfully");
 			config.current_config = table_helpers.merge(config.default_config, loaded_config);
 		else
-			log_error("[Better Matchmaking] Failed to load config.json");
 			config.current_config = table_helpers.deep_copy(config.default_config);
 		end
 	end

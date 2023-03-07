@@ -19,10 +19,9 @@ local imgui_tree_pop = imgui.tree_pop;
 local imgui_push_font = imgui.push_font;
 local imgui_combo = imgui.combo;
 local imgui_slider_int = imgui.slider_int;
-local imgui_text = imgui.text;
 local imgui_pop_font = imgui.pop_font;
 
-local ipairs = ipairs;
+local pairs = pairs;
 
 local string = string;
 local string_format = string.format;
@@ -53,7 +52,7 @@ local function FindIndex(table, value)
 end
 
 local CycleTypeMap = {};
-for _, field in ipairs(sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_fields()) do
+for _, field in pairs(sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_fields()) do
 	if field:is_static() then
 		local name = field:get_name();
 		local raw_value = field:get_data(nil);
@@ -71,7 +70,6 @@ if jsonAvailable then
     local loadedConfig = json_load_file("AutoSupply.json");
     config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "en_US"};
 end
-
 if config.Enabled == nil then
     config.Enabled = true;
 end
@@ -180,7 +178,9 @@ local function SendMessage(text)
         if not ChatManager or ChatManager:get_reference_count() <= 1 then
             ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
         end
-		reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
+        if ChatManager then
+		    reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
+        end
 	end
 end
 
@@ -188,11 +188,12 @@ local function GetItemLoadout(loadoutIndex)
     if not DataManager or DataManager:get_reference_count() <= 1 then
         DataManager = sdk_get_managed_singleton("snow.data.DataManager");
     end
-
-	local ItemMySet = getItemMySet_method:call(DataManager);
-	if ItemMySet then
-		return getData_method:call(ItemMySet, loadoutIndex);
-	end
+    if DataManager then
+        local ItemMySet = getItemMySet_method:call(DataManager);
+        if ItemMySet then
+            return getData_method:call(ItemMySet, loadoutIndex);
+        end
+    end
     return nil;
 end
 
@@ -200,11 +201,12 @@ local function ApplyItemLoadout(loadoutIndex)
     if not DataManager or DataManager:get_reference_count() <= 1 then
         DataManager = sdk_get_managed_singleton("snow.data.DataManager");
     end
-
-	local ItemMySet = getItemMySet_method:call(DataManager);
-	if ItemMySet then
-		return applyItemMySet_method:call(ItemMySet, loadoutIndex);
-	end
+    if DataManager then
+        local ItemMySet = getItemMySet_method:call(DataManager);
+        if ItemMySet then
+            return applyItemMySet_method:call(ItemMySet, loadoutIndex);
+        end
+    end
     return nil;
 end
 
@@ -221,11 +223,12 @@ local function GetCurrentWeaponType()
     if not PlayerManager or PlayerManager:get_reference_count() <= 1 then
         PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
     end
-
-	local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
-	if MasterPlayer then
-		return playerWeaponType_field:get_data(MasterPlayer);
-	end
+    if PlayerManager then
+        local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
+        if MasterPlayer then
+            return playerWeaponType_field:get_data(MasterPlayer);
+        end
+    end
     return nil;
 end
 
@@ -233,11 +236,12 @@ local function GetEquipmentLoadout(loadoutIndex)
     if not EquipDataManager or EquipDataManager:get_reference_count() <= 1 then
         EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
     end
-
-	local PlEquipMySetList = PlEquipMySetList_field:get_data(EquipDataManager);
-	if PlEquipMySetList then
-		return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
-	end
+    if EquipDataManager then
+        local PlEquipMySetList = PlEquipMySetList_field:get_data(EquipDataManager);
+        if PlEquipMySetList then
+            return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
+        end
+    end
     return nil;
 end
 
@@ -538,32 +542,36 @@ local function Supply()
         if not ProgressOwlNestManager or ProgressOwlNestManager:get_reference_count() <= 1 then
             ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
         end
-        if not VillageAreaManager or VillageAreaManager:get_reference_count() <= 1 then
-            VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-        end
-        if ProgressOwlNestManager and VillageAreaManager then
+        if ProgressOwlNestManager then
             local progressOwlNestSaveData = get_SaveData_method:call(ProgressOwlNestManager);
             if progressOwlNestSaveData then
                 local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
                 local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
-                if kamuraStack >= config.CohootMaxStock then
-                    local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                    if savedAreaNo ~= KAMURA then
-                        set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                        supply_method:call(ProgressOwlNestManager);
-                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                    else
-                        supply_method:call(ProgressOwlNestManager);
+                if kamuraStack >= config.CohootMaxStock or elgadoStack >= config.CohootMaxStock then
+                    if not VillageAreaManager or VillageAreaManager:get_reference_count() <= 1 then
+                        VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
                     end
-                end
-                if elgadoStack >= config.CohootMaxStock then
-                    local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                    if savedAreaNo ~= ELGADO then
-                        set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                        supply_method:call(ProgressOwlNestManager);
-                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                    else
-                        supply_method:call(ProgressOwlNestManager);
+                    if VillageAreaManager then
+                        if kamuraStack >= config.CohootMaxStock then
+                            local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
+                            if savedAreaNo ~= KAMURA then
+                                set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                                supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                            else
+                                supply_method:call(ProgressOwlNestManager);
+                            end
+                        end
+                        if elgadoStack >= config.CohootMaxStock then
+                            local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
+                            if savedAreaNo ~= ELGADO then
+                                set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                                supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                            else
+                                supply_method:call(ProgressOwlNestManager);
+                            end
+                        end
                     end
                 end
             end
@@ -586,8 +594,8 @@ re_on_draw_ui(function()
     if font then
         imgui_push_font(font);
     end
+    local changed = false;
     if imgui_tree_node("AutoSupply") then
-        local changed = false;
         changed, config.Enabled = imgui_checkbox("Enabled", config.Enabled);
         changed, config.EnableNotification = imgui_checkbox("EnableNotification", config.EnableNotification);
         changed, config.EnableCohoot = imgui_checkbox("EnableCohootSupply", config.EnableCohoot);
@@ -626,6 +634,8 @@ re_on_draw_ui(function()
             imgui_tree_pop();
         end
 
+        imgui_tree_pop();
+    else
         if changed then
             if not config.Enabled then
                 ChatManager = nil;
@@ -643,7 +653,6 @@ re_on_draw_ui(function()
             end
             save_config();
         end
-        imgui_tree_pop();
     end
     if font then
         imgui_pop_font();
