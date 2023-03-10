@@ -38,27 +38,23 @@ end
 if config.autoFPS == nil then
 	config.autoFPS = true;
 end
-if config.desiredFPS == nil then
-	config.desiredFPS = tonumber(fps_option[2]);
-elseif config.desiredFPS < 10.0 then
-	config.desiredFPS = 10.0;
-elseif config.desiredFPS > tonumber(fps_option[8]) then
-	config.desiredFPS = tonumber(fps_option[8]);
-end
 if config.enableQuality == nil then
 	config.enableQuality = false;
 end
 if config.desiredQuality == nil then
 	config.desiredQuality = 1.0;
 end
-
-local function FindIndex(table, value)
-    for i = 1, #table do
-        if table[i] == value then
-            return i;
-        end
-    end
-    return nil;
+local found = false;
+if config.desiredFPS then
+	for i = 1, #fps_option do
+		if fps_option[i] == tostring(config.desiredFPS) then
+			found = true;
+			break;
+		end
+	end
+end
+if not found then
+	config.desiredFPS = tonumber(fps_option[2]);
 end
 
 local Application = nil;
@@ -122,6 +118,15 @@ end
 
 re_on_config_save(save_config);
 
+local function FindIndex(table, value)
+    for i = 1, #table do
+        if table[i] == value then
+            return i;
+        end
+    end
+    return nil;
+end
+
 re_on_draw_ui(function()
 	local changed = false;
 	if imgui_tree_node("RiseTweaks") then
@@ -130,7 +135,13 @@ re_on_draw_ui(function()
 			if config.enableFPS then
 				changed, config.autoFPS = imgui_checkbox("Automatic Frame Rate", config.autoFPS);
 				if not config.autoFPS then
-					local desiredFPS = FindIndex(fps_option, tostring(config.desiredFPS));
+					local desiredFPS = nil;
+					for i = 1, #fps_option do
+						if table[i] == tostring(config.desiredFPS) then
+							desiredFPS = i;
+							break;
+						end
+					end
 					changed, desiredFPS = imgui_combo("Frame Rate", desiredFPS, fps_option);
 					config.desiredFPS = tonumber(fps_option[desiredFPS]);
 				end
