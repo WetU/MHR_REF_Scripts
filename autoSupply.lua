@@ -21,7 +21,7 @@ local imgui_combo = imgui.combo;
 local imgui_slider_int = imgui.slider_int;
 local imgui_pop_font = imgui.pop_font;
 
-local ipairs = ipairs;
+local pairs = pairs;
 
 local string = string;
 local string_format = string.format;
@@ -52,7 +52,7 @@ local function FindIndex(table, value)
 end
 
 local CycleTypeMap = {};
-for _, field in ipairs(sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_fields()) do
+for _, field in pairs(sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_fields()) do
 	if field:is_static() then
 		local name = field:get_name();
 		local raw_value = field:get_data(nil);
