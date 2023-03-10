@@ -28,28 +28,17 @@ local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_met
 -- static --
 local GameStartStateType_type_def = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager.GameStartStateType");
 local LOADING_STATES =
-{
-	[GameStartStateType_type_def:get_field("CAPCOM_Logo"):get_data(nil)] = true, -- 1
-	[GameStartStateType_type_def:get_field("Re_Logo"):get_data(nil)] = true, -- 2
-	[GameStartStateType_type_def:get_field("Blank"):get_data(nil)] = true, -- 5
-	[GameStartStateType_type_def:get_field("Health_Caution"):get_data(nil)] = true -- 6
-};
+	{
+		[GameStartStateType_type_def:get_field("CAPCOM_Logo"):get_data(nil)] = true, -- 1
+		[GameStartStateType_type_def:get_field("Re_Logo"):get_data(nil)] = true, -- 2
+		[GameStartStateType_type_def:get_field("Blank"):get_data(nil)] = true, -- 5
+		[GameStartStateType_type_def:get_field("Health_Caution"):get_data(nil)] = true -- 6
+	};
 local FINISHED = sdk_find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 ------------
-local FadeManager = nil;
-local function getFadeManager()
-	if not FadeManager or FadeManager:get_reference_count() <= 1 then
-		FadeManager = sdk_get_managed_singleton("snow.FadeManager");
-	end
-	if FadeManager then
-		return FadeManager;
-	end
-	return nil;
-end
-
 local function isLoading()
 	local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-	if GuiGameStartFsmManager ~= nil then
+	if GuiGameStartFsmManager then
 		return LOADING_STATES[get_GameStartState_method:call(GuiGameStartFsmManager)];
 	end
 	return false;
@@ -62,8 +51,11 @@ local function skipAction(action)
 end
 
 local function ClearFade_main()
-	set_FadeMode_method:call(getFadeManager(), FINISHED);
-	getFadeManager():set_field("fadeOutInFlag", false);
+	local FadeManager = sdk_get_managed_singleton("snow.FadeManager");
+	if FadeManager then
+		set_FadeMode_method:call(FadeManager, FINISHED);
+		FadeManager:set_field("fadeOutInFlag", false);
+	end
 end
 
 local function ClearFade()

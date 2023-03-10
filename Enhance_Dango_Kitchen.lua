@@ -144,7 +144,6 @@ sdk_hook(get_SkillActiveRate_method, function(args)
 		SavedDangoChance = skillActiveRate_field:get_data(Param);
 		Param:set_field("_SkillActiveRate", 100);
 	end
-	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if Param and SavedDangoChance then
 		Param:set_field("_SkillActiveRate", SavedDangoChance);
@@ -162,7 +161,6 @@ sdk_hook(setDangoDetailWindow_method, function(args)
 			guiKitchen_SpecialSkewerDangoLv_set_Item_method:call(guiKitchen_SpecialSkewerDangoLv_field:get_data(sdk_to_managed_object(args[2])), i, newSkewerLv);
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(updateList_method, function(args)
@@ -186,7 +184,6 @@ sdk_hook(updateList_method, function(args)
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if settings.ShowAllDango then
 		if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
@@ -220,9 +217,6 @@ sdk_hook(order_method, nil, function(retval)
 end);
 
 -- Skip Dango Song Main Function
-local GuiManager = nil;
-local GuiDangoLog = nil;
-
 local DemoHandler = nil;
 local DemoHandlerType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
 sdk_hook(play_method, function(args)
@@ -259,20 +253,15 @@ end, function()
 	end
 end);
 
+local GuiDangoLog = nil;
 local KitchenDangoLogParam = nil;
 sdk_hook(requestAutoSaveAll_method, function()
 	if DemoHandlerType == 2 then
 		DemoHandlerType = nil;
+		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
 		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-		if not GuiDangoLog or GuiDangoLog:get_reference_count() <= 1 then
-			if not GuiManager or GuiManager:get_reference_count() <= 1 then
-				GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-			end
-			if GuiManager then
-				GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
-			end
-		end
-		if kitchenFsm then
+		if GuiManager and kitchenFsm then
+			GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
 			KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
 		end
 	end
@@ -281,6 +270,7 @@ end, function()
 	if GuiDangoLog and KitchenDangoLogParam then
 		reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
 	end
+	GuiDangoLog = nil;
 	KitchenDangoLogParam = nil;
 end);
 ---- re Callbacks ----
@@ -335,10 +325,6 @@ re_on_draw_ui(function()
         else
             isDrawOptionWindow = false;
 			if changed then
-				if not settings.skipDangoSong and not settings.skipEating and not settings.skipMotley then
-					GuiManager = nil;
-					GuiDangoLog = nil;
-				end
 				if not settings.SkillAlwaysActive then
 					SavedDangoChance = nil;
 					Param = nil;

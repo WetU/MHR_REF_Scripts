@@ -1,3 +1,6 @@
+local tonumber = tonumber;
+local tostring = tostring;
+
 local json = json;
 local json_dump_file = nil;
 local json_load_file = nil;
@@ -15,11 +18,11 @@ local re_on_config_save = re.on_config_save;
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
 local imgui_checkbox = imgui.checkbox;
-local imgui_slider_int = imgui.slider_int;
+local imgui_combo = imgui.combo;
 local imgui_tree_pop = imgui.tree_pop;
 local imgui_drag_float = imgui.drag_float;
 
-local fps_option = {30.0, 60.0, 90.0, 120.0, 144.0, 165.0, 240.0, 600.0};
+local fps_option = {"30.0", "60.0", "90.0", "120.0", "144.0", "165.0", "240.0", "600.0"};
 local config = {};
 local config_path = "RiseTweaks/config.json";
 local jsonAvailable = json ~= nil;
@@ -27,7 +30,7 @@ if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
 	local config_file = json_load_file(config_path);
-	config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2], enableQuality = false, desiredQuality = 1.0};
+	config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = tonumber(fps_option[2]), enableQuality = false, desiredQuality = 1.0};
 end
 if config.enableFPS == nil then
 	config.enableFPS = true;
@@ -36,17 +39,26 @@ if config.autoFPS == nil then
 	config.autoFPS = true;
 end
 if config.desiredFPS == nil then
-	config.desiredFPS = fps_option[2];
+	config.desiredFPS = tonumber(fps_option[2]);
 elseif config.desiredFPS < 10.0 then
 	config.desiredFPS = 10.0;
-elseif config.desiredFPS > fps_option[8] then
-	config.desiredFPS = fps_option[8];
+elseif config.desiredFPS > tonumber(fps_option[8]) then
+	config.desiredFPS = tonumber(fps_option[8]);
 end
 if config.enableQuality == nil then
 	config.enableQuality = false;
 end
 if config.desiredQuality == nil then
 	config.desiredQuality = 1.0;
+end
+
+local function FindIndex(table, value)
+    for i = 1, #table do
+        if table[i] == value then
+            return i;
+        end
+    end
+    return nil;
 end
 
 local Application = nil;
@@ -73,7 +85,7 @@ function fps_handler(retval)
 			if StmOptionManager then
 				local FrameRateOption = getFrameRateOption_method:call(stmOptionDataContainer_field:get_data(StmOptionManager));
 				if FrameRateOption then
-					config.desiredFPS = fps_option[FrameRateOption + 1]; -- lua tables start at 1, the enum doesn't
+					config.desiredFPS = tonumber(fps_option[FrameRateOption + 1]); -- lua tables start at 1, the enum doesn't
 				end
 			end
 		end
@@ -108,7 +120,7 @@ local function save_config()
 	end
 end
 
-re_on_config_save(save_config);;
+re_on_config_save(save_config);
 
 re_on_draw_ui(function()
 	local changed = false;
@@ -118,7 +130,9 @@ re_on_draw_ui(function()
 			if config.enableFPS then
 				changed, config.autoFPS = imgui_checkbox("Automatic Frame Rate", config.autoFPS);
 				if not config.autoFPS then
-					changed, config.desiredFPS = imgui_slider_int("Frame Rate", config.desiredFPS, 10, 600);
+					local desiredFPS = FindIndex(fps_option, tostring(config.desiredFPS));
+					changed, desiredFPS = imgui_combo("Frame Rate", desiredFPS, fps_option);
+					config.desiredFPS = tonumber(fps_option[desiredFPS]);
 				end
 			end
 			imgui_tree_pop();
