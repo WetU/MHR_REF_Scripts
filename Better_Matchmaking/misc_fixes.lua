@@ -16,13 +16,12 @@ local config;
 local quest_manager_type_def = sdk_find_type_definition("snow.QuestManager");
 local isPlayQuest_method = quest_manager_type_def:get_method("isPlayQuest");
 local isEndWait_method = quest_manager_type_def:get_method("isEndWait");
-local onChangedGameStatus_method = quest_manager_type_def:get_method("onChangedGameStatus");
+local onChangedGameStatus_method = quest_manager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
 
 local reqOnlineWarning_method = sdk_find_type_definition("snow.SnowSessionManager"):get_method("reqOnlineWarning");
-local setOpenNetworkErrorWindowSelection_method = sdk_find_type_definition("snow.gui.GuiManager"):get_method("setOpenNetworkErrorWindowSelection");
+local setOpenNetworkErrorWindowSelection_method = sdk_find_type_definition("snow.gui.GuiManager"):get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)");
 
 local quest_status_index = 0;
-local quest_manager = nil;
 
 function misc_fixes.on_changed_game_status(new_quest_status)
 	quest_status_index = new_quest_status;
@@ -41,11 +40,9 @@ function misc_fixes.on_set_open_network_error_window_selection(gui_manager)
 		return sdk_CALL_ORIGINAL;
 	end
 
-	if not quest_manager or quest_manager:get_reference_count() <= 1 then
-		quest_manager = sdk_get_managed_singleton("snow.QuestManager");
-		if not quest_manager then
-			return sdk_CALL_ORIGINAL;
-		end
+	local quest_manager = sdk_get_managed_singleton("snow.QuestManager");
+	if not quest_manager then
+		return sdk_CALL_ORIGINAL;
 	end
 
 	local is_play_quest = isPlayQuest_method:call(quest_manager);

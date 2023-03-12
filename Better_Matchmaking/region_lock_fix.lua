@@ -10,8 +10,8 @@ local table_helpers;
 local config;
 
 local session_steam_type_def = sdk_find_type_definition("via.network.SessionSteam");
-local set_lobby_distance_filter_method = session_steam_type_def:get_method("setLobbyDistanceFilter");
-local setIsInvisible_method = session_steam_type_def:get_method("setIsInvisible");
+local set_lobby_distance_filter_method = session_steam_type_def:get_method("setLobbyDistanceFilter(System.UInt32)");
+local setIsInvisible_method = session_steam_type_def:get_method("setIsInvisible(System.Boolean)");
 
 local last_session_steam_object = nil;
 

@@ -20,7 +20,6 @@ local imgui_tree_pop = imgui.tree_pop;
 
 local settings = {};
 local jsonAvailable = json ~= nil;
-
 if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
@@ -40,13 +39,10 @@ local NotResetTypes = {
 	[MarionetteType_type_def:get_field("GetOffTryAgainInput"):get_data(nil)] = settings.enable,
 	[MarionetteType_type_def:get_field("GetOffFreeRun"):get_data(nil)] = settings.enable
 };
-local NoReset = sdk_create_int32(0);
 -- Main Function
-local CameraManager = nil;
+local NoReset = sdk_create_int32(0);
 sdk_hook(UpdateCameraReset_method, nil, function(retval)
-	if not CameraManager or CameraManager:get_reference_count() <= 1 then
-		CameraManager = sdk_get_managed_singleton("snow.CameraManager");
-	end
+	local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 	if CameraManager and NotResetTypes[marionetteType_field:get_data(CameraManager)] then
 		retval = NoReset;
 	end
@@ -68,9 +64,6 @@ re_on_draw_ui(function()
 		imgui_tree_pop();
 	else
 		if changed then
-			if not settings.enable then
-				CameraManager = nil;
-			end
 			save_config();
 		end
 	end

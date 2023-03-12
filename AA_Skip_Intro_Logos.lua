@@ -3,8 +3,8 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_ptr = sdk.to_ptr;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 local sdk_hook = sdk.hook;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
 local play_method = Movie_type_def:get_method("play");
@@ -36,14 +36,6 @@ local LOADING_STATES =
 	};
 local FINISHED = sdk_find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 ------------
-local function isLoading()
-	local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-	if GuiGameStartFsmManager then
-		return LOADING_STATES[get_GameStartState_method:call(GuiGameStartFsmManager)];
-	end
-	return false;
-end
-
 local function skipAction(action)
 	if action then
 		notifyActionEnd_method:call(action);
@@ -72,22 +64,6 @@ local function ClearFadeWithAction(args)
 	return sdk_CALL_ORIGINAL;
 end
 
--- Fast forward movies to the end to mute audio
-local currentMovie = nil;
-sdk_hook(play_method, function(args)
-	currentMovie = sdk_to_managed_object(args[2]);
-	return sdk_CALL_ORIGINAL;
-end, function(ret)
-	if isLoading() and currentMovie then
-		local DurationTime = get_DurationTime_method:call(currentMovie);
-		if DurationTime then
-			seek_method:call(currentMovie, DurationTime);
-		end
-	end
-	currentMovie = nil;
-	return ret;
-end);
-
 -- clear fadeout
 sdk_hook(cautionFadeIn_Update_method, ClearFade);
 sdk_hook(capcomLogoFadeIn_Update_method, ClearFade);
@@ -98,28 +74,53 @@ sdk_hook(reLogoFadeIn_Update_method, ClearFadeWithAction);
 sdk_hook(otherLogoFadeIn_Update_method, ClearFadeWithAction);
 
 local currentAction = nil;
-sdk_hook(autoSaveCaution_Action_Start_method, function(args)
+local function PreHook_GetActionObject(args)
 	currentAction = sdk_to_managed_object(args[3]);
 	return sdk_CALL_ORIGINAL;
-end, function(ret) 
-	skipAction(currentAction);
+end
+
+local function PostHook_SkipAction(ret)
+	if currentAction then
+		skipAction(currentAction);
+	end
 	currentAction = nil;
 	return ret;
-end);
+end
 
-sdk_hook(pressAnyButton_Action_start_method, function(args)
-	currentAction = sdk_to_managed_object(args[3]);
+sdk_hook(autoSaveCaution_Action_Start_method, PreHook_GetActionObject, PostHook_SkipAction);
+sdk_hook(pressAnyButton_Action_start_method, PreHook_GetActionObject, PostHook_SkipAction);
+
+-- Fast forward movies to the end to mute audio
+local function isLoading()
+	local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
+	if GuiGameStartFsmManager then
+		return LOADING_STATES[get_GameStartState_method:call(GuiGameStartFsmManager)];
+	end
+	return false;
+end
+
+local currentMovie = nil;
+sdk_hook(play_method, function(args)
+	if isLoading() then
+		currentMovie = sdk_to_managed_object(args[2]);
+	end
 	return sdk_CALL_ORIGINAL;
 end, function(ret)
-	skipAction(currentAction);
-	currentAction = nil;
+	if currentMovie then
+		local DurationTime = get_DurationTime_method:call(currentMovie);
+		if DurationTime then
+			seek_method:call(currentMovie, DurationTime);
+		end
+	end
+	currentMovie = nil;
 	return ret;
 end);
 
 -- Fake title skip input for HEALTH/Capcom
+local SkipTrg = sdk_to_ptr(1);
 sdk_hook(getTitleDispSkipTrg_method, nil, function(retval)
 	if isLoading() then
-		return sdk_to_ptr(1);
+		retval = SkipTrg;
 	end
 	return retval;
 end);

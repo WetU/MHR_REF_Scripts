@@ -31,11 +31,11 @@ if settings.enable == nil then
 	settings.enable = true;
 end
 -- Cache
-local guiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
-local openGoodRelationshipHud_method = guiManager_type_def:get_method("openGoodRelationshipHud");
-local get_refGuiHud_GoodRelationship_method = guiManager_type_def:get_method("get_refGuiHud_GoodRelationship");
+local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
+local openGoodRelationshipHud_method = GuiManager_type_def:get_method("openGoodRelationshipHud");
+local get_refGuiHud_GoodRelationship_method = GuiManager_type_def:get_method("get_refGuiHud_GoodRelationship");
 
-local GoodRelationship_type_def = sdk_find_type_definition("snow.gui.GuiHud_GoodRelationship");
+local GoodRelationship_type_def = get_refGuiHud_GoodRelationship_method:get_return_type();
 local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
@@ -48,9 +48,9 @@ local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
 	if settings.enable then
-		local guiManager = sdk_to_managed_object(args[2]);
-		if guiManager then
-			local refGoodRelationship = get_refGuiHud_GoodRelationship_method:call(guiManager);
+		local GuiManager = sdk_to_managed_object(args[2]);
+		if GuiManager then
+			local refGoodRelationship = get_refGuiHud_GoodRelationship_method:call(GuiManager);
 			if refGoodRelationship then
 				local OtherPlayerInfos = OtherPlayerInfos_field:get_data(refGoodRelationship);
 				if OtherPlayerInfos and iter_Num then

@@ -37,7 +37,7 @@ local KOREAN_GLYPH_RANGES = {
     0xA960, 0xA97F, -- Hangul Jamo Extended-A
     0xAC00, 0xD7A3, -- Hangul Syllables
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
-    0,
+    0
 };
 local Fonts = {["ko-KR"] = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES)};
 
@@ -113,24 +113,17 @@ end
 
 re_on_config_save(save_config);
 
-local ChatManager = nil;
-local DataManager = nil;
-local PlayerManager = nil;
-local EquipDataManager = nil;
-local SystemDataManager = nil;
-local ProgressOwlNestManager = nil;
-local VillageAreaManager = nil;
-
 local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
-local ItemMySet_type_def = sdk_find_type_definition("snow.data.ItemMySet");
-local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
+local getItemMySet_method = sdk_find_type_definition("snow.data.DataManager"):get_method("get_ItemMySet");
+local ItemMySet_type_def = getItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
-
-local PlItemPouchMySetData_type_def = sdk_find_type_definition("snow.data.PlItemPouchMySetData");
+local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
+local PlItemPouchMySetData_type_def = getData_method:get_return_type();
 local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name");
 local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
 local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
+local GetValueOrDefault_method = get_PaletteSetIndex_method:get_return_type():get_method("GetValueOrDefault");
 
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
 local applyEquipMySet_method = EquipDataManager_type_def:get_method("applyEquipMySet(snow.equip.PlEquipMySetData)");
@@ -138,24 +131,26 @@ local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySe
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
 
 local PlEquipMySetData_type_def = sdk_find_type_definition("snow.equip.PlEquipMySetData");
-local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
+local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
+local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
 
 local CustomShortcutSystem_type_def = sdk_find_type_definition("snow.data.CustomShortcutSystem");
-local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
+local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
+local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
+local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 local currentAreaNo_field = VillageAreaManager_type_def:get_field("<_CurrentAreaNo>k__BackingField");
 
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
-local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
-
-local progressOwlNestSaveData_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestSaveData");
+local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData");
+local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
 
@@ -163,21 +158,15 @@ local AreaNoType_type_def = sdk_find_type_definition("snow.stage.StageDef.AreaNo
 local KAMURA = AreaNoType_type_def:get_field("No02"):get_data(nil);
 local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
-local getItemMySet_method = sdk_find_type_definition("snow.data.DataManager"):get_method("get_ItemMySet");
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
-local playerWeaponType_field = sdk_find_type_definition("snow.player.PlayerBase"):get_field("_playerWeaponType");
-local get_PlWeaponType_method = sdk_find_type_definition("snow.data.WeaponData"):get_method("get_PlWeaponType");
-local GetValueOrDefault_method = sdk_find_type_definition("System.Nullable`1<System.Int32>"):get_method("GetValueOrDefault");
+local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
+
 local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem");
-local palletteSetData_get_Item_method = sdk_find_type_definition("System.Collections.Generic.List`1<snow.data.customShortcut.PaletteData>"):get_method("get_Item(System.Int32)");
-local palletteSetData_get_Name_method = sdk_find_type_definition("snow.data.customShortcut.PaletteSetData"):get_method("get_Name");
 local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 
 local function SendMessage(text)
     if config.EnableNotification then
-        if not ChatManager or ChatManager:get_reference_count() <= 1 then
-            ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
-        end
+        local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
         if ChatManager then
 		    reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
         end
@@ -185,9 +174,7 @@ local function SendMessage(text)
 end
 
 local function GetItemLoadout(loadoutIndex)
-    if not DataManager or DataManager:get_reference_count() <= 1 then
-        DataManager = sdk_get_managed_singleton("snow.data.DataManager");
-    end
+    local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
     if DataManager then
         local ItemMySet = getItemMySet_method:call(DataManager);
         if ItemMySet then
@@ -198,9 +185,7 @@ local function GetItemLoadout(loadoutIndex)
 end
 
 local function ApplyItemLoadout(loadoutIndex)
-    if not DataManager or DataManager:get_reference_count() <= 1 then
-        DataManager = sdk_get_managed_singleton("snow.data.DataManager");
-    end
+    local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
     if DataManager then
         local ItemMySet = getItemMySet_method:call(DataManager);
         if ItemMySet then
@@ -220,9 +205,7 @@ end
 
 ----------- Equipment Loadout Managementt ----
 local function GetCurrentWeaponType()
-    if not PlayerManager or PlayerManager:get_reference_count() <= 1 then
-        PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
-    end
+    local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
@@ -233,9 +216,7 @@ local function GetCurrentWeaponType()
 end
 
 local function GetEquipmentLoadout(loadoutIndex)
-    if not EquipDataManager or EquipDataManager:get_reference_count() <= 1 then
-        EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-    end
+    local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
     if EquipDataManager then
         local PlEquipMySetList = PlEquipMySetList_field:get_data(EquipDataManager);
         if PlEquipMySetList then
@@ -512,9 +493,7 @@ local function Restock(loadoutIndex)
             if not paletteIndex then
                 msg = msg .. "\n" .. PaletteNilError();
             else
-                if not SystemDataManager or SystemDataManager:get_reference_count() <= 1 then
-                    SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
-                end
+                local SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
                 if SystemDataManager then
                     local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
                     local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
@@ -539,18 +518,14 @@ end
 
 local function Supply()
     if config.EnableCohoot then
-        if not ProgressOwlNestManager or ProgressOwlNestManager:get_reference_count() <= 1 then
-            ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
-        end
+        local ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
         if ProgressOwlNestManager then
             local progressOwlNestSaveData = get_SaveData_method:call(ProgressOwlNestManager);
             if progressOwlNestSaveData then
                 local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
                 local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
                 if kamuraStack >= config.CohootMaxStock or elgadoStack >= config.CohootMaxStock then
-                    if not VillageAreaManager or VillageAreaManager:get_reference_count() <= 1 then
-                        VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-                    end
+                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
                     if VillageAreaManager then
                         if kamuraStack >= config.CohootMaxStock then
                             local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
@@ -601,8 +576,11 @@ re_on_draw_ui(function()
         changed, config.EnableCohoot = imgui_checkbox("EnableCohootSupply", config.EnableCohoot);
 
         local langIdx = FindIndex(Languages, config.Language);
-        changed, langIdx = imgui_combo("Language", langIdx, Languages);
-        config.Language = Languages[langIdx];
+        local langChanged, new_langIdx = imgui_combo("Language", langIdx, Languages);
+        if langChanged then
+            config.Language = Languages[new_langIdx];
+            save_config();
+        end
 
         changed, config.DefaultSet = imgui_slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
 
@@ -633,24 +611,9 @@ re_on_draw_ui(function()
             changed, config.CohootMaxStock = imgui_slider_int("Maximum stock", config.CohootMaxStock, 1, 5);
             imgui_tree_pop();
         end
-
         imgui_tree_pop();
     else
         if changed then
-            if not config.Enabled then
-                ChatManager = nil;
-                DataManager = nil;
-                PlayerManager = nil;
-                EquipDataManager = nil;
-                SystemDataManager = nil;
-            end
-            if not config.EnableNotification then
-                ChatManager = nil;
-            end
-            if not config.EnableCohoot then
-                ProgressOwlNestManager = nil;
-                VillageAreaManager = nil;
-            end
             save_config();
         end
     end

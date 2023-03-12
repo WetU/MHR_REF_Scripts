@@ -62,15 +62,14 @@ local quest_type = quest_types.invalid;
 
 local skip_next_hook = false;
 
-local session_manager = nil;
 local session_manager_type_def = sdk_find_type_definition("snow.SnowSessionManager");
-local req_matchmaking_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSession");
-local req_matchmaking_random_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandom");
-local req_matchmaking_hyakuryu_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionHyakuryu");
-local req_matchmaking_random_master_rank_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMasterRank");
-local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery");
-local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest");
-local funcOnTimeoutMatchmaking_method = session_manager_type_def:get_method("funcOnTimeoutMatchmaking");
+local req_matchmaking_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSession(System.UInt32)");
+local req_matchmaking_random_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandom(System.UInt32)");
+local req_matchmaking_hyakuryu_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionHyakuryu(System.UInt32, System.Nullable`1<System.UInt32>, System.Nullable`1<System.UInt32>)");
+local req_matchmaking_random_master_rank_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMasterRank(System.UInt32, System.UInt32)");
+local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery(System.UInt32, System.UInt32, System.UInt32)");
+local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>)");
+local funcOnTimeoutMatchmaking_method = session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)");
 
 local nullable_uint32_type_def = sdk_find_type_definition("System.Nullable`1<System.UInt32>");
 local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault");
@@ -90,11 +89,9 @@ function timeout_fix.on_post_timeout_matchmaking(retval)
 		return retval;
 	end
 
-	if not session_manager or session_manager:get_reference_count() <= 1 then
-		session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
-		if not session_manager then
-			return retval;
-		end
+	local session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
+	if not session_manager then
+		return retval;
 	end
 
 	if quest_type == quest_types.regular then

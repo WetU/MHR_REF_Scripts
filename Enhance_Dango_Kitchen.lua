@@ -30,7 +30,6 @@ local pairs = pairs;
 
 local settings = {};
 local jsonAvailable = json ~= nil;
-
 if jsonAvailable then
 	json_dump_file = json.dump_file;
 	json_load_file = json.load_file;
@@ -97,8 +96,7 @@ local tryAddGameItem_method = plItemBox_field:get_type():get_method("tryAddGameI
 local requestAutoSaveAll_method = sdk_find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll");
 
 local GuiDangoLog_field = sdk_find_type_definition("snow.gui.GuiManager"):get_field("<refGuiDangoLog>k__BackingField");
-local GuiDangoLog_type_def = GuiDangoLog_field:get_type();
-local reqDangoLogStart_method = GuiDangoLog_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local reqDangoLogStart_method = GuiDangoLog_field:get_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = sdk_find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 local set_IsCookDemoSkip_method = kitchenFsm_type_def:get_method("set_IsCookDemoSkip(System.Boolean)");
@@ -133,11 +131,6 @@ local bbq_events = {
 -- VIP Dango Ticket Main Function
 local SavedDangoChance = nil;
 local Param = nil;
-
-local FacilityManager = nil;
-local FlagManager = nil;
-local DataManager = nil;
-
 sdk_hook(get_SkillActiveRate_method, function(args)
 	if settings.SkillAlwaysActive then
 		Param = dangoData_param_field:get_data(sdk_to_managed_object(args[2]));
@@ -167,9 +160,7 @@ end);
 
 sdk_hook(updateList_method, function(args)
 	if settings.TicketByDefault or settings.EnableSkewerLv then
-		if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
-			FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
-		end
+		local FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
 		if FacilityManager then
 			local KitchenMealFunc = mealFunc_field:get_data(kitchen_field:get_data(FacilityManager));
 			if KitchenMealFunc then
@@ -189,12 +180,8 @@ sdk_hook(updateList_method, function(args)
 	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if settings.ShowAllDango then
-		if not FacilityManager or FacilityManager:get_reference_count() <= 1 then
-			FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
-		end
-		if not FlagManager or FlagManager:get_reference_count() <= 1 then
-			FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
-		end
+		local FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
+		local FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
 		if FacilityManager and FlagManager then
 			for _, dango in pairs(dangoDataList_ToArray_method:call(dangoDataList_field:get_data(mealFunc_field:get_data(kitchen_field:get_data(FacilityManager))))) do
 				local param_data = dangoData_param_field:get_data(dango);
@@ -209,9 +196,7 @@ end);
 
 sdk_hook(order_method, nil, function(retval)
 	if settings.InfiniteDangoTickets then
-		if not DataManager or DataManager:get_reference_count() <= 1 then
-			DataManager = sdk_get_managed_singleton("snow.data.DataManager");
-		end
+		local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
 		if DataManager then
 			tryAddGameItem_method:call(plItemBox_field:get_data(DataManager), 68157564, 1);
 		end
@@ -328,19 +313,6 @@ re_on_draw_ui(function()
         else
             isDrawOptionWindow = false;
 			if changed then
-				if not settings.SkillAlwaysActive then
-					SavedDangoChance = nil;
-					Param = nil;
-				end
-				if not settings.InfiniteDangoTickets then
-					DataManager = nil;
-				end
-				if not settings.ShowAllDango then
-					FlagManager = nil;
-					if not settings.TicketByDefault and not settings.EnableSkewerLv then
-						FacilityManager = nil;
-					end
-				end
 				save_config();
 			end
         end
