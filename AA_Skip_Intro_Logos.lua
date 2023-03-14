@@ -82,8 +82,8 @@ end
 local function PostHook_SkipAction(ret)
 	if currentAction then
 		skipAction(currentAction);
+		currentAction = nil;
 	end
-	currentAction = nil;
 	return ret;
 end
 
@@ -111,8 +111,8 @@ end, function(ret)
 		if DurationTime then
 			seek_method:call(currentMovie, DurationTime);
 		end
+		currentMovie = nil;
 	end
-	currentMovie = nil;
 	return ret;
 end);
 

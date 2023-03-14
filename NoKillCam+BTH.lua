@@ -37,22 +37,20 @@ local imgui_spacing = imgui.spacing;
 local imgui_end_window = imgui.end_window;
 
 local json = json;
-local json_dump_file = nil;
-local json_load_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local require = require;
 local pairs = pairs;
 
-local jsonAvailable = json ~= nil;
-if jsonAvailable then
-	json_dump_file = json.dump_file;
-	json_load_file = json.load_file;
+if json_load_file then
 	local loadedSettings = json_load_file("NoKillCam+BTH.json");
 	settings = loadedSettings or settings;
 end
 
 local function SaveSettings()
-	if jsonAvailable then
+	if json_dump_file then
 		json_dump_file("NoKillCam+BTH.json", settings);
 	end
 end

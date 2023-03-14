@@ -1,6 +1,7 @@
 local json = json;
-local json_load_file = nil;
-local json_dump_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -39,7 +40,7 @@ local KOREAN_GLYPH_RANGES = {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 };
-local Fonts = {["ko-KR"] = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES)};
+local Font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
 
 ----------- Helper Functions ----------------
 local function FindIndex(table, value)
@@ -63,10 +64,8 @@ end
 ------------- Config Management --------------
 local Languages = {"en-US", "ko-KR"};
 local config = {};
-local jsonAvailable = json ~= nil;
-if jsonAvailable then
-    json_load_file = json.load_file;
-    json_dump_file = json.dump_file;
+
+if json_load_file then
     local loadedConfig = json_load_file("AutoSupply.json");
     config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "en_US"};
 end
@@ -102,11 +101,11 @@ if config.CohootMaxStock == nil then
     config.CohootMaxStock = 5;
 end
 if config.Language == nil or FindIndex(Languages, config.Language) == nil then
-    config.Language = "en-US";
+    config.Language = "ko-KR";
 end
 
 local function save_config()
-    if jsonAvailable then
+    if json_dump_file then
         json_dump_file("AutoSupply.json", config);
     end
 end
@@ -565,9 +564,8 @@ sdk_hook(onVillageStart_method, nil, function()
 end);
 ----------------------------------------------
 re_on_draw_ui(function()
-    local font = Fonts[config.Language];
-    if font then
-        imgui_push_font(font);
+    if Font then
+        imgui_push_font(Font);
     end
     local changed = false;
     if imgui_tree_node("AutoSupply") then
@@ -617,7 +615,7 @@ re_on_draw_ui(function()
             save_config();
         end
     end
-    if font then
+    if Font then
         imgui_pop_font();
     end
 end);

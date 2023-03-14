@@ -1,7 +1,8 @@
 -- Initialize
 local json = json;
-local json_dump_file = nil;
-local json_load_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -29,10 +30,7 @@ local imgui_spacing = imgui.spacing;
 local pairs = pairs;
 
 local settings = {};
-local jsonAvailable = json ~= nil;
-if jsonAvailable then
-	json_dump_file = json.dump_file;
-	json_load_file = json.load_file;
+if json_load_file then
 	local savedConfig = json_load_file("Enhance_Dango_kitchen.json");
 	settings = savedConfig or {skipDangoSong = true, skipEating = true, skipMotley = true, InfiniteDangoTickets = false, ShowAllDango = false, TicketByDefault = true, SkillAlwaysActive = false, EnableSkewerLv = false, skewerLvs = {4, 3, 1}};
 end
@@ -241,29 +239,31 @@ end, function()
 	end
 end);
 
-local GuiDangoLog = nil;
 local KitchenDangoLogParam = nil;
 sdk_hook(requestAutoSaveAll_method, function()
 	if DemoHandlerType == 2 then
 		DemoHandlerType = nil;
-		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
 		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-		if GuiManager and kitchenFsm then
-			GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
+		if kitchenFsm then
 			KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
 		end
 	end
 	return sdk_CALL_ORIGINAL;
 end, function()
-	if GuiDangoLog and KitchenDangoLogParam then
-		reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
+	if KitchenDangoLogParam then
+		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
+		if GuiManager then
+			local GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
+			if GuiDangoLog then
+				reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
+			end
+		end
+		KitchenDangoLogParam = nil;
 	end
-	GuiDangoLog = nil;
-	KitchenDangoLogParam = nil;
 end);
 ---- re Callbacks ----
 local function save_config()
-	if jsonAvailable then
+	if json_dump_file then
 		json_dump_file("Enhance_Dango_kitchen.json", settings);
 	end
 end

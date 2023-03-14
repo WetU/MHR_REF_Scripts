@@ -1,6 +1,7 @@
 local json = json;
-local json_dump_file = nil;
-local json_load_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local re = re;
 local re_on_config_save = re.on_config_save;
@@ -11,9 +12,9 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
-local sdk_to_ptr = sdk.to_ptr;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -33,7 +34,6 @@ local pairs = pairs;
 local tonumber = tonumber;
 
 local config = {};
-local jsonAvailable = json ~= nil;
 
 local function Reset()
     config.Enable = true;
@@ -56,19 +56,17 @@ local function Reset()
 end
 
 local function SaveConfig()
-    if jsonAvailable then
+    if json_dump_file then
 	    json_dump_file("HardOrSoft.json", config);
     end
 end
 
-if jsonAvailable then
-    json_dump_file = json.dump_file;
-    json_load_file = json.load_file;
-    loadConfig = json_load_file("HardOrSoft.json");
+Reset();
+if json_load_file then
+    local loadConfig = json_load_file("HardOrSoft.json");
     if loadConfig then
         config = loadConfig;
     else
-        Reset();
         SaveConfig();
     end
 end
@@ -318,7 +316,6 @@ sdk_hook(getHitUIColorType_method, function(args)
 end, function(retval)
     if nextArg then
         elementExploit = 0;
-
         local calcParam = CalcParam_field:get_data(nextArg);
         if calcParam then
             local ownerType = get_OwnerType_method:call(calcParam);
@@ -382,9 +379,9 @@ end, function(retval)
             if calcType == DamageCalcType.IgnoreMeat then
                 return temp.IgnoreMeat;
             end
-            return retval;
         end
     end
+    return retval;
 end);
 
 re_on_draw_ui(function()

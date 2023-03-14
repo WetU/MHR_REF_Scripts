@@ -106,7 +106,6 @@ function customization_menu.draw()
 				changed, config.current_config.hide_online_warning.enabled = imgui_checkbox("Hide Online Warning", config.current_config.hide_online_warning.enabled);
 				imgui_tree_pop();
 			end
-
 			imgui_end_window();
 		else
 			customization_menu.is_opened = false;

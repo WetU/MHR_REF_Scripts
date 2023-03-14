@@ -1,7 +1,8 @@
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_hook = sdk.hook;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_hook = sdk.hook;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local require = require;
 
@@ -21,20 +22,12 @@ function region_lock_fix.on_set_is_invisible(session_steam)
 		if session_steam ~= last_session_steam_object then
 			set_lobby_distance_filter_method:call(session_steam, 1);
 		end
-		last_session_steam_object = session_steam;
-		return;
+	else
+		local distance = region_lock_fix_config.distance_filter == "Worldwide" and 3 or region_lock_fix_config.distance_filter == "Far" and 2 or region_lock_fix_config.distance_filter == "Close" and 0 or 1;
+		set_lobby_distance_filter_method:call(session_steam, distance);
 	end
-
-	local distance = 1;
-	if region_lock_fix_config.distance_filter == "Worldwide" then
-		distance = 3;
-	elseif region_lock_fix_config.distance_filter == "Far" then
-		distance = 2;
-	elseif region_lock_fix_config.distance_filter == "Close" then
-		distance = 0;
-	end
-	set_lobby_distance_filter_method:call(session_steam, distance);
 	last_session_steam_object = session_steam;
+	return sdk_CALL_ORIGINAL;
 end
 
 function region_lock_fix.init_module()

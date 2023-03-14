@@ -1,6 +1,7 @@
 local json = json;
-local json_dump_file = nil;
-local json_load_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local Vector3f = Vector3f;
 local Vector3f_new = Vector3f.new;
@@ -23,10 +24,7 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
 local settings = {};
-local jsonAvailable = json ~= nil;
-if jsonAvailable then
-    json_dump_file = json.dump_file;
-    json_load_file = json.load_file;
+if json_load_file then
 	local loadedSettings = json_load_file("Nearest_camp_revive.json");
     settings = loadedSettings or {enable = true};
 end
@@ -157,7 +155,7 @@ local function findNearestCamp(camps, nekoTakuPos)
 end
 
 local function SaveSettings()
-    if jsonAvailable then
+    if json_dump_file then
 	    json_dump_file("Nearest_camp_revive.json", settings);
     end
 end
@@ -190,6 +188,7 @@ sdk_hook(startToPlayPlayerDieMusic_method, function()
     end
     return sdk_CALL_ORIGINAL;
 end);
+
 sdk_hook(createNekotaku_method, function(args)
     if skipCreateNeko then
         skipCreateNeko = false;

@@ -236,80 +236,77 @@ re_on_frame(function()
         createList();
     else
         local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-        if QuestManager then
-            local QuestStatus = QuestStatus_field:get_data(QuestManager);
-            if isActiveQuest_method:call(QuestManager) and QuestStatus == 0 then
-                local targets = getQuestTargetEmTypeList_method:call(QuestManager);
-                if targets then
-                    local target_count = getQuestTargetTotalTgtNum_method:call(QuestManager);
-                    if target_count ~= 0 then
-                        local checkedTargets = "";
-                        if openInitiative then
-                            open = true;
-                        end
+        if QuestManager and isActiveQuest_method:call(QuestManager) and QuestStatus_field:get_data(QuestManager) == 0 then
+            local targets = getQuestTargetEmTypeList_method:call(QuestManager);
+            if targets then
+                local target_count = getQuestTargetTotalTgtNum_method:call(QuestManager);
+                if target_count ~= 0 then
+                    local checkedTargets = "";
+                    if openInitiative then
+                        open = true;
+                    end
+                    if open then
                         if font then
                             imgui_push_font(font);
                         end
-                        if open then
-                            if imgui_begin_window("몬스터 약점", true, 4096 + 64) then
-                                for i = 0, target_count - 1 do
-                                    local target = QuestTargetEmTypeList_get_Item_method:call(targets, i);
-                                    if target and not string_find(checkedTargets, tostring(target)) then
-                                        checkedTargets = checkedTargets .. target .. "_";
-                                        local targetData = MonsterListData[target];
-                                        if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                                            imgui_table_setup_column(targetData.Name, 1 << 3, 125);
-                                            imgui_table_setup_column("절단", 1 << 3, 25);
-                                            imgui_table_setup_column("타격", 1 << 3, 25);
-                                            imgui_table_setup_column("탄", 1 << 3, 25);
-                                            imgui_table_setup_column("불", 1 << 3, 25);
-                                            imgui_table_setup_column("물", 1 << 3, 25);
-                                            imgui_table_setup_column("번개", 1 << 3, 25);
-                                            imgui_table_setup_column("얼음", 1 << 3, 25);
-                                            imgui_table_setup_column("용", 1 << 3, 25);
-                                            imgui_table_headers_row();
+                        if imgui_begin_window("몬스터 약점", true, 4096 + 64) then
+                            for i = 0, target_count - 1 do
+                                local target = QuestTargetEmTypeList_get_Item_method:call(targets, i);
+                                if target and not string_find(checkedTargets, tostring(target)) then
+                                    checkedTargets = checkedTargets .. target .. "_";
+                                    local targetData = MonsterListData[target];
+                                    if imgui_begin_table("부위", 10, 1 << 21, 25) then
+                                        imgui_table_setup_column(targetData.Name, 1 << 3, 125);
+                                        imgui_table_setup_column("절단", 1 << 3, 25);
+                                        imgui_table_setup_column("타격", 1 << 3, 25);
+                                        imgui_table_setup_column("탄", 1 << 3, 25);
+                                        imgui_table_setup_column("불", 1 << 3, 25);
+                                        imgui_table_setup_column("물", 1 << 3, 25);
+                                        imgui_table_setup_column("번개", 1 << 3, 25);
+                                        imgui_table_setup_column("얼음", 1 << 3, 25);
+                                        imgui_table_setup_column("용", 1 << 3, 25);
+                                        imgui_table_headers_row();
 
-                                            for i, part in pairs(targetData.PartData) do
-                                                local highestPhys = math_max(part.Slash, part.Strike, part.Shell);
-                                                local highestElem = math_max(part.Fire, part.Water, part.Elect, part.Ice, part.Dragon);
+                                        for i, part in pairs(targetData.PartData) do
+                                            local highestPhys = math_max(part.Slash, part.Strike, part.Shell);
+                                            local highestElem = math_max(part.Fire, part.Water, part.Elect, part.Ice, part.Dragon);
 
-                                                imgui_table_next_row();
-                                                --imgui.push_id(i)
+                                            imgui_table_next_row();
+                                            --imgui.push_id(i)
 
-                                                imgui_table_next_column();
-                                                imgui_text(part.PartName);
+                                            imgui_table_next_column();
+                                            imgui_text(part.PartName);
 
-                                                testAttribute("Slash", part.Slash, highestPhys, highestElem);
-                                                testAttribute("Strike", part.Strike, highestPhys, highestElem);
-                                                testAttribute("Shell", part.Shell, highestPhys, highestElem);
-                                                testAttribute("Fire", part.Fire, highestPhys, highestElem);
-                                                testAttribute("Water", part.Water, highestPhys, highestElem);
-                                                testAttribute("Elect", part.Elect, highestPhys, highestElem);
-                                                testAttribute("Ice", part.Ice, highestPhys, highestElem);
-                                                testAttribute("Dragon", part.Dragon, highestPhys, highestElem);
-                                                --imgui.pop_id()
-                                            end
-                                            imgui_end_table();
+                                            testAttribute("Slash", part.Slash, highestPhys, highestElem);
+                                            testAttribute("Strike", part.Strike, highestPhys, highestElem);
+                                            testAttribute("Shell", part.Shell, highestPhys, highestElem);
+                                            testAttribute("Fire", part.Fire, highestPhys, highestElem);
+                                            testAttribute("Water", part.Water, highestPhys, highestElem);
+                                            testAttribute("Elect", part.Elect, highestPhys, highestElem);
+                                            testAttribute("Ice", part.Ice, highestPhys, highestElem);
+                                            testAttribute("Dragon", part.Dragon, highestPhys, highestElem);
+                                            --imgui.pop_id()
                                         end
-                                    end
-                                    if i < target_count - 1 then
-                                        imgui_spacing();
+                                        imgui_end_table();
                                     end
                                 end
-                            else
-                                open = false;
+                                if i < target_count - 1 then
+                                    imgui_spacing();
+                                end
                             end
-                            if font then
-                                imgui_pop_font();
-                            end
-                            imgui_end_window();
+                        else
+                            open = false;
                         end
+                        if font then
+                            imgui_pop_font();
+                        end
+                        imgui_end_window();
                     end
                 end
-                openInitiative = false;
-            else
-                openInitiative = true;
             end
+            openInitiative = false;
+        else
+            openInitiative = true;
         end
     end
 end);

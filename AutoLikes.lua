@@ -1,12 +1,13 @@
 -- Initialize
 local json = json;
-local json_load_file = nil;
-local json_dump_file = nil;
+local jsonAvailable = json ~= nil;
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_hook = sdk.hook;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
@@ -19,11 +20,8 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
 local settings = {};
-local jsonAvailable = json ~= nil;
 
-if jsonAvailable then
-	json_load_file = json.load_file;
-	json_dump_file = json.dump_file;
+if json_load_file then
 	local loadedSettings = json_load_file("AutoLikes.json");
 	settings = loadedSettings or {enable = true};
 end
@@ -39,12 +37,11 @@ local GoodRelationship_type_def = get_refGuiHud_GoodRelationship_method:get_retu
 local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
+local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data(nil) - 1;
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
-
-local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data(nil) - 1;
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
 	if settings.enable then
@@ -82,7 +79,7 @@ sdk_hook(openGoodRelationshipHud_method, function(args)
 end);
 ---- re Callbacks ----
 local function save_config()
-	if jsonAvailable then
+	if json_dump_file then
 		json_dump_file("AutoLikes.json", settings);
 	end
 end

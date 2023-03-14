@@ -2,9 +2,9 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_int64 = sdk.to_int64;
+local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
-local sdk_hook = sdk.hook;
 
 local os = os;
 local os_clock = os.clock;
@@ -59,7 +59,6 @@ local quest_types = {
 };
 
 local quest_type = quest_types.invalid;
-
 local skip_next_hook = false;
 
 local session_manager_type_def = sdk_find_type_definition("snow.SnowSessionManager");
@@ -84,63 +83,53 @@ end
 
 function timeout_fix.on_post_timeout_matchmaking(retval)
 	local timeout_fix_config = config.current_config.timeout_fix;
+	if timeout_fix_config.enabled then
+		local session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
+		if session_manager then
+			if quest_type == quest_types.regular then
+				if timeout_fix_config.quest_types.regular then
+					skip_next_hook = true;
+					req_matchmaking_method:call(session_manager, quest_type.quest_id);
+				end
+			elseif quest_type == quest_types.random then
+				if timeout_fix_config.quest_types.random then
+					skip_next_hook = true;
+					req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
+				end
+			elseif quest_type == quest_types.rampage then
+				if timeout_fix_config.quest_types.rampage then
+					local quest_level_pointer = ValueType_new(nullable_uint32_type_def);
+					local target_enemy_pointer = ValueType_new(nullable_uint32_type_def);
 
-	if not timeout_fix_config.enabled then
-		return retval;
-	end
+					nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
+					nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
 
-	local session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
-	if not session_manager then
-		return retval;
-	end
+					quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
+					target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
 
-	if quest_type == quest_types.regular then
-		if timeout_fix_config.quest_types.regular then
-			skip_next_hook = true;
-			req_matchmaking_method:call(session_manager, quest_type.quest_id);
-		end
-
-	elseif quest_type == quest_types.random then
-		if timeout_fix_config.quest_types.random then
-			skip_next_hook = true;
-			req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
-		end
-
-	elseif quest_type == quest_types.rampage then
-		if timeout_fix_config.quest_types.rampage then
-			local quest_level_pointer = ValueType_new(nullable_uint32_type_def);
-			local target_enemy_pointer = ValueType_new(nullable_uint32_type_def);
-
-			nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
-			nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
-
-			quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
-			target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
-
-			skip_next_hook = true;
-			req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
-		end
-
-	elseif quest_type == quest_types.random_master_rank then
-		if timeout_fix_config.quest_types.random_master_rank then
-			skip_next_hook = true;
-			req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
-		end
-
-	elseif quest_type == quest_types.random_anomaly then
-		if timeout_fix_config.quest_types.random_anomaly then
-			skip_next_hook = true;
-			req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
-		end
-
-	elseif quest_type == quest_types.anomaly_investigation then
-		if timeout_fix_config.quest_types.anomaly_investigation then
-			local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);
-			nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
-			enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
-			
-			skip_next_hook = true;
-			req_matchmaking_random_mystery_quest_method:call(session_manager, quest_type.min_level, quest_type.max_level, quest_type.party_limit, enemy_id_pointer);
+					skip_next_hook = true;
+					req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
+				end
+			elseif quest_type == quest_types.random_master_rank then
+				if timeout_fix_config.quest_types.random_master_rank then
+					skip_next_hook = true;
+					req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
+				end
+			elseif quest_type == quest_types.random_anomaly then
+				if timeout_fix_config.quest_types.random_anomaly then
+					skip_next_hook = true;
+					req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
+				end
+			elseif quest_type == quest_types.anomaly_investigation then
+				if timeout_fix_config.quest_types.anomaly_investigation then
+					local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);
+					nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
+					enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
+					
+					skip_next_hook = true;
+					req_matchmaking_random_mystery_quest_method:call(session_manager, quest_type.min_level, quest_type.max_level, quest_type.party_limit, enemy_id_pointer);
+				end
+			end
 		end
 	end
 	return retval;
@@ -227,10 +216,10 @@ function timeout_fix.on_req_matchmaking_random_anomaly_quest(min_level, max_leve
 end
 
 function timeout_fix.on_req_online()
-	if not config.current_config.hide_online_warning.enabled then
-		return sdk_CALL_ORIGINAL;
+	if config.current_config.hide_online_warning.enabled then
+		return sdk_SKIP_ORIGINAL;
 	end
-	return sdk_SKIP_ORIGINAL;
+	return sdk_CALL_ORIGINAL;
 end
 
 --local network_util_type_def = sdk_find_type_definition("snow.network.Util");

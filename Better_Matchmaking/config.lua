@@ -1,11 +1,7 @@
 local json = json;
-local json_load_file = nil;
-local json_dump_file = nil;
 local jsonAvailable = json ~= nil;
-if jsonAvailable then
-	json_load_file = json.load_file;
-	json_dump_file = json.dump_file;
-end
+local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local require = require;
 
@@ -53,11 +49,7 @@ end
 function config.load()
 	if jsonAvailable then
 		local loaded_config = json_load_file(config.config_file_name);
-		if loaded_config then
-			config.current_config = table_helpers.merge(config.default_config, loaded_config);
-		else
-			config.current_config = table_helpers.deep_copy(config.default_config);
-		end
+		config.current_config = loaded_config and table_helpers.merge(config.default_config, loaded_config) or table_helpers.deep_copy(config.default_config);
 	end
 end
 
