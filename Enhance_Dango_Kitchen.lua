@@ -239,28 +239,21 @@ end, function()
 	end
 end);
 
-local KitchenDangoLogParam = nil;
-sdk_hook(requestAutoSaveAll_method, function()
+sdk_hook(requestAutoSaveAll_method, nil, function()
 	if DemoHandlerType == 2 then
 		DemoHandlerType = nil;
-		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-		if kitchenFsm then
-			KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
-		end
-	end
-	return sdk_CALL_ORIGINAL;
-end, function()
-	if KitchenDangoLogParam then
 		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-		if GuiManager then
+		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+		if GuiManager and kitchenFsm then
 			local GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
-			if GuiDangoLog then
+			local KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
+			if GuiDangoLog and KitchenDangoLogParam then
 				reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
 			end
 		end
-		KitchenDangoLogParam = nil;
 	end
 end);
+
 ---- re Callbacks ----
 local function save_config()
 	if json_dump_file then
