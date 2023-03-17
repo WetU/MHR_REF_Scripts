@@ -125,6 +125,7 @@ local get_ElementMeatAdjustRate_method = CalcParam_type_def:get_method("get_Elem
 local get_PhysicalMeatAdjustRate_method = CalcParam_type_def:get_method("get_PhysicalMeatAdjustRate");
 
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
+
 local getPlayerIndex_method = findMasterPlayer_method:get_return_type():get_method("getPlayerIndex");
 
 local DamageAttackerType = {

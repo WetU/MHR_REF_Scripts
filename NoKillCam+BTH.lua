@@ -63,6 +63,7 @@ local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
 local RequestActive_method = sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive");
 -- BTH Cache
 local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
+
 local hardwareKeyboard_type_def = hardKeyboard_field:get_type();
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
@@ -77,9 +78,11 @@ local EndFlow_WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data
 local EndFlow_CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil); -- 8
 local EndFlow_None = EndFlow_type_def:get_field("None"):get_data(nil); -- 16
 -- Remove Town Interaction Delay cache
-local questStatus_field = QuestManager_type_def:get_field("_QuestStatus");
+local getStatus_method = QuestManager_type_def:get_method("getStatus");
 local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable");
 local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
+
+local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --[[
 QuestManager.EndFlow
  0 == Start;
@@ -164,7 +167,7 @@ end);
 sdk_hook(changeAllMarkerEnable_method, function(args)
 	if (sdk_to_int64(args[3]) & 1) ~= 1 then
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-		if QuestManager and questStatus_field:get_data(QuestManager) == 0 then
+		if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None then
 			return sdk_SKIP_ORIGINAL;
 		end
 	end

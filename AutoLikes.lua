@@ -40,8 +40,10 @@ local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax"
 local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data(nil) - 1;
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
-local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
+local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
+
+local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
 	if settings.enable then
@@ -57,7 +59,7 @@ sdk_hook(openGoodRelationshipHud_method, function(args)
 						if not OtherPlayerInfo then
 							goto continue;
 						end
-						local OtherPlayerHunterId = OtherPlayerInfo:get_field("_uniqueHunterId");
+						local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
 						if not OtherPlayerHunterId or isInBlockList_method:call(refGoodRelationship, OtherPlayerHunterId) then
 							goto continue;
 						end

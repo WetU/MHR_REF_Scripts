@@ -38,6 +38,7 @@ end
 local StmOptionManager_type_def = sdk_find_type_definition("snow.StmOptionManager");
 local writeGraphicOptionOnIniFile_method = StmOptionManager_type_def:get_method("writeGraphicOptionOnIniFile");
 local StmOptionDataContainer_field = StmOptionManager_type_def:get_field("_StmOptionDataContainer");
+
 local getFrameRateOption_method = StmOptionDataContainer_field:get_type():get_method("getFrameRateOption");
 
 local playEventCommon_method = sdk_find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon");

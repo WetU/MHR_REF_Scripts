@@ -64,20 +64,22 @@ end
 -- VIP Dango Ticket Cache
 local kitchen_field = sdk_find_type_definition("snow.data.FacilityDataManager"):get_field("_Kitchen");
 local mealFunc_field = kitchen_field:get_type():get_field("_MealFunc");
+
 local mealFunc_type_def = mealFunc_field:get_type();
 local updateList_method = mealFunc_type_def:get_method("updateList");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 local order_method = mealFunc_type_def:get_method("order");
-
 local dangoDataList_field = mealFunc_type_def:get_field("<DangoDataList>k__BackingField");
+local mealFunc_SpecialSkewerDangoLv_field = mealFunc_type_def:get_field("SpecialSkewerDangoLv");
+
 local dangoDataList_ToArray_method = dangoDataList_field:get_type():get_method("ToArray");
 
-local mealFunc_SpecialSkewerDangoLv_field = mealFunc_type_def:get_field("SpecialSkewerDangoLv");
 local mealFunc_SpecialSkewerDangoLv_set_Item_method = mealFunc_SpecialSkewerDangoLv_field:get_type():get_method("set_Item(System.Int32, System.Object)");
 
 local dangoData_type_def = sdk_find_type_definition("snow.data.DangoData");
 local get_SkillActiveRate_method = dangoData_type_def:get_method("get_SkillActiveRate");
 local dangoData_param_field = dangoData_type_def:get_field("_Param");
+
 local dangoData_param_field_type_def = dangoData_param_field:get_type();
 local skillActiveRate_field = dangoData_param_field_type_def:get_field("_SkillActiveRate");
 local param_Id_field = dangoData_param_field_type_def:get_field("_Id");
@@ -85,10 +87,12 @@ local param_Id_field = dangoData_param_field_type_def:get_field("_Id");
 local guiKitchen_type_def = sdk_find_type_definition("snow.gui.fsm.kitchen.GuiKitchen");
 local setDangoDetailWindow_method = guiKitchen_type_def:get_method("setDangoDetailWindow");
 local guiKitchen_SpecialSkewerDangoLv_field = guiKitchen_type_def:get_field("SpecialSkewerDangoLv");
+
 local guiKitchen_SpecialSkewerDangoLv_set_Item_method = guiKitchen_SpecialSkewerDangoLv_field:get_type():get_method("set_Item(System.Int32, System.Object)");
 
 local isUnlocked_method = sdk_find_type_definition("snow.data.FlagDataManager"):get_method("isUnlocked(snow.data.DataDef.DangoId)");
 local plItemBox_field = sdk_find_type_definition("snow.data.DataManager"):get_field("_PlItemBox");
+
 local tryAddGameItem_method = plItemBox_field:get_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
 -- Skip Dango Song cache
 local requestAutoSaveAll_method = sdk_find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll");

@@ -24,9 +24,6 @@ local imgui_end_window = imgui.end_window;
 local table = table;
 local table_insert = table.insert;
 
-local string = string;
-local string_find = string.find;
-
 local math = math;
 local math_max = math.max;
 
@@ -52,37 +49,40 @@ local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"
 local getMeatValue_method = sdk_find_type_definition("snow.enemy.EnemyMeatData"):get_method("getMeatValue(snow.enemy.EnemyDef.Meat, System.UInt32, snow.enemy.EnemyDef.MeatAttr)");
 
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
-local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList");
-local getQuestTargetTotalTgtNum_method = QuestManager_type_def:get_method("getQuestTargetTotalTgtNum");
+local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum");
 local isActiveQuest_method = QuestManager_type_def:get_method("isActiveQuest");
-local QuestStatus_field = QuestManager_type_def:get_field("_QuestStatus");
-
-local QuestTargetEmTypeList_get_Item_method = getQuestTargetEmTypeList_method:get_return_type():get_method("get_Item(System.Int32)");
+local getStatus_method = QuestManager_type_def:get_method("getStatus");
+local isQuestTargetEnemy_method = QuestManager_type_def:get_method("isQuestTargetEnemy(snow.enemy.EnemyDef.EmTypes, System.Boolean)");
 
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
-local getEnemyMeatData_method = GuiManager_type_def:get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)");
-
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
+local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
+
+local getEnemyMeatData_method = monsterListParam_field:get_type():get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)");
+
 local MonsterList_type_def = get_refMonsterList_method:get_return_type();
 local getMonsterPartName_method = MonsterList_type_def:get_method("getMonsterPartName(snow.data.monsterList.PartType)");
 local MonsterBossData_field = MonsterList_type_def:get_field("_MonsterBossData");
 
 local DataList_field = MonsterBossData_field:get_type():get_field("_DataList");
+
 local DataList_type_def = DataList_field:get_type();
 local DataList_get_Count_method = DataList_type_def:get_method("get_Count");
 local DataList_get_Item_method = DataList_type_def:get_method("get_Item(System.Int32)");
 
-local BossMonsterData_type_def = sdk_find_type_definition("snow.data.monsterList.BossMonsterData");
+local BossMonsterData_type_def = DataList_get_Item_method:get_return_type();
 local EmType_field = BossMonsterData_type_def:get_field("_EmType");
-
 local PartTableData_field = BossMonsterData_type_def:get_field("_PartTableData");
+
 local PartTableData_type_def = PartTableData_field:get_type();
 local PartTableData_get_Count_method = PartTableData_type_def:get_method("get_Count");
 local PartTableData_get_Item_method = PartTableData_type_def:get_method("get_Item(System.Int32)");
 
-local PartData_type_def = sdk_find_type_definition("snow.data.monsterList.BossMonsterData.PartData");
+local PartData_type_def = PartTableData_get_Item_method:get_return_type();
 local Part_field = PartData_type_def:get_field("_Part");
 local EmPart_field = PartData_type_def:get_field("_EmPart");
+
+local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 
 local MeatAttr = {
     Slash = 0,
@@ -147,57 +147,61 @@ local function createList()
     creatingList = true;
     local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
     if GuiManager then
+        local monsterListParam = monsterListParam_field:get_data(GuiManager);
         local MonsterList = get_refMonsterList_method:call(GuiManager);
-        if MonsterList then
+        if monsterListParam and MonsterList then
             local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
             if MonsterBossData then
                 local DataList = DataList_field:get_data(MonsterBossData);
                 if DataList then
-                    for i = 0, DataList_get_Count_method:call(DataList) - 1 do
-                        local monster = DataList_get_Item_method:call(DataList, i);
-                        if monster then
-                            local monsterType = EmType_field:get_data(monster);
-                            local partData = PartTableData_field:get_data(monster);
-                            if monsterType and partData then
-                                local meatData = getEnemyMeatData_method:call(GuiManager, monsterType);
-                                local MonsterDataTable = {
-                                    Type = monsterType,
-                                    Name = GetMonsterName_method:call(nil, monsterType),
-                                    PartData = {}
-                                };
-                                if meatData then
-                                    for i = 0, PartTableData_get_Count_method:call(partData) - 1 do
-                                        local part = PartTableData_get_Item_method:call(partData, i);
-                                        if part then
-                                            local partType = Part_field:get_data(part);
-                                            local meatType = EmPart_field:get_data(part);
-                                            if partType and meatType then
-                                                local partGuid = getMonsterPartName_method:call(MonsterList, partType);
-                                                if partGuid then
-                                                    local partName = GetPartName_method:call(nil, partGuid, Language.Korean);
-                                                    local PartDataTable = {
-                                                        PartType = partType,
-                                                        PartName = partName,
-                                                        MeatType = meatType,
-                                                        Slash    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Slash),
-                                                        Strike   = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Strike),
-                                                        Shell    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Shell),
-                                                        Fire     = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Fire),
-                                                        Water    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Water),
-                                                        Ice      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Ice),
-                                                        Elect    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elect),
-                                                        Dragon   = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Dragon)
-                                                    };
-                                                    table_insert(MonsterDataTable.PartData, PartDataTable);
+                    local counts = DataList_get_Count_method:call(DataList);
+                    if counts > 0 then
+                        for i = 0, counts - 1 do
+                            local monster = DataList_get_Item_method:call(DataList, i);
+                            if monster then
+                                local monsterType = EmType_field:get_data(monster);
+                                local partTableData = PartTableData_field:get_data(monster);
+                                if monsterType and partTableData then
+                                    local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
+                                    local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
+                                    local MonsterDataTable = {
+                                        Type = monsterType,
+                                        Name = GetMonsterName_method:call(nil, monsterType),
+                                        PartData = {}
+                                    };
+                                    if meatData and partTableData_counts > 0 then
+                                        for i = 0, partTableData_counts - 1 do
+                                            local part = PartTableData_get_Item_method:call(partTableData, i);
+                                            if part then
+                                                local partType = Part_field:get_data(part);
+                                                local meatType = EmPart_field:get_data(part);
+                                                if partType and meatType then
+                                                    local partGuid = getMonsterPartName_method:call(MonsterList, partType);
+                                                    if partGuid then
+                                                        local PartDataTable = {
+                                                            PartType = partType,
+                                                            PartName = GetPartName_method:call(nil, partGuid, Language.Korean),
+                                                            MeatType = meatType,
+                                                            Slash    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Slash),
+                                                            Strike   = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Strike),
+                                                            Shell    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Shell),
+                                                            Fire     = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Fire),
+                                                            Water    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Water),
+                                                            Ice      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Ice),
+                                                            Elect    = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elect),
+                                                            Dragon   = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Dragon)
+                                                        };
+                                                        table_insert(MonsterDataTable.PartData, PartDataTable);
+                                                    end
                                                 end
                                             end
                                         end
+                                        MonsterListData[monsterType] = MonsterDataTable;
                                     end
-                                    MonsterListData[monsterType] = MonsterDataTable;
-                                    MonsterListCreated = true;
                                 end
                             end
                         end
+                        MonsterListCreated = true;
                     end
                 end
             end
@@ -236,12 +240,12 @@ re_on_frame(function()
         createList();
     else
         local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-        if QuestManager and isActiveQuest_method:call(QuestManager) and QuestStatus_field:get_data(QuestManager) == 0 then
-            local targets = getQuestTargetEmTypeList_method:call(QuestManager);
-            if targets then
-                local target_count = getQuestTargetTotalTgtNum_method:call(QuestManager);
-                if target_count ~= 0 then
-                    local checkedTargets = "";
+        if QuestManager then
+            local isActiveQuest = isActiveQuest_method:call(QuestManager);
+            local QuestStatus = getStatus_method:call(QuestManager);
+            if isActiveQuest and QuestStatus == QuestStatus_None then
+                local target_count = getQuestTargetTotalBossEmNum_method:call(QuestManager);
+                if target_count > 0 then
                     if openInitiative then
                         open = true;
                     end
@@ -250,13 +254,12 @@ re_on_frame(function()
                             imgui_push_font(font);
                         end
                         if imgui_begin_window("몬스터 약점", true, 4096 + 64) then
-                            for i = 0, target_count - 1 do
-                                local target = QuestTargetEmTypeList_get_Item_method:call(targets, i);
-                                if target and not string_find(checkedTargets, tostring(target)) then
-                                    checkedTargets = checkedTargets .. target .. "_";
-                                    local targetData = MonsterListData[target];
+                            local i = 0;
+                            for k, v in pairs(MonsterListData) do
+                                local isQuestTargetEnemy = isQuestTargetEnemy_method:call(QuestManager, k, false);
+                                if isQuestTargetEnemy then
                                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                                        imgui_table_setup_column(targetData.Name, 1 << 3, 125);
+                                        imgui_table_setup_column(v.Name, 1 << 3, 125);
                                         imgui_table_setup_column("절단", 1 << 3, 25);
                                         imgui_table_setup_column("타격", 1 << 3, 25);
                                         imgui_table_setup_column("탄", 1 << 3, 25);
@@ -267,13 +270,11 @@ re_on_frame(function()
                                         imgui_table_setup_column("용", 1 << 3, 25);
                                         imgui_table_headers_row();
 
-                                        for i, part in pairs(targetData.PartData) do
+                                        for _, part in pairs(v.PartData) do
                                             local highestPhys = math_max(part.Slash, part.Strike, part.Shell);
                                             local highestElem = math_max(part.Fire, part.Water, part.Elect, part.Ice, part.Dragon);
 
                                             imgui_table_next_row();
-                                            --imgui.push_id(i)
-
                                             imgui_table_next_column();
                                             imgui_text(part.PartName);
 
@@ -285,13 +286,15 @@ re_on_frame(function()
                                             testAttribute("Elect", part.Elect, highestPhys, highestElem);
                                             testAttribute("Ice", part.Ice, highestPhys, highestElem);
                                             testAttribute("Dragon", part.Dragon, highestPhys, highestElem);
-                                            --imgui.pop_id()
                                         end
                                         imgui_end_table();
                                     end
-                                end
-                                if i < target_count - 1 then
-                                    imgui_spacing();
+                                    i = i + 1;
+                                    if i < target_count then
+                                        imgui_spacing();
+                                    else
+                                        break;
+                                    end
                                 end
                             end
                         else
@@ -303,10 +306,10 @@ re_on_frame(function()
                         imgui_end_window();
                     end
                 end
+                openInitiative = false;
+            else
+                openInitiative = true;
             end
-            openInitiative = false;
-        else
-            openInitiative = true;
         end
     end
 end);

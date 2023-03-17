@@ -69,6 +69,7 @@ local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerMana
 local stagePointManager_type_def = sdk_find_type_definition("snow.stage.StagePointManager");
 local tentPositionList_field = stagePointManager_type_def:get_field("_TentPositionList");
 local fastTravelPointList_field = stagePointManager_type_def:get_field("_FastTravelPointList");
+
 local fastTravelPointList_mItems_field = fastTravelPointList_field:get_type():get_field("mItems");
 
 local stageManager_type_def = sdk_find_type_definition("snow.stage.StageManager");

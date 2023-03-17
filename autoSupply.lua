@@ -41,6 +41,7 @@ local KOREAN_GLYPH_RANGES = {
     0
 };
 local Font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
+local Languages = {"en-US", "ko-KR"};
 
 ----------- Helper Functions ----------------
 local function FindIndex(table, value)
@@ -52,22 +53,12 @@ local function FindIndex(table, value)
     return nil;
 end
 
-local CycleTypeMap = {};
-for _, field in pairs(sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_fields()) do
-	if field:is_static() then
-		local name = field:get_name();
-		local raw_value = field:get_data(nil);
-		CycleTypeMap[raw_value] = name;
-	end
-end
-
 ------------- Config Management --------------
-local Languages = {"en-US", "ko-KR"};
 local config = {};
 
 if json_load_file then
     local loadedConfig = json_load_file("AutoSupply.json");
-    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "en_US"};
+    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "ko-KR"};
 end
 if config.Enabled == nil then
     config.Enabled = true;
@@ -115,31 +106,38 @@ re_on_config_save(save_config);
 local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local getItemMySet_method = sdk_find_type_definition("snow.data.DataManager"):get_method("get_ItemMySet");
+
 local ItemMySet_type_def = getItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
 local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
+
 local PlItemPouchMySetData_type_def = getData_method:get_return_type();
 local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name");
 local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
 local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
+
 local GetValueOrDefault_method = get_PaletteSetIndex_method:get_return_type():get_method("GetValueOrDefault");
 
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
 local applyEquipMySet_method = EquipDataManager_type_def:get_method("applyEquipMySet(snow.equip.PlEquipMySetData)");
 local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySetList");
+
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
 
-local PlEquipMySetData_type_def = sdk_find_type_definition("snow.equip.PlEquipMySetData");
+local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
 local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
+
 local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
 
 local CustomShortcutSystem_type_def = sdk_find_type_definition("snow.data.CustomShortcutSystem");
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
 local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
+
 local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
+
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
@@ -149,6 +147,7 @@ local currentAreaNo_field = VillageAreaManager_type_def:get_field("<_CurrentArea
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
 local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData");
+
 local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
@@ -158,6 +157,7 @@ local KAMURA = AreaNoType_type_def:get_field("No02"):get_data(nil);
 local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
+
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
 local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem");
