@@ -3,7 +3,9 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
+
+local sdk_PreHookResult = sdk.PreHookResult;
+local sdk_CALL_ORIGINAL = sdk_PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_frame = re.on_frame;
@@ -17,8 +19,8 @@ local imgui_text_colored = imgui.text_colored;
 local imgui_begin_window = imgui.begin_window;
 local imgui_end_window = imgui.end_window;
 local imgui_begin_table = imgui.begin_table;
-local imgui_table_next_column = imgui.table_next_column;
 local imgui_table_setup_column = imgui.table_setup_column;
+local imgui_table_next_column = imgui.table_next_column;
 local imgui_table_headers_row = imgui.table_headers_row;
 local imgui_table_next_row = imgui.table_next_row;
 local imgui_end_table = imgui.end_table;
@@ -94,9 +96,7 @@ local EmPart_field = PartData_type_def:get_field("_EmPart");
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 
-local GameStatusType_type_def = sdk_find_type_definition("snow.SnowGameManager.StatusType");
-local StatusType_Village = GameStatusType_type_def:get_field("Village"):get_data(nil);
-local StatusType_Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil);
+local StatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 
 local MeatAttr = {
     Slash = 0,
@@ -172,6 +172,7 @@ sdk_hook(isQuestOrderReceived_method, function()
     MonsterListCreated = false;
     MonsterListData = {};
     QuestTargetTotalBossEmNum = nil;
+    creatingList = false;
     return sdk_CALL_ORIGINAL;
 end, function(retval)
     if (sdk_to_int64(retval) & 1) ~= 1 then
@@ -188,12 +189,10 @@ end, function(retval)
             return retval;
         end
 
-        local isActiveQuest = isActiveQuest_method:call(QuestManager);
-        local QuestStatus = getStatus_method:call(QuestManager);
         QuestTargetTotalBossEmNum = getQuestTargetTotalBossEmNum_method:call(QuestManager);
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
-        if not isActiveQuest or QuestStatus ~= QuestStatus_None or QuestTargetTotalBossEmNum <= 0 or not MonsterList or not monsterListParam then
+        if not isActiveQuest_method:call(QuestManager) or getStatus_method:call(QuestManager) ~= QuestStatus_None or QuestTargetTotalBossEmNum <= 0 or not MonsterList or not monsterListParam then
             creatingList = false;
             return retval;
         end
@@ -223,12 +222,7 @@ end, function(retval)
             end
 
             local monsterType = EmType_field:get_data(monster);
-            if not monsterType then
-                goto continue1;
-            end
-
-            local isQuestTargetEnemy = isQuestTargetEnemy_method:call(QuestManager, monsterType, false);
-            if not isQuestTargetEnemy then
+            if not monsterType or not isQuestTargetEnemy_method:call(QuestManager, monsterType, false) then
                 goto continue1;
             end
 
@@ -324,14 +318,16 @@ sdk_hook(questCancel_method, nil, function()
     MonsterListCreated = false;
     MonsterListData = {};
     QuestTargetTotalBossEmNum = nil;
+    creatingList = false;
 end);
 
 sdk_hook(onChangedGameStatus_method, function(args)
     local Status = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-    if Status ~= StatusType_Village or Status ~= StatusType_Quest then
+    if Status ~= StatusType_Village then
         MonsterListCreated = false;
         MonsterListData = {};
         QuestTargetTotalBossEmNum = nil;
+        creatingList = false;
     end
     return sdk_CALL_ORIGINAL;
 end);
@@ -339,63 +335,52 @@ end);
 
 --==--==--==--==--==--
 
-local open = false;
-local openInitiative = false;
+
 re_on_frame(function()
-    if MonsterListCreated and QuestTargetTotalBossEmNum > 0 then
-        if openInitiative then
-            open = true;
+    if MonsterListCreated then
+        if font then
+            imgui_push_font(font);
         end
-        if open then
+        if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
+            local i = 0;
+            for _, data in pairs(MonsterListData) do
+                if imgui_begin_table("부위", 10, 1 << 21, 25) then
+                    imgui_table_setup_column(data.Name, 1 << 3, 125);
+                    imgui_table_setup_column("절단", 1 << 3, 25);
+                    imgui_table_setup_column("타격", 1 << 3, 25);
+                    imgui_table_setup_column("탄", 1 << 3, 25);
+                    imgui_table_setup_column("불", 1 << 3, 25);
+                    imgui_table_setup_column("물", 1 << 3, 25);
+                    imgui_table_setup_column("번개", 1 << 3, 25);
+                    imgui_table_setup_column("얼음", 1 << 3, 25);
+                    imgui_table_setup_column("용", 1 << 3, 25);
+                    imgui_table_headers_row();
+
+                    for _, part in pairs(data.PartData) do
+                        imgui_table_next_row();
+                        imgui_table_next_column();
+                        imgui_text(part.PartName);
+
+                        testAttribute("Slash", part.Slash, part.highest);
+                        testAttribute("Strike", part.Strike, part.highest);
+                        testAttribute("Shell", part.Shell, part.highest);
+                        testAttribute("Fire", part.Fire, part.highest);
+                        testAttribute("Water", part.Water, part.highest);
+                        testAttribute("Elect", part.Elect, part.highest);
+                        testAttribute("Ice", part.Ice, part.highest);
+                        testAttribute("Dragon", part.Dragon, part.highest);
+                    end
+                    imgui_end_table();
+                end
+                i = i + 1;
+                if i < QuestTargetTotalBossEmNum then
+                    imgui_spacing();
+                end
+            end
             if font then
-                imgui_push_font(font);
+                imgui_pop_font();
             end
-            if imgui_begin_window("몬스터 약점", true, 4096 + 64) then
-                local i = 0;
-                for _, MonsterData in pairs(MonsterListData) do
-                    if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                        imgui_table_setup_column(MonsterData.Name, 1 << 3, 125);
-                        imgui_table_setup_column("절단", 1 << 3, 25);
-                        imgui_table_setup_column("타격", 1 << 3, 25);
-                        imgui_table_setup_column("탄", 1 << 3, 25);
-                        imgui_table_setup_column("불", 1 << 3, 25);
-                        imgui_table_setup_column("물", 1 << 3, 25);
-                        imgui_table_setup_column("번개", 1 << 3, 25);
-                        imgui_table_setup_column("얼음", 1 << 3, 25);
-                        imgui_table_setup_column("용", 1 << 3, 25);
-                        imgui_table_headers_row();
-
-                        for _, part in pairs(MonsterData.PartData) do
-                            imgui_table_next_row();
-                            imgui_table_next_column();
-                            imgui_text(part.PartName);
-
-                            testAttribute("Slash", part.Slash, part.highest);
-                            testAttribute("Strike", part.Strike, part.highest);
-                            testAttribute("Shell", part.Shell, part.highest);
-                            testAttribute("Fire", part.Fire, part.highest);
-                            testAttribute("Water", part.Water, part.highest);
-                            testAttribute("Elect", part.Elect, part.highest);
-                            testAttribute("Ice", part.Ice, part.highest);
-                            testAttribute("Dragon", part.Dragon, part.highest);
-                        end
-                        imgui_end_table();
-                    end
-                    i = i + 1;
-                    if i < QuestTargetTotalBossEmNum then
-                        imgui_spacing();
-                    end
-                end
-                if font then
-                    imgui_pop_font();
-                end
-                imgui_end_window();
-            else
-                open = false;
-            end
+            imgui_end_window();
         end
-        openInitiative = false;
-    else
-        openInitiative = true;
     end
 end);
