@@ -52,25 +52,27 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
 --
 local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)");
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
-local getMeatValue_method = sdk_find_type_definition("snow.enemy.EnemyMeatData"):get_method("getMeatValue(snow.enemy.EnemyDef.Meat, System.UInt32, snow.enemy.EnemyDef.MeatAttr)");
 
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local isActiveQuest_method = QuestManager_type_def:get_method("isActiveQuest");
 local getStatus_method = QuestManager_type_def:get_method("getStatus");
 local isQuestTargetEnemy_method = QuestManager_type_def:get_method("isQuestTargetEnemy(snow.enemy.EnemyDef.EmTypes, System.Boolean)");
+local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum");
 local questCancel_method = QuestManager_type_def:get_method("questCancel");
 local onChangedGameStatus_method = QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
 
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
 local isQuestOrderReceived_method = GuiManager_type_def:get_method("isQuestOrderReceived");
-local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
-
-local getEnemyMeatData_method = monsterListParam_field:get_type():get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)");
+local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
 
 local MonsterList_type_def = get_refMonsterList_method:get_return_type();
 local getMonsterPartName_method = MonsterList_type_def:get_method("getMonsterPartName(snow.data.monsterList.PartType)");
 local MonsterBossData_field = MonsterList_type_def:get_field("_MonsterBossData");
+
+local getEnemyMeatData_method = monsterListParam_field:get_type():get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)");
+
+local getMeatValue_method = getEnemyMeatData_method:get_return_type():get_method("getMeatValue(snow.enemy.EnemyDef.Meat, System.UInt32, snow.enemy.EnemyDef.MeatAttr)");
 
 local DataList_field = MonsterBossData_field:get_type():get_field("_DataList");
 
@@ -92,8 +94,9 @@ local EmPart_field = PartData_type_def:get_field("_EmPart");
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 
-local StatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
-local StatusType_Quest = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Quest"):get_data(nil);
+local GameStatusType_type_def = sdk_find_type_definition("snow.SnowGameManager.StatusType");
+local StatusType_Village = GameStatusType_type_def:get_field("Village"):get_data(nil);
+local StatusType_Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil);
 
 local MeatAttr = {
     Slash = 0,
@@ -152,6 +155,7 @@ local Language = {
 
 
 local MonsterListData = {};
+local QuestTargetTotalBossEmNum = nil;
 local MonsterListCreated = false;
 local creatingList = false;
 
@@ -164,10 +168,13 @@ local function testAttribute(attribute, value, highest)
     end
 end
 
-sdk_hook(isQuestOrderReceived_method, nil, function(retval)
+sdk_hook(isQuestOrderReceived_method, function()
+    MonsterListCreated = false;
+    MonsterListData = {};
+    QuestTargetTotalBossEmNum = nil;
+    return sdk_CALL_ORIGINAL;
+end, function(retval)
     if (sdk_to_int64(retval) & 1) ~= 1 then
-        MonsterListCreated = false;
-        MonsterListData = {};
         creatingList = false;
         return retval;
     end
@@ -177,72 +184,71 @@ sdk_hook(isQuestOrderReceived_method, nil, function(retval)
         local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
         local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
         if not QuestManager or not GuiManager then
-            MonsterListCreated = false;
-            MonsterListData = {};
             creatingList = false;
             return retval;
         end
 
+        local isActiveQuest = isActiveQuest_method:call(QuestManager);
         local QuestStatus = getStatus_method:call(QuestManager);
+        QuestTargetTotalBossEmNum = getQuestTargetTotalBossEmNum_method:call(QuestManager);
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
-        if QuestStatus ~= QuestStatus_None or not MonsterList or not monsterListParam then
-            MonsterListCreated = false;
-            MonsterListData = {};
+        if not isActiveQuest or QuestStatus ~= QuestStatus_None or QuestTargetTotalBossEmNum <= 0 or not MonsterList or not monsterListParam then
             creatingList = false;
             return retval;
         end
 
         local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
         if not MonsterBossData then
-            MonsterListCreated = false;
-            MonsterListData = {};
             creatingList = false;
             return retval;
         end
 
         local DataList = DataList_field:get_data(MonsterBossData);
         if not DataList then
-            MonsterListCreated = false;
-            MonsterListData = {};
             creatingList = false;
             return retval;
         end
 
         local counts = DataList_get_Count_method:call(DataList);
         if counts <= 0 then
-            MonsterListCreated = false;
-            MonsterListData = {};
             creatingList = false;
             return retval;
         end
 
-        for i = 0, counts - 1 do
+        for i = 0, counts - 1, 1 do
             local monster = DataList_get_Item_method:call(DataList, i);
             if not monster then
                 goto continue1;
             end
 
             local monsterType = EmType_field:get_data(monster);
-            local partTableData = PartTableData_field:get_data(monster);
-            if not monsterType or not partTableData then
+            if not monsterType then
+                goto continue1;
+            end
+
+            local isQuestTargetEnemy = isQuestTargetEnemy_method:call(QuestManager, monsterType, false);
+            if not isQuestTargetEnemy then
                 goto continue1;
             end
 
             local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
-            local isQuestTargetEnemy = isQuestTargetEnemy_method:call(QuestManager, monsterType, false);
+            local partTableData = PartTableData_field:get_data(monster);
+            if not meatData or not partTableData then
+                goto continue1;
+            end
+
             local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
-            if not meatData or not isQuestTargetEnemy or partTableData_counts <= 0 then
+            if partTableData_counts <= 0 then
                 goto continue1;
             end
 
             local MonsterDataTable = {
-                Type = monsterType,
                 Name = GetMonsterName_method:call(nil, monsterType),
                 PartData = {}
             };
 
-            for i = 0, partTableData_counts - 1 do
+            for i = 0, partTableData_counts - 1, 1 do
                 local part = PartTableData_get_Item_method:call(partTableData, i);
                 if not part then
                     goto continue2;
@@ -296,7 +302,7 @@ sdk_hook(isQuestOrderReceived_method, nil, function(retval)
                     PartDataTable.highest = PartDataTable.highest .. "_Ice";
                 end
                 if PartDataTable.Elect == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_ELect";
+                    PartDataTable.highest = PartDataTable.highest .. "_Elect";
                 end
                 if PartDataTable.Dragon == highestElem then
                     PartDataTable.highest = PartDataTable.highest .. "_Dragon";
@@ -305,7 +311,7 @@ sdk_hook(isQuestOrderReceived_method, nil, function(retval)
                 table_insert(MonsterDataTable.PartData, PartDataTable);
                 :: continue2 ::
             end
-            MonsterListData[monsterType] = MonsterDataTable;
+            table_insert(MonsterListData, MonsterDataTable);
             :: continue1 ::
         end
         MonsterListCreated = true;
@@ -317,6 +323,7 @@ end);
 sdk_hook(questCancel_method, nil, function()
     MonsterListCreated = false;
     MonsterListData = {};
+    QuestTargetTotalBossEmNum = nil;
 end);
 
 sdk_hook(onChangedGameStatus_method, function(args)
@@ -324,6 +331,7 @@ sdk_hook(onChangedGameStatus_method, function(args)
     if Status ~= StatusType_Village or Status ~= StatusType_Quest then
         MonsterListCreated = false;
         MonsterListData = {};
+        QuestTargetTotalBossEmNum = nil;
     end
     return sdk_CALL_ORIGINAL;
 end);
@@ -334,7 +342,7 @@ end);
 local open = false;
 local openInitiative = false;
 re_on_frame(function()
-    if MonsterListCreated then
+    if MonsterListCreated and QuestTargetTotalBossEmNum > 0 then
         if openInitiative then
             open = true;
         end
@@ -344,9 +352,9 @@ re_on_frame(function()
             end
             if imgui_begin_window("몬스터 약점", true, 4096 + 64) then
                 local i = 0;
-                for _, v in pairs(MonsterListData) do
+                for _, MonsterData in pairs(MonsterListData) do
                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                        imgui_table_setup_column(v.Name, 1 << 3, 125);
+                        imgui_table_setup_column(MonsterData.Name, 1 << 3, 125);
                         imgui_table_setup_column("절단", 1 << 3, 25);
                         imgui_table_setup_column("타격", 1 << 3, 25);
                         imgui_table_setup_column("탄", 1 << 3, 25);
@@ -357,7 +365,7 @@ re_on_frame(function()
                         imgui_table_setup_column("용", 1 << 3, 25);
                         imgui_table_headers_row();
 
-                        for _, part in pairs(v.PartData) do
+                        for _, part in pairs(MonsterData.PartData) do
                             imgui_table_next_row();
                             imgui_table_next_column();
                             imgui_text(part.PartName);
@@ -374,7 +382,7 @@ re_on_frame(function()
                         imgui_end_table();
                     end
                     i = i + 1;
-                    if i < #MonsterListData then
+                    if i < QuestTargetTotalBossEmNum then
                         imgui_spacing();
                     end
                 end
