@@ -20,13 +20,13 @@ local autoSaveCaution_Action_Start_method = sdk_find_type_definition("snow.gui.f
 local pressAnyButton_Action_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiTitleFsm_PressAnyButton_Action"):get_method("start(via.behaviortree.ActionArg)");
 local getTitleDispSkipTrg_method = sdk_find_type_definition("snow.gui.StmGuiInput"):get_method("getTitleDispSkipTrg");
 ----------------
-local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
-
 local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 
 local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+
+local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
 -- static --
-local GameStartStateType_type_def = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager.GameStartStateType");
+local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
 local LOADING_STATES =
 	{
 		[GameStartStateType_type_def:get_field("CAPCOM_Logo"):get_data(nil)] = true, -- 1

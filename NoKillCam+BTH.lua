@@ -82,7 +82,7 @@ local getStatus_method = QuestManager_type_def:get_method("getStatus");
 local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable");
 local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
 
-local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
+local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 --[[
 QuestManager.EndFlow
  0 == Start;

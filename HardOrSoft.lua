@@ -94,6 +94,7 @@ re_on_config_save(SaveConfig);
 local get_UpTimeSecond_method = sdk_find_type_definition("via.Application"):get_method("get_UpTimeSecond");
 
 local afterCalcDamage_DamageSide_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("afterCalcDamage_DamageSide(snow.hit.DamageFlowInfoBase, snow.DamageReceiver.HitInfo)");
+local getHitUIColorType_method = sdk_find_type_definition("snow.enemy.EnemyUtility"):get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)");
 
 local GuiDamageDisp_NumDisp_type_def = sdk_find_type_definition("snow.gui.GuiDamageDisp.NumDisp");
 local excute_method = GuiDamageDisp_NumDisp_type_def:get_method("execute");
@@ -105,9 +106,6 @@ local DamageText_type_def = DamageText_field:get_type();
 local get_Message_method = DamageText_type_def:get_method("get_Message");
 local set_Message_method = DamageText_type_def:get_method("set_Message(System.String)");
 local set_FontSlot_method = DamageText_type_def:get_method("set_FontSlot(via.gui.FontSlot)");
-
-local EnemyUtility_type_def = sdk_find_type_definition("snow.enemy.EnemyUtility");
-local getHitUIColorType_method = EnemyUtility_type_def:get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)");
 
 local AfterCalcInfo_DamageSide_type_def = sdk_find_type_definition("snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide");
 local get_AttackerID_method = AfterCalcInfo_DamageSide_type_def:get_method("get_AttackerID");
@@ -250,7 +248,7 @@ end);
 sdk_hook(excute_method, function(args)
     if config.Enable then
         local tmp = sdk_to_managed_object(args[2]);
-        if tmp and DispType_field:get_data(tmp) ~= 3 and isExecute_method:call(tmp) then
+        if tmp and DispType_field:get_data(tmp) ~= ColorType.Gray and isExecute_method:call(tmp) then
             local text = DamageText_field:get_data(tmp);
             local font = (config.FontType == 5 and 7) or (config.FontType == 6 and 11) or config.FontType;
             if text and font then

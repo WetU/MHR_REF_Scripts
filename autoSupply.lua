@@ -132,7 +132,9 @@ local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData
 
 local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
 
-local CustomShortcutSystem_type_def = sdk_find_type_definition("snow.data.CustomShortcutSystem");
+local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem");
+
+local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
 local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
 
@@ -141,8 +143,12 @@ local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
-local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
-local currentAreaNo_field = VillageAreaManager_type_def:get_field("<_CurrentAreaNo>k__BackingField");
+local get_CurrentVillageNo_method = VillageAreaManager_type_def:get_method("get_CurrentVillageNo");
+local set_CurrentVillageNo_method = VillageAreaManager_type_def:get_method("set_CurrentVillageNo(snow.VillageDefine.VillageNo)");
+
+local VillageNo_type_def = get_CurrentVillageNo_method:get_return_type();
+local KAMURA = VillageNo_type_def:get_field("Village01"):get_data(nil);
+local ELGADO = VillageNo_type_def:get_field("Village02"):get_data(nil);
 
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
@@ -152,15 +158,10 @@ local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
 
-local AreaNoType_type_def = sdk_find_type_definition("snow.stage.StageDef.AreaNoType");
-local KAMURA = AreaNoType_type_def:get_field("No02"):get_data(nil);
-local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
-
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
 
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem");
 local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 
 local function SendMessage(text)
@@ -523,28 +524,41 @@ local function Supply()
             if progressOwlNestSaveData then
                 local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
                 local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
-                if kamuraStack >= config.CohootMaxStock or elgadoStack >= config.CohootMaxStock then
+                if kamuraStack >= config.CohootMaxStock and elgadoStack < config.CohootMaxStock then
                     local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
                     if VillageAreaManager then
-                        if kamuraStack >= config.CohootMaxStock then
-                            local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                            if savedAreaNo ~= KAMURA then
-                                set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                                supply_method:call(ProgressOwlNestManager);
-                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                            else
-                                supply_method:call(ProgressOwlNestManager);
-                            end
+                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
+                        if savedVillageNo ~= KAMURA then
+                            set_CurrentVillageNo_method:call(VillageAreaManager, KAMURA);
+                            supply_method:call(ProgressOwlNestManager);
+                            set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
+                        else
+                            supply_method:call(ProgressOwlNestManager);
                         end
-                        if elgadoStack >= config.CohootMaxStock then
-                            local savedAreaNo = currentAreaNo_field:get_data(VillageAreaManager);
-                            if savedAreaNo ~= ELGADO then
-                                set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                                supply_method:call(ProgressOwlNestManager);
-                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                            else
-                                supply_method:call(ProgressOwlNestManager);
-                            end
+                    end
+                elseif kamuraStack >= config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
+                    supply_method:call(ProgressOwlNestManager);
+                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                    if VillageAreaManager then
+                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
+                        if savedVillageNo == KAMURA then
+                            set_CurrentVillageNo_method:call(VillageAreaManager, ELGADO);
+                        else
+                            set_CurrentVillageNo_method:call(VillageAreaManager, KAMURA);
+                        end
+                        supply_method:call(ProgressOwlNestManager);
+                        set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
+                    end
+                elseif kamuraStack < config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
+                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                    if VillageAreaManager then
+                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
+                        if savedVillageNo ~= ELGADO then
+                            set_CurrentVillageNo_method:call(VillageAreaManager, ELGADO);
+                            supply_method:call(ProgressOwlNestManager);
+                            set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
+                        else
+                            supply_method:call(ProgressOwlNestManager);
                         end
                     end
                 end

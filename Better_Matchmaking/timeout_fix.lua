@@ -123,7 +123,9 @@ function timeout_fix.on_post_timeout_matchmaking(retval)
 			elseif quest_type == quest_types.anomaly_investigation then
 				if timeout_fix_config.quest_types.anomaly_investigation then
 					local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);
+
 					nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
+
 					enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
 					
 					skip_next_hook = true;
@@ -140,7 +142,6 @@ function timeout_fix.on_req_matchmaking(quest_id)
 		skip_next_hook = false;
 		return;
 	end
-
 	quest_type = quest_types.regular;
 	quest_type.quest_id = quest_id;
 end
@@ -150,7 +151,6 @@ function timeout_fix.on_req_matchmaking_random(my_hunter_rank)
 		skip_next_hook = false;
 		return;
 	end
-	
 	quest_type = quest_types.random;
 	quest_type.my_hunter_rank = my_hunter_rank;
 end
@@ -160,7 +160,6 @@ function timeout_fix.on_req_matchmaking_rampage(difficulty, quest_level_pointer,
 		skip_next_hook = false;
 		return;
 	end
-	
 	quest_type = quest_types.rampage;
 	quest_type.difficulty = difficulty;
 
@@ -181,7 +180,6 @@ function timeout_fix.on_req_matchmaking_random_master_rank(my_hunter_rank, my_ma
 		skip_next_hook = false;
 		return;
 	end
-	
 	quest_type = quest_types.random_master_rank;
 	quest_type.my_hunter_rank = my_hunter_rank;
 	quest_type.my_master_rank = my_master_rank;
@@ -192,7 +190,6 @@ function timeout_fix.on_req_matchmaking_random_anomaly(my_hunter_rank, my_master
 		skip_next_hook = false;
 		return;
 	end
-	
 	quest_type = quest_types.random_anomaly;
 	quest_type.my_hunter_rank = my_hunter_rank;
 	quest_type.my_master_rank = my_master_rank;
@@ -203,7 +200,6 @@ function timeout_fix.on_req_matchmaking_random_anomaly_quest(min_level, max_leve
 		skip_next_hook = false;
 		return;
 	end
-
 	quest_type = quest_types.anomaly_investigation;
 	quest_type.min_level = min_level;
 	quest_type.max_level = max_level;

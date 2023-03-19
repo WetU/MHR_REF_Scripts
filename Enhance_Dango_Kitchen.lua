@@ -69,14 +69,16 @@ local mealFunc_type_def = mealFunc_field:get_type();
 local updateList_method = mealFunc_type_def:get_method("updateList");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 local order_method = mealFunc_type_def:get_method("order");
-local dangoDataList_field = mealFunc_type_def:get_field("<DangoDataList>k__BackingField");
+local get_DangoDataList_method = mealFunc_type_def:get_method("get_DangoDataList");
 local mealFunc_SpecialSkewerDangoLv_field = mealFunc_type_def:get_field("SpecialSkewerDangoLv");
 
-local dangoDataList_ToArray_method = dangoDataList_field:get_type():get_method("ToArray");
+local DangoDataList_type_def = get_DangoDataList_method:get_return_type();
+local DangoDataList_get_Count_method = DangoDataList_type_def:get_method("get_Count");
+local DangoDataList_get_Item_method = DangoDataList_type_def:get_method("get_Item(System.Int32)");
 
 local mealFunc_SpecialSkewerDangoLv_set_Item_method = mealFunc_SpecialSkewerDangoLv_field:get_type():get_method("set_Item(System.Int32, System.Object)");
 
-local dangoData_type_def = sdk_find_type_definition("snow.data.DangoData");
+local dangoData_type_def = DangoDataList_get_Item_method:get_return_type();
 local get_SkillActiveRate_method = dangoData_type_def:get_method("get_SkillActiveRate");
 local dangoData_param_field = dangoData_type_def:get_field("_Param");
 
@@ -94,6 +96,8 @@ local isUnlocked_method = sdk_find_type_definition("snow.data.FlagDataManager"):
 local plItemBox_field = sdk_find_type_definition("snow.data.DataManager"):get_field("_PlItemBox");
 
 local tryAddGameItem_method = plItemBox_field:get_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
+
+local dangoTicket_Item_Id = sdk_find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_0124"):get_data(nil);
 -- Skip Dango Song cache
 local requestAutoSaveAll_method = sdk_find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll");
 
@@ -111,9 +115,9 @@ local get_LoadState_method = EventcutHandler_type_def:get_method("get_LoadState"
 local get_Playing_method = EventcutHandler_type_def:get_method("get_Playing");
 local reqFinish_method = EventcutHandler_type_def:get_method("reqFinish(System.Single)");
 
-local LOADSTATE_ACTIVE = sdk_find_type_definition("snow.eventcut.LoadState"):get_field("Active"):get_data(nil);
+local LOADSTATE_ACTIVE = get_LoadState_method:get_return_type():get_field("Active"):get_data(nil);
 
-local EventId_type_def = sdk_find_type_definition("snow.eventcut.EventId");
+local EventId_type_def = get_EventId_method:get_return_type();
 local cooking_events = {
     [EventId_type_def:get_field("evc3026"):get_data(nil)] = settings.skipDangoSong, --village
     [EventId_type_def:get_field("evc3027"):get_data(nil)] = settings.skipDangoSong, --hub
@@ -135,9 +139,14 @@ local SavedDangoChance = nil;
 local Param = nil;
 sdk_hook(get_SkillActiveRate_method, function(args)
 	if settings.SkillAlwaysActive then
-		Param = dangoData_param_field:get_data(sdk_to_managed_object(args[2]));
-		SavedDangoChance = skillActiveRate_field:get_data(Param);
-		Param:set_field("_SkillActiveRate", 100);
+		local dangoData = sdk_to_managed_object(args[2]);
+		if dangoData then
+			Param = dangoData_param_field:get_data(dangoData);
+			if Param then
+				SavedDangoChance = skillActiveRate_field:get_data(Param);
+				Param:set_field("_SkillActiveRate", 100);
+			end
+		end
 	end
 	return sdk_CALL_ORIGINAL;
 end, function(retval)
@@ -151,10 +160,16 @@ end);
 
 sdk_hook(setDangoDetailWindow_method, function(args)
 	if settings.EnableSkewerLv then
-		for i = 0, 2, 1 do
-			local newSkewerLv = sdk_create_instance("System.UInt32");
-			newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
-			guiKitchen_SpecialSkewerDangoLv_set_Item_method:call(guiKitchen_SpecialSkewerDangoLv_field:get_data(sdk_to_managed_object(args[2])), i, newSkewerLv);
+		local guiKitchen = sdk_to_managed_object(args[2]);
+		if guiKitchen then
+			local guiKitchen_SpecialSkewerDangoLv = guiKitchen_SpecialSkewerDangoLv_field:get_data(guiKitchen);
+			if guiKitchen_SpecialSkewerDangoLv then
+				for i = 0, 2, 1 do
+					local newSkewerLv = sdk_create_instance("System.UInt32");
+					newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
+					guiKitchen_SpecialSkewerDangoLv_set_Item_method:call(guiKitchen_SpecialSkewerDangoLv, i, newSkewerLv);
+				end
+			end
 		end
 	end
 	return sdk_CALL_ORIGINAL;
@@ -162,18 +177,24 @@ end);
 
 sdk_hook(updateList_method, function(args)
 	if settings.TicketByDefault or settings.EnableSkewerLv then
-		local FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
-		if FacilityManager then
-			local KitchenMealFunc = mealFunc_field:get_data(kitchen_field:get_data(FacilityManager));
-			if KitchenMealFunc then
-				if settings.TicketByDefault then
-					setMealTicketFlag_method:call(KitchenMealFunc, true);
-				end
-				if settings.EnableSkewerLv then
-					for i = 0, 2, 1 do
-						local newSkewerLv = sdk_create_instance("System.UInt32");
-						newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
-						mealFunc_SpecialSkewerDangoLv_set_Item_method:call(mealFunc_SpecialSkewerDangoLv_field:get_data(KitchenMealFunc), i, newSkewerLv);
+		local FacilityDataManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
+		if FacilityDataManager then
+			local Kitchen = kitchen_field:get_data(FacilityDataManager);
+			if Kitchen then
+				local mealFunc = mealFunc_field:get_data(Kitchen);
+				if mealFunc then
+					if settings.TicketByDefault then
+						setMealTicketFlag_method:call(mealFunc, true);
+					end
+					if settings.EnableSkewerLv then
+						local mealFunc_SpecialSkewerDangoLv = mealFunc_SpecialSkewerDangoLv_field:get_data(mealFunc);
+						if mealFunc_SpecialSkewerDangoLv then
+							for i = 0, 2, 1 do
+								local newSkewerLv = sdk_create_instance("System.UInt32");
+								newSkewerLv:set_field("mValue", settings.skewerLvs[i + 1]);
+								mealFunc_SpecialSkewerDangoLv_set_Item_method:call(mealFunc_SpecialSkewerDangoLv, i, newSkewerLv);
+							end
+						end
 					end
 				end
 			end
@@ -182,13 +203,36 @@ sdk_hook(updateList_method, function(args)
 	return sdk_CALL_ORIGINAL;
 end, function(retval)
 	if settings.ShowAllDango then
-		local FacilityManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
-		local FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
-		if FacilityManager and FlagManager then
-			for _, dango in pairs(dangoDataList_ToArray_method:call(dangoDataList_field:get_data(mealFunc_field:get_data(kitchen_field:get_data(FacilityManager))))) do
-				local param_data = dangoData_param_field:get_data(dango);
-				if isUnlocked_method:call(FlagManager, param_Id_field:get_data(param_data)) then
-					param_data:set_field("_DailyRate", 0);
+		local FacilityDataManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
+		if FacilityDataManager then
+			local Kitchen = kitchen_field:get_data(FacilityDataManager);
+			if Kitchen then
+				local mealFunc = mealFunc_field:get_data(Kitchen);
+				if mealFunc then
+					local DangoDataList = get_DangoDataList_method:call(mealFunc);
+					if DangoDataList then
+						local DangoDataList_count = DangoDataList_get_Count_method:call(DangoDataList);
+						if DangoDataList_count > 0 then
+							local FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
+							if FlagManager then
+								for i = 0, DangoDataList_count - 1 do
+									local dango = DangoDataList_get_Item_method:call(DangoDataList, i);
+									if dango then
+										local param_data = dangoData_param_field:get_data(dango);
+										if param_data then
+											local param_Id = param_Id_field:get_data(param_data);
+											if param_Id then
+												local isUnlocked = isUnlocked_method:call(FlagManager, param_Id);
+												if isUnlocked then
+													param_data:set_field("_DailyRate", 0);
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
 				end
 			end
 		end
@@ -200,7 +244,10 @@ sdk_hook(order_method, nil, function(retval)
 	if settings.InfiniteDangoTickets then
 		local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
 		if DataManager then
-			tryAddGameItem_method:call(plItemBox_field:get_data(DataManager), 68157564, 1);
+			local plItemBox = plItemBox_field:get_data(DataManager);
+			if plItemBox then
+				tryAddGameItem_method:call(plItemBox, dangoTicket_Item_Id, 1);
+			end
 		end
 	end
 	return retval;
