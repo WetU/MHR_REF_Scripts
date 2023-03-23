@@ -143,12 +143,12 @@ local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
-local get_CurrentVillageNo_method = VillageAreaManager_type_def:get_method("get_CurrentVillageNo");
-local set_CurrentVillageNo_method = VillageAreaManager_type_def:get_method("set_CurrentVillageNo(snow.VillageDefine.VillageNo)");
+local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
+local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
-local VillageNo_type_def = get_CurrentVillageNo_method:get_return_type();
-local KAMURA = VillageNo_type_def:get_field("Village01"):get_data(nil);
-local ELGADO = VillageNo_type_def:get_field("Village02"):get_data(nil);
+local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
+local KAMURA = AreaNoType_type_def:get_field("No02"):get_data(nil);
+local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
@@ -520,46 +520,51 @@ local function Supply()
     if config.EnableCohoot then
         local ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
         if ProgressOwlNestManager then
-            local progressOwlNestSaveData = get_SaveData_method:call(ProgressOwlNestManager);
-            if progressOwlNestSaveData then
-                local kamuraStack = kamuraStackCount_field:get_data(progressOwlNestSaveData);
-                local elgadoStack = elgadoStackCount_field:get_data(progressOwlNestSaveData);
+            local saveData = get_SaveData_method:call(ProgressOwlNestManager);
+            if saveData then
+                local kamuraStack = kamuraStackCount_field:get_data(saveData);
+                local elgadoStack = elgadoStackCount_field:get_data(saveData);
                 if kamuraStack >= config.CohootMaxStock and elgadoStack < config.CohootMaxStock then
                     local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
                     if VillageAreaManager then
-                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
-                        if savedVillageNo ~= KAMURA then
-                            set_CurrentVillageNo_method:call(VillageAreaManager, KAMURA);
+                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                        if savedAreaNo ~= KAMURA then
+                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
                             supply_method:call(ProgressOwlNestManager);
-                            set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                        else
+                            supply_method:call(ProgressOwlNestManager);
+                        end
+                    end
+                elseif elgadoStack >= config.CohootMaxStock and kamuraStack < config.CohootMaxStock then
+                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                    if VillageAreaManager then
+                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                        if savedAreaNo ~= ELGADO then
+                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                            supply_method:call(ProgressOwlNestManager);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                         else
                             supply_method:call(ProgressOwlNestManager);
                         end
                     end
                 elseif kamuraStack >= config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
-                    supply_method:call(ProgressOwlNestManager);
                     local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
                     if VillageAreaManager then
-                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
-                        if savedVillageNo == KAMURA then
-                            set_CurrentVillageNo_method:call(VillageAreaManager, ELGADO);
+                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                        if savedAreaNo == KAMURA then
+                            supply_method:call(ProgressOwlNestManager);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                        elseif savedAreaNo == ELGADO then
+                            supply_method:call(ProgressOwlNestManager);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
                         else
-                            set_CurrentVillageNo_method:call(VillageAreaManager, KAMURA);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                            supply_method:call(ProgressOwlNestManager);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
                         end
                         supply_method:call(ProgressOwlNestManager);
-                        set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
-                    end
-                elseif kamuraStack < config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
-                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-                    if VillageAreaManager then
-                        local savedVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
-                        if savedVillageNo ~= ELGADO then
-                            set_CurrentVillageNo_method:call(VillageAreaManager, ELGADO);
-                            supply_method:call(ProgressOwlNestManager);
-                            set_CurrentVillageNo_method:call(VillageAreaManager, savedVillageNo);
-                        else
-                            supply_method:call(ProgressOwlNestManager);
-                        end
+                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                     end
                 end
             end
