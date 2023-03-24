@@ -3,9 +3,7 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
-
-local sdk_PreHookResult = sdk.PreHookResult;
-local sdk_CALL_ORIGINAL = sdk_PreHookResult.CALL_ORIGINAL;
+local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_frame = re.on_frame;
@@ -155,7 +153,7 @@ local Language = {
 
 
 local MonsterListData = {};
-local QuestTargetTotalBossEmNum = nil;
+local currentQuestMonsterType = nil;
 local MonsterListCreated = false;
 local creatingList = false;
 
@@ -170,8 +168,7 @@ end
 
 sdk_hook(isQuestOrderReceived_method, function()
     MonsterListCreated = false;
-    MonsterListData = {};
-    QuestTargetTotalBossEmNum = nil;
+    currentQuestMonsterType = {};
     creatingList = false;
     return sdk_CALL_ORIGINAL;
 end, function(retval)
@@ -184,15 +181,18 @@ end, function(retval)
         creatingList = true;
         local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
         local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-        if not QuestManager or not GuiManager then
+        if not QuestManager
+        or not GuiManager
+        or not isActiveQuest_method:call(QuestManager)
+        or getStatus_method:call(QuestManager) ~= QuestStatus_None
+        or getQuestTargetTotalBossEmNum_method:call(QuestManager) <= 0 then
             creatingList = false;
             return retval;
         end
 
-        QuestTargetTotalBossEmNum = getQuestTargetTotalBossEmNum_method:call(QuestManager);
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
-        if not isActiveQuest_method:call(QuestManager) or getStatus_method:call(QuestManager) ~= QuestStatus_None or QuestTargetTotalBossEmNum <= 0 or not MonsterList or not monsterListParam then
+        if not MonsterList or not monsterListParam then
             creatingList = false;
             return retval;
         end
@@ -223,6 +223,9 @@ end, function(retval)
 
             local monsterType = EmType_field:get_data(monster);
             if not monsterType or not isQuestTargetEnemy_method:call(QuestManager, monsterType, false) then
+                goto continue1;
+            elseif MonsterListData[monsterType] ~= nil then
+                table_insert(currentQuestMonsterType, monsterType);
                 goto continue1;
             end
 
@@ -305,7 +308,8 @@ end, function(retval)
                 table_insert(MonsterDataTable.PartData, PartDataTable);
                 :: continue2 ::
             end
-            table_insert(MonsterListData, MonsterDataTable);
+            MonsterListData[monsterType] = MonsterDataTable;
+            table_insert(currentQuestMonsterType, monsterType);
             :: continue1 ::
         end
         MonsterListCreated = true;
@@ -316,8 +320,7 @@ end);
 
 sdk_hook(questCancel_method, nil, function()
     MonsterListCreated = false;
-    MonsterListData = {};
-    QuestTargetTotalBossEmNum = nil;
+    currentQuestMonsterType = nil;
     creatingList = false;
 end);
 
@@ -325,8 +328,7 @@ sdk_hook(onChangedGameStatus_method, function(args)
     local Status = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     if Status ~= StatusType_Village then
         MonsterListCreated = false;
-        MonsterListData = {};
-        QuestTargetTotalBossEmNum = nil;
+        currentQuestMonsterType = nil;
         creatingList = false;
     end
     return sdk_CALL_ORIGINAL;
@@ -338,49 +340,47 @@ end);
 
 re_on_frame(function()
     if MonsterListCreated then
-        if font then
+        local curQuestTargetMonsterNum = #currentQuestMonsterType;
+        if curQuestTargetMonsterNum >= 1 then
             imgui_push_font(font);
-        end
-        if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
-            local i = 0;
-            for _, data in pairs(MonsterListData) do
-                if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                    imgui_table_setup_column(data.Name, 1 << 3, 125);
-                    imgui_table_setup_column("절단", 1 << 3, 25);
-                    imgui_table_setup_column("타격", 1 << 3, 25);
-                    imgui_table_setup_column("탄", 1 << 3, 25);
-                    imgui_table_setup_column("불", 1 << 3, 25);
-                    imgui_table_setup_column("물", 1 << 3, 25);
-                    imgui_table_setup_column("번개", 1 << 3, 25);
-                    imgui_table_setup_column("얼음", 1 << 3, 25);
-                    imgui_table_setup_column("용", 1 << 3, 25);
-                    imgui_table_headers_row();
+            if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
+                for i = 1, curQuestTargetMonsterNum, 1 do
+                    local curMonsterData = MonsterListData[currentQuestMonsterType[i]];
+                    if imgui_begin_table("부위", 10, 1 << 21, 25) then
+                        imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
+                        imgui_table_setup_column("절단", 1 << 3, 25);
+                        imgui_table_setup_column("타격", 1 << 3, 25);
+                        imgui_table_setup_column("탄", 1 << 3, 25);
+                        imgui_table_setup_column("불", 1 << 3, 25);
+                        imgui_table_setup_column("물", 1 << 3, 25);
+                        imgui_table_setup_column("번개", 1 << 3, 25);
+                        imgui_table_setup_column("얼음", 1 << 3, 25);
+                        imgui_table_setup_column("용", 1 << 3, 25);
+                        imgui_table_headers_row();
 
-                    for _, part in pairs(data.PartData) do
-                        imgui_table_next_row();
-                        imgui_table_next_column();
-                        imgui_text(part.PartName);
+                        for _, part in pairs(curMonsterData.PartData) do
+                            imgui_table_next_row();
+                            imgui_table_next_column();
+                            imgui_text(part.PartName);
 
-                        testAttribute("Slash", part.Slash, part.highest);
-                        testAttribute("Strike", part.Strike, part.highest);
-                        testAttribute("Shell", part.Shell, part.highest);
-                        testAttribute("Fire", part.Fire, part.highest);
-                        testAttribute("Water", part.Water, part.highest);
-                        testAttribute("Elect", part.Elect, part.highest);
-                        testAttribute("Ice", part.Ice, part.highest);
-                        testAttribute("Dragon", part.Dragon, part.highest);
+                            testAttribute("Slash", part.Slash, part.highest);
+                            testAttribute("Strike", part.Strike, part.highest);
+                            testAttribute("Shell", part.Shell, part.highest);
+                            testAttribute("Fire", part.Fire, part.highest);
+                            testAttribute("Water", part.Water, part.highest);
+                            testAttribute("Elect", part.Elect, part.highest);
+                            testAttribute("Ice", part.Ice, part.highest);
+                            testAttribute("Dragon", part.Dragon, part.highest);
+                        end
+                        imgui_end_table();
                     end
-                    imgui_end_table();
+                    if i < curQuestTargetMonsterNum then
+                        imgui_spacing();
+                    end
                 end
-                i = i + 1;
-                if i < QuestTargetTotalBossEmNum then
-                    imgui_spacing();
-                end
-            end
-            if font then
                 imgui_pop_font();
+                imgui_end_window();
             end
-            imgui_end_window();
         end
     end
 end);
