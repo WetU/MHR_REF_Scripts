@@ -1,7 +1,7 @@
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_to_int64 = sdk.to_int64;
+local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
@@ -34,6 +34,7 @@ local string = string;
 local string_find = string.find;
 
 local pairs = pairs;
+local type = type;
 ------
 local KOREAN_GLYPH_RANGES = {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
@@ -53,16 +54,20 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
 local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)");
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
 
+local get_CurrentStatus_method = sdk_find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
+
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
-local isActiveQuest_method = QuestManager_type_def:get_method("isActiveQuest");
 local getStatus_method = QuestManager_type_def:get_method("getStatus");
-local isQuestTargetEnemy_method = QuestManager_type_def:get_method("isQuestTargetEnemy(snow.enemy.EnemyDef.EmTypes, System.Boolean)");
-local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum");
+local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList");
+local questActivate_method = QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)");
 local questCancel_method = QuestManager_type_def:get_method("questCancel");
 local onChangedGameStatus_method = QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
 
+local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
+local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count");
+local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)");
+
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
-local isQuestOrderReceived_method = GuiManager_type_def:get_method("isQuestOrderReceived");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
 local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
 
@@ -94,7 +99,7 @@ local EmPart_field = PartData_type_def:get_field("_EmPart");
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 
-local StatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
+local StatusType_Village = get_CurrentStatus_method:get_return_type():get_field("Village"):get_data(nil);
 
 local MeatAttr = {
     Slash = 0,
@@ -153,8 +158,9 @@ local Language = {
 
 
 local MonsterListData = {};
+local DataListCreated = false;
 local currentQuestMonsterTypes = nil;
-local creatingList = false;
+local creating = false;
 
 local function testAttribute(attribute, value, highest)
     imgui_table_next_column();
@@ -165,67 +171,38 @@ local function testAttribute(attribute, value, highest)
     end
 end
 
-sdk_hook(questCancel_method, nil, function()
-    currentQuestMonsterTypes = nil;
-    creatingList = false;
-end);
-
-sdk_hook(onChangedGameStatus_method, function(args)
-    if (sdk_to_int64(args[3]) & 0xFFFFFFFF) ~= StatusType_Village then
-        currentQuestMonsterTypes = nil;
-        creatingList = false;
-    end
-    return sdk_CALL_ORIGINAL;
-end);
-
-sdk_hook(isQuestOrderReceived_method, function()
-    currentQuestMonsterTypes = {};
-    creatingList = false;
-    return sdk_CALL_ORIGINAL;
-end, function(retval)
-    if (sdk_to_int64(retval) & 1) ~= 1 then
-        currentQuestMonsterTypes = nil;
-        creatingList = false;
-        return retval;
-    end
-
-    if not creatingList then
-        creatingList = true;
-        local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
+local function CreateDataList()
+    if not creating then
+        creating = true;
         local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-        if not QuestManager or not GuiManager or not isActiveQuest_method:call(QuestManager) or getStatus_method:call(QuestManager) ~= QuestStatus_None or getQuestTargetTotalBossEmNum_method:call(QuestManager) <= 0 then
-            currentQuestMonsterTypes = nil;
-            creatingList = false;
-            return retval;
+        if not GuiManager then
+            creating = false;
+            return;
         end
 
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
         if not MonsterList or not monsterListParam then
-            currentQuestMonsterTypes = nil;
-            creatingList = false;
-            return retval;
+            creating = false;
+            return;
         end
 
         local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
         if not MonsterBossData then
-            currentQuestMonsterTypes = nil;
-            creatingList = false;
-            return retval;
+            creating = false;
+            return;
         end
 
         local DataList = DataList_field:get_data(MonsterBossData);
         if not DataList then
-            currentQuestMonsterTypes = nil;
-            creatingList = false;
-            return retval;
+            creating = false;
+            return;
         end
 
         local counts = DataList_get_Count_method:call(DataList);
-        if counts <= 0 then
-            currentQuestMonsterTypes = nil;
-            creatingList = false;
-            return retval;
+        if not counts or counts <= 0 then
+            creating = false;
+            return;
         end
 
         for i = 0, counts - 1, 1 do
@@ -235,7 +212,7 @@ end, function(retval)
             end
 
             local monsterType = EmType_field:get_data(monster);
-            if not monsterType or MonsterListData[monsterType] ~= nil then
+            if not monsterType then
                 goto continue1;
             end
 
@@ -246,7 +223,7 @@ end, function(retval)
             end
 
             local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
-            if partTableData_counts <= 0 then
+            if not partTableData_counts or partTableData_counts <= 0 then
                 goto continue1;
             end
 
@@ -314,19 +291,57 @@ end, function(retval)
                 if PartDataTable.Dragon == highestElem then
                     PartDataTable.highest = PartDataTable.highest .. "_Dragon";
                 end
-
                 table_insert(MonsterDataTable.PartData, PartDataTable);
                 :: continue2 ::
             end
             MonsterListData[monsterType] = MonsterDataTable;
             :: continue1 ::
-            if isQuestTargetEnemy_method:call(QuestManager, monsterType, false) then
-                table_insert(currentQuestMonsterTypes, monsterType);
+        end
+        DataListCreated = true;
+        creating = false;
+    end
+end
+
+local QuestManager = nil;
+sdk_hook(questActivate_method, function(args)
+    QuestManager = sdk_to_managed_object(args[2]);
+    currentQuestMonsterTypes = nil;
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if QuestManager then
+        if getStatus_method:call(QuestManager) ~= QuestStatus_None then
+            return;
+        end
+
+        local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
+        if QuestTargetEmTypeList then
+            local listCounts = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
+            if not listCounts or listCounts <= 0 then
+                return;
+            end
+
+            for i = 0, listCounts - 1, 1 do
+                local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
+                if QuestTargetEmType then
+                    if type(currentQuestMonsterTypes) ~= "table" then
+                        currentQuestMonsterTypes = {};
+                    end
+                    table_insert(currentQuestMonsterTypes, QuestTargetEmType);
+                end
             end
         end
     end
-    creatingList = false;
-    return retval;
+    QuestManager = nil;
+end);
+
+sdk_hook(questCancel_method, nil, function()
+    currentQuestMonsterTypes = nil;
+end);
+
+sdk_hook(onChangedGameStatus_method, nil, function()
+    if get_CurrentStatus_method:call(sdk_get_managed_singleton("snow.SnowGameManager")) ~= StatusType_Village then
+        currentQuestMonsterTypes = nil;
+    end
 end);
 
 
@@ -334,9 +349,14 @@ end);
 
 
 re_on_frame(function()
-    if not creatingList and currentQuestMonsterTypes then
+    if not creating and not DataListCreated then
+        CreateDataList();
+        return;
+    end
+
+    if DataListCreated and currentQuestMonsterTypes ~= nil then
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
-        if curQuestTargetMonsterNum >= 1 then
+        if curQuestTargetMonsterNum > 0 then
             imgui_push_font(font);
             if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
                 for i = 1, curQuestTargetMonsterNum, 1 do
