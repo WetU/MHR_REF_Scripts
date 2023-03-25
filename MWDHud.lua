@@ -34,7 +34,7 @@ local string = string;
 local string_find = string.find;
 
 local pairs = pairs;
---
+------
 local KOREAN_GLYPH_RANGES = {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
     0x2000, 0x206F, -- General Punctuation
@@ -49,7 +49,7 @@ local KOREAN_GLYPH_RANGES = {
     0
 };
 local font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
---
+------
 local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)");
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
 
@@ -153,8 +153,7 @@ local Language = {
 
 
 local MonsterListData = {};
-local currentQuestMonsterType = nil;
-local MonsterListCreated = false;
+local currentQuestMonsterTypes = nil;
 local creatingList = false;
 
 local function testAttribute(attribute, value, highest)
@@ -166,13 +165,26 @@ local function testAttribute(attribute, value, highest)
     end
 end
 
+sdk_hook(questCancel_method, nil, function()
+    currentQuestMonsterTypes = nil;
+    creatingList = false;
+end);
+
+sdk_hook(onChangedGameStatus_method, function(args)
+    if (sdk_to_int64(args[3]) & 0xFFFFFFFF) ~= StatusType_Village then
+        currentQuestMonsterTypes = nil;
+        creatingList = false;
+    end
+    return sdk_CALL_ORIGINAL;
+end);
+
 sdk_hook(isQuestOrderReceived_method, function()
-    MonsterListCreated = false;
-    currentQuestMonsterType = {};
+    currentQuestMonsterTypes = {};
     creatingList = false;
     return sdk_CALL_ORIGINAL;
 end, function(retval)
     if (sdk_to_int64(retval) & 1) ~= 1 then
+        currentQuestMonsterTypes = nil;
         creatingList = false;
         return retval;
     end
@@ -181,11 +193,8 @@ end, function(retval)
         creatingList = true;
         local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
         local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-        if not QuestManager
-        or not GuiManager
-        or not isActiveQuest_method:call(QuestManager)
-        or getStatus_method:call(QuestManager) ~= QuestStatus_None
-        or getQuestTargetTotalBossEmNum_method:call(QuestManager) <= 0 then
+        if not QuestManager or not GuiManager or not isActiveQuest_method:call(QuestManager) or getStatus_method:call(QuestManager) ~= QuestStatus_None or getQuestTargetTotalBossEmNum_method:call(QuestManager) <= 0 then
+            currentQuestMonsterTypes = nil;
             creatingList = false;
             return retval;
         end
@@ -193,24 +202,28 @@ end, function(retval)
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
         if not MonsterList or not monsterListParam then
+            currentQuestMonsterTypes = nil;
             creatingList = false;
             return retval;
         end
 
         local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
         if not MonsterBossData then
+            currentQuestMonsterTypes = nil;
             creatingList = false;
             return retval;
         end
 
         local DataList = DataList_field:get_data(MonsterBossData);
         if not DataList then
+            currentQuestMonsterTypes = nil;
             creatingList = false;
             return retval;
         end
 
         local counts = DataList_get_Count_method:call(DataList);
         if counts <= 0 then
+            currentQuestMonsterTypes = nil;
             creatingList = false;
             return retval;
         end
@@ -222,10 +235,7 @@ end, function(retval)
             end
 
             local monsterType = EmType_field:get_data(monster);
-            if not monsterType or not isQuestTargetEnemy_method:call(QuestManager, monsterType, false) then
-                goto continue1;
-            elseif MonsterListData[monsterType] ~= nil then
-                table_insert(currentQuestMonsterType, monsterType);
+            if not monsterType or MonsterListData[monsterType] ~= nil then
                 goto continue1;
             end
 
@@ -309,29 +319,14 @@ end, function(retval)
                 :: continue2 ::
             end
             MonsterListData[monsterType] = MonsterDataTable;
-            table_insert(currentQuestMonsterType, monsterType);
             :: continue1 ::
+            if isQuestTargetEnemy_method:call(QuestManager, monsterType, false) then
+                table_insert(currentQuestMonsterTypes, monsterType);
+            end
         end
-        MonsterListCreated = true;
     end
     creatingList = false;
     return retval;
-end);
-
-sdk_hook(questCancel_method, nil, function()
-    MonsterListCreated = false;
-    currentQuestMonsterType = nil;
-    creatingList = false;
-end);
-
-sdk_hook(onChangedGameStatus_method, function(args)
-    local Status = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-    if Status ~= StatusType_Village then
-        MonsterListCreated = false;
-        currentQuestMonsterType = nil;
-        creatingList = false;
-    end
-    return sdk_CALL_ORIGINAL;
 end);
 
 
@@ -339,13 +334,13 @@ end);
 
 
 re_on_frame(function()
-    if MonsterListCreated then
-        local curQuestTargetMonsterNum = #currentQuestMonsterType;
+    if not creatingList and currentQuestMonsterTypes then
+        local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         if curQuestTargetMonsterNum >= 1 then
             imgui_push_font(font);
             if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
                 for i = 1, curQuestTargetMonsterNum, 1 do
-                    local curMonsterData = MonsterListData[currentQuestMonsterType[i]];
+                    local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
                         imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
                         imgui_table_setup_column("절단", 1 << 3, 25);
