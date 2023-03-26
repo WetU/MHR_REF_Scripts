@@ -53,7 +53,7 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
 ------
 local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)");
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
-
+local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)");
 local get_CurrentStatus_method = sdk_find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
@@ -171,162 +171,138 @@ local function testAttribute(attribute, value, highest)
     end
 end
 
-local function CreateDataList()
-    if not creating then
-        creating = true;
-        local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
-        if not GuiManager then
-            creating = false;
-            return;
-        end
-
-        local MonsterList = get_refMonsterList_method:call(GuiManager);
-        local monsterListParam = monsterListParam_field:get_data(GuiManager);
-        if not MonsterList or not monsterListParam then
-            creating = false;
-            return;
-        end
-
-        local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
-        if not MonsterBossData then
-            creating = false;
-            return;
-        end
-
-        local DataList = DataList_field:get_data(MonsterBossData);
-        if not DataList then
-            creating = false;
-            return;
-        end
-
-        local counts = DataList_get_Count_method:call(DataList);
-        if not counts or counts <= 0 then
-            creating = false;
-            return;
-        end
-
-        for i = 0, counts - 1, 1 do
-            local monster = DataList_get_Item_method:call(DataList, i);
-            if not monster then
-                goto continue1;
-            end
-
-            local monsterType = EmType_field:get_data(monster);
-            if not monsterType then
-                goto continue1;
-            end
-
-            local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
-            local partTableData = PartTableData_field:get_data(monster);
-            if not meatData or not partTableData then
-                goto continue1;
-            end
-
-            local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
-            if not partTableData_counts or partTableData_counts <= 0 then
-                goto continue1;
-            end
-
-            local MonsterDataTable = {
-                Name = GetMonsterName_method:call(nil, monsterType),
-                PartData = {}
-            };
-
-            for i = 0, partTableData_counts - 1, 1 do
-                local part = PartTableData_get_Item_method:call(partTableData, i);
-                if not part then
-                    goto continue2;
-                end
-
-                local partType = Part_field:get_data(part);
-                local meatType = EmPart_field:get_data(part);
-                if not partType or not meatType then
-                    goto continue2;
-                end
-
-                local partGuid = getMonsterPartName_method:call(MonsterList, partType);
-                if not partGuid then
-                    goto continue2;
-                end
-
-                local PartDataTable = {
-                    PartType    = partType,
-                    PartName    = GetPartName_method:call(nil, partGuid, Language.Korean),
-                    MeatType    = meatType,
-                    Slash       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Slash),
-                    Strike      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Strike),
-                    Shell       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Shell),
-                    Fire        = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Fire),
-                    Water       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Water),
-                    Ice         = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Ice),
-                    Elect       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elect),
-                    Dragon      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Dragon),
-                    highest     = ""
-                };
-                local highestPhys = math_max(PartDataTable.Slash, PartDataTable.Strike, PartDataTable.Shell);
-                local highestElem = math_max(PartDataTable.Fire, PartDataTable.Water, PartDataTable.Elect, PartDataTable.Ice, PartDataTable.Dragon);
-
-                if PartDataTable.Slash == highestPhys then
-                    PartDataTable.highest = PartDataTable.highest .. "_Slash";
-                end
-                if PartDataTable.Strike == highestPhys then
-                    PartDataTable.highest = PartDataTable.highest .. "_Strike";
-                end
-                if PartDataTable.Shell == highestPhys then
-                    PartDataTable.highest = PartDataTable.highest .. "_Shell";
-                end
-
-                if PartDataTable.Fire == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_Fire";
-                end
-                if PartDataTable.Water == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_Water";
-                end
-                if PartDataTable.Ice == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_Ice";
-                end
-                if PartDataTable.Elect == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_Elect";
-                end
-                if PartDataTable.Dragon == highestElem then
-                    PartDataTable.highest = PartDataTable.highest .. "_Dragon";
-                end
-                table_insert(MonsterDataTable.PartData, PartDataTable);
-                :: continue2 ::
-            end
-            MonsterListData[monsterType] = MonsterDataTable;
-            :: continue1 ::
-        end
-        DataListCreated = true;
-        creating = false;
-    end
-end
-
 local QuestManager = nil;
 sdk_hook(questActivate_method, function(args)
     QuestManager = sdk_to_managed_object(args[2]);
     currentQuestMonsterTypes = nil;
+    if not creating and not DataListCreated then
+        creating = true;
+        local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
+        if GuiManager then
+            local MonsterList = get_refMonsterList_method:call(GuiManager);
+            local monsterListParam = monsterListParam_field:get_data(GuiManager);
+            if MonsterList and monsterListParam then
+                local MonsterBossData = MonsterBossData_field:get_data(MonsterList);
+                if MonsterBossData then
+                    local DataList = DataList_field:get_data(MonsterBossData);
+                    if DataList then
+                        local counts = DataList_get_Count_method:call(DataList);
+                        if counts and counts > 0 then
+                            for i = 0, counts - 1, 1 do
+                                local monster = DataList_get_Item_method:call(DataList, i);
+                                if not monster then
+                                    goto continue1;
+                                end
+
+                                local monsterType = EmType_field:get_data(monster);
+                                if not monsterType then
+                                    goto continue1;
+                                end
+
+                                local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
+                                local partTableData = PartTableData_field:get_data(monster);
+                                if not meatData or not partTableData then
+                                    goto continue1;
+                                end
+
+                                local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
+                                if not partTableData_counts or partTableData_counts <= 0 then
+                                    goto continue1;
+                                end
+
+                                local MonsterDataTable = {
+                                    Name = GetMonsterName_method:call(nil, monsterType),
+                                    PartData = {}
+                                };
+
+                                for i = 0, partTableData_counts - 1, 1 do
+                                    local part = PartTableData_get_Item_method:call(partTableData, i);
+                                    if not part then
+                                        goto continue2;
+                                    end
+
+                                    local partType = Part_field:get_data(part);
+                                    local meatType = EmPart_field:get_data(part);
+                                    if not partType or not meatType then
+                                        goto continue2;
+                                    end
+
+                                    local partGuid = getMonsterPartName_method:call(MonsterList, partType);
+                                    if not partGuid then
+                                        goto continue2;
+                                    end
+
+                                    local PartDataTable = {
+                                        PartType    = partType,
+                                        PartName    = GetPartName_method:call(nil, partGuid, Language.Korean),
+                                        MeatType    = meatType,
+                                        Slash       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Slash),
+                                        Strike      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Strike),
+                                        Shell       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Shell),
+                                        Fire        = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Fire),
+                                        Water       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Water),
+                                        Ice         = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Ice),
+                                        Elect       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elect),
+                                        Dragon      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Dragon),
+                                        highest     = ""
+                                    };
+                                    local highestPhys = math_max(PartDataTable.Slash, PartDataTable.Strike, PartDataTable.Shell);
+                                    local highestElem = math_max(PartDataTable.Fire, PartDataTable.Water, PartDataTable.Elect, PartDataTable.Ice, PartDataTable.Dragon);
+
+                                    if PartDataTable.Slash == highestPhys then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Slash";
+                                    end
+                                    if PartDataTable.Strike == highestPhys then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Strike";
+                                    end
+                                    if PartDataTable.Shell == highestPhys then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Shell";
+                                    end
+
+                                    if PartDataTable.Fire == highestElem then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Fire";
+                                    end
+                                    if PartDataTable.Water == highestElem then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Water";
+                                    end
+                                    if PartDataTable.Ice == highestElem then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Ice";
+                                    end
+                                    if PartDataTable.Elect == highestElem then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Elect";
+                                    end
+                                    if PartDataTable.Dragon == highestElem then
+                                        PartDataTable.highest = PartDataTable.highest .. "_Dragon";
+                                    end
+                                    table_insert(MonsterDataTable.PartData, PartDataTable);
+                                    :: continue2 ::
+                                end
+                                MonsterListData[monsterType] = MonsterDataTable;
+                                :: continue1 ::
+                            end
+                            DataListCreated = true;
+                        end
+                    end
+                end
+            end
+        end
+        creating = false;
+    end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if QuestManager then
-        if getStatus_method:call(QuestManager) ~= QuestStatus_None then
-            return;
-        end
-
+    if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
             local listCounts = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
-            if not listCounts or listCounts <= 0 then
-                return;
-            end
-
-            for i = 0, listCounts - 1, 1 do
-                local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
-                if QuestTargetEmType then
-                    if type(currentQuestMonsterTypes) ~= "table" then
-                        currentQuestMonsterTypes = {};
+            if listCounts and listCounts > 0 then
+                for i = 0, listCounts - 1, 1 do
+                    local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
+                    if QuestTargetEmType and isBoss_method:call(nil, QuestTargetEmType) then
+                        if type(currentQuestMonsterTypes) ~= "table" then
+                            currentQuestMonsterTypes = {};
+                        end
+                        table_insert(currentQuestMonsterTypes, QuestTargetEmType);
                     end
-                    table_insert(currentQuestMonsterTypes, QuestTargetEmType);
                 end
             end
         end
@@ -349,11 +325,6 @@ end);
 
 
 re_on_frame(function()
-    if not creating and not DataListCreated then
-        CreateDataList();
-        return;
-    end
-
     if DataListCreated and currentQuestMonsterTypes ~= nil then
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         if curQuestTargetMonsterNum > 0 then
