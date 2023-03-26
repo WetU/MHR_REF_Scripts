@@ -58,6 +58,7 @@ local get_CurrentStatus_method = sdk_find_type_definition("snow.SnowGameManager"
 
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local getStatus_method = QuestManager_type_def:get_method("getStatus");
+local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum");
 local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList");
 local questActivate_method = QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)");
 local questCancel_method = QuestManager_type_def:get_method("questCancel");
@@ -290,24 +291,26 @@ sdk_hook(questActivate_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None then
-        local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
-        if QuestTargetEmTypeList then
-            local listCounts = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
-            if listCounts and listCounts > 0 then
-                for i = 0, listCounts - 1, 1 do
-                    local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
-                    if QuestTargetEmType and isBoss_method:call(nil, QuestTargetEmType) then
-                        if type(currentQuestMonsterTypes) ~= "table" then
-                            currentQuestMonsterTypes = {};
+    if QuestManager then
+        if getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
+            local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
+            if QuestTargetEmTypeList then
+                local listCounts = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
+                if listCounts and listCounts > 0 then
+                    for i = 0, listCounts - 1, 1 do
+                        local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
+                        if QuestTargetEmType and isBoss_method:call(nil, QuestTargetEmType) then
+                            if type(currentQuestMonsterTypes) ~= "table" then
+                                currentQuestMonsterTypes = {};
+                            end
+                            table_insert(currentQuestMonsterTypes, QuestTargetEmType);
                         end
-                        table_insert(currentQuestMonsterTypes, QuestTargetEmType);
                     end
                 end
             end
         end
+        QuestManager = nil;
     end
-    QuestManager = nil;
 end);
 
 sdk_hook(questCancel_method, nil, function()
