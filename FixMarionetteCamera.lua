@@ -7,8 +7,8 @@ local json_dump_file = jsonAvailable and json.dump_file or nil;
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_create_int32 = sdk.create_int32;
 local sdk_hook = sdk.hook;
+local sdk_to_ptr = sdk.to_ptr;
 
 local re = re;
 local re_on_config_save = re.on_config_save;
@@ -37,14 +37,14 @@ local NotResetTypes = {
 	[MarionetteType_type_def:get_field("GetOffFreeRun"):get_data(nil)] = settings.enable
 };
 -- Main Function
-local NoReset = sdk_create_int32(0);
+local NoReset = sdk_to_ptr(0);
 sdk_hook(UpdateCameraReset_method, nil, function(retval)
 	if settings.enable then
 		local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 		if CameraManager then
 			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);
 			if MarionetteCameraType ~= nil and NotResetTypes[MarionetteCameraType] then
-				retval = NoReset;
+				return NoReset;
 			end
 		end
 	end

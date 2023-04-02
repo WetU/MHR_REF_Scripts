@@ -10,6 +10,10 @@ local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
 local play_method = Movie_type_def:get_method("play");
 local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
 local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
+
+local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
+local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
 -- hook method --
 local cautionFadeIn_Update_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("update(via.behaviortree.ActionArg)");
 local capcomLogoFadeIn_Update_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("update(via.behaviortree.ActionArg)");
@@ -20,11 +24,7 @@ local autoSaveCaution_Action_Start_method = sdk_find_type_definition("snow.gui.f
 local pressAnyButton_Action_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiTitleFsm_PressAnyButton_Action"):get_method("start(via.behaviortree.ActionArg)");
 local getTitleDispSkipTrg_method = sdk_find_type_definition("snow.gui.StmGuiInput"):get_method("getTitleDispSkipTrg");
 ----------------
-local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 
-local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-
-local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
 -- static --
 local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
 local LOADING_STATES =
