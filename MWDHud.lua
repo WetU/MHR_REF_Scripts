@@ -304,22 +304,24 @@ sdk_hook(GetTargetEnemy_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
-    if TargetCameraManager and retval ~= nil then
-        local TargetCameraType = GetTargetCameraType_method:call(TargetCameraManager);
-        if TargetCameraType ~= TargetCameraType_Marionette then
-            local TargetEnemy = sdk_to_managed_object(retval);
-            if TargetEnemy then
-                if savedTargetEnemy ~= TargetEnemy then
-                    savedTargetEnemy = TargetEnemy;
-                    local EnemyType = get_EnemyType_method:call(TargetEnemy);
-                    if EnemyType then
-                        currentQuestMonsterTypes = {EnemyType};
-                    else
-                        currentQuestMonsterTypes = nil;
+    if TargetCameraManager then
+        if retval ~= nil then
+            local TargetCameraType = GetTargetCameraType_method:call(TargetCameraManager);
+            if TargetCameraType ~= TargetCameraType_Marionette then
+                local TargetEnemy = sdk_to_managed_object(retval);
+                if TargetEnemy then
+                    if savedTargetEnemy ~= TargetEnemy then
+                        savedTargetEnemy = TargetEnemy;
+                        local EnemyType = get_EnemyType_method:call(TargetEnemy);
+                        if EnemyType then
+                            currentQuestMonsterTypes = {EnemyType};
+                        else
+                            currentQuestMonsterTypes = nil;
+                        end
                     end
+                else
+                    currentQuestMonsterTypes = nil;
                 end
-            else
-                currentQuestMonsterTypes = nil;
             end
         end
         TargetCameraManager = nil;
@@ -369,6 +371,8 @@ end, function()
     if SnowGameManager then
         if get_CurrentStatus_method:call(SnowGameManager) ~= StatusType_Village then
             currentQuestMonsterTypes = nil;
+        else
+            savedTargetEnemy = nil;
         end
         SnowGameManager = nil;
     end
