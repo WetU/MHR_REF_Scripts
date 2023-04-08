@@ -43,7 +43,9 @@ local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 
-local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
+local OtherPlayerInfo_type_def = get_Item_method:get_return_type();
+local Enable_field = OtherPlayerInfo_type_def:get_field("_Enable");
+local uniqueHunterId_field = OtherPlayerInfo_type_def:get_field("_uniqueHunterId");
 -- Main Function
 sdk_hook(openGoodRelationshipHud_method, function(args)
 	if settings.enable then
@@ -57,6 +59,10 @@ sdk_hook(openGoodRelationshipHud_method, function(args)
 					for i = 0, iter_Num, 1 do
 						local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
 						if not OtherPlayerInfo then
+							goto continue;
+						end
+						local enabledPlayer = Enable_field:get_data(OtherPlayerInfo);
+						if not enabledPlayer then
 							goto continue;
 						end
 						local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);

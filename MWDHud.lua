@@ -387,7 +387,7 @@ re_on_frame(function()
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         if curQuestTargetMonsterNum > 0 then
             imgui_push_font(font);
-            if imgui_begin_window("몬스터 약점", nil, 4096 + 64) then
+            if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
                 for i = 1, curQuestTargetMonsterNum, 1 do
                     local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
