@@ -14,13 +14,13 @@ local re_on_draw_ui = re.on_draw_ui;
 
 local imgui = imgui;
 local imgui_load_font = imgui.load_font;
-local imgui_tree_node = imgui.tree_node;
-local imgui_checkbox = imgui.checkbox;
-local imgui_tree_pop = imgui.tree_pop;
 local imgui_push_font = imgui.push_font;
+local imgui_pop_font = imgui.pop_font;
+local imgui_tree_node = imgui.tree_node;
+local imgui_tree_pop = imgui.tree_pop;
+local imgui_checkbox = imgui.checkbox;
 local imgui_combo = imgui.combo;
 local imgui_slider_int = imgui.slider_int;
-local imgui_pop_font = imgui.pop_font;
 
 local pairs = pairs;
 

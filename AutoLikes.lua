@@ -58,21 +58,17 @@ sdk_hook(openGoodRelationshipHud_method, function(args)
 					local isChanged = false;
 					for i = 0, iter_Num, 1 do
 						local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
-						if not OtherPlayerInfo then
-							goto continue;
-						end
-						local enabledPlayer = Enable_field:get_data(OtherPlayerInfo);
-						if not enabledPlayer then
-							goto continue;
-						end
-						local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
-						if not OtherPlayerHunterId or isInBlockList_method:call(refGoodRelationship, OtherPlayerHunterId) then
-							goto continue;
-						end
-						OtherPlayerInfo:set_field("_good", true);
-						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-						isChanged = true;
-						::continue::
+						if OtherPlayerInfo then
+							local enabledPlayer = Enable_field:get_data(OtherPlayerInfo);
+							if enabledPlayer then
+								local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
+								if OtherPlayerHunterId and not isInBlockList_method:call(refGoodRelationship, OtherPlayerHunterId) then
+									OtherPlayerInfo:set_field("_good", true);
+									set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+									isChanged = true;
+								end
+							end
+						end						
 					end
 					if isChanged then
 						refGoodRelationship:set_field("_OtherPlayerInfos", OtherPlayerInfos);

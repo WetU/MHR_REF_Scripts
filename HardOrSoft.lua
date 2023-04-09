@@ -36,23 +36,25 @@ local tonumber = tonumber;
 local config = {};
 
 local function Reset()
-    config.Enable = true;
-	config.Weakness = "Orange";
-	config.MindEye = "Large Gray";
-	config.Neither = "White";
-    config.IgnoreMeat = "Red";
-    config.BuddyAttack = "Hide";
-    config.WeaknessAndElement = "Orange";
-    config.MindEyeAndElement = "Large Gray";
-    config.NeitherAndElement = "White";
-    config.CriticalDisplay = false;
-    config.PhysicalDisplay = false;
-    config.ElementDisplay = false;
-    config.ElementExploitSkillDisplay = false;
-    config.ElementExploitRampageDecoDisplay = false;
-    config.DisplayTime = 20;
-    config.FontType = 0;
-    config.ElementActivationValue = 100;
+    config = {
+        ["Enable"] = true,
+        ["Weakness"] = "Orange",
+        ["MindEye"] = "Large Gray",
+        ["Neither"] = "White",
+        ["IgnoreMeat"] = "Red",
+        ["BuddyAttack"] = "Hide",
+        ["WeaknessAndElement"] = "Orange",
+        ["MindEyeAndElement"] = "Large Gray",
+        ["NeitherAndElement"] = "White",
+        ["CriticalDisplay"] = false,
+        ["PhysicalDisplay"] = false,
+        ["ElementDisplay"] = false,
+        ["ElementExploitSkillDisplay"] = false,
+        ["ElementExploitRampageDecoDisplay"] = false,
+        ["DisplayTime"] = 20,
+        ["FontType"] = 0,
+        ["ElementActivationValue"] = 100
+    };
 end
 
 local function SaveConfig()
@@ -197,26 +199,24 @@ local ColorType = {
 };
 
 local function Conversion()
-    temp = {}
-    temp.White = sdk_to_ptr(ColorType.White);
-    temp.Orange = sdk_to_ptr(ColorType.Orange);
-    temp.Weakness = sdk_to_ptr(FindIndex(color, config.Weakness, false) - 2);
-    temp.MindEye = sdk_to_ptr(FindIndex(color, config.MindEye, false) - 2);
-    temp.Neither = sdk_to_ptr(FindIndex(color, config.Neither, false) - 2);
-    temp.IgnoreMeat = sdk_to_ptr(FindIndex(color, config.IgnoreMeat, false) - 2);
-    temp.BuddyAttack = sdk_to_ptr(FindIndex(color, config.BuddyAttack, false) - 2);
-    temp.WeaknessAndElement = sdk_to_ptr(FindIndex(color, config.WeaknessAndElement, false) - 2);
-    temp.MindEyeAndElement = sdk_to_ptr(FindIndex(color, config.MindEyeAndElement, false) - 2);
-    temp.NeitherAndElement = sdk_to_ptr(FindIndex(color, config.NeitherAndElement, false) - 2);
+    temp = {
+        ["White"] = sdk_to_ptr(ColorType.White),
+        ["Orange"] = sdk_to_ptr(ColorType.Orange),
+        ["Weakness"] = sdk_to_ptr(FindIndex(color, config.Weakness, false) - 2),
+        ["MindEye"] = sdk_to_ptr(FindIndex(color, config.MindEye, false) - 2),
+        ["Neither"] = sdk_to_ptr(FindIndex(color, config.Neither, false) - 2),
+        ["IgnoreMeat"] = sdk_to_ptr(FindIndex(color, config.IgnoreMeat, false) - 2),
+        ["BuddyAttack"] = sdk_to_ptr(FindIndex(color, config.BuddyAttack, false) - 2),
+        ["WeaknessAndElement"] = sdk_to_ptr(FindIndex(color, config.WeaknessAndElement, false) - 2),
+        ["MindEyeAndElement"] = sdk_to_ptr(FindIndex(color, config.MindEyeAndElement, false) - 2),
+        ["NeitherAndElement"] = sdk_to_ptr(FindIndex(color, config.NeitherAndElement, false) - 2)
+    };
 end
 
 Conversion();
 
 local function IsPlayerDamageType(dmgtype)
-	if dmgtype == DamageAttackerType.PlayerWeapon or dmgtype == DamageAttackerType.Kunai or dmgtype == DamageAttackerType.DetonationGrenade or dmgtype == DamageAttackerType.Kabutowari then
-		return true;
-    end
-    return false;
+    return dmgtype == DamageAttackerType.PlayerWeapon or dmgtype == DamageAttackerType.Kunai or dmgtype == DamageAttackerType.DetonationGrenade or dmgtype == DamageAttackerType.Kabutowari or false;
 end
 
 sdk_hook(afterCalcDamage_DamageSide_method, function(args)
@@ -316,12 +316,12 @@ end, function(retval)
     if nextArg then
         elementExploit = 0;
         local calcParam = CalcParam_field:get_data(nextArg);
+        nextArg = nil;
         if calcParam then
             local ownerType = get_OwnerType_method:call(calcParam);
             local calcType = get_CalcType_method:call(calcParam);
             local elementMeatAdjustRate = get_ElementMeatAdjustRate_method:call(calcParam);
             local physicalMeatAdjustRate = get_PhysicalMeatAdjustRate_method:call(calcParam);
-            nextArg = nil;
 
             if elementMeatAdjustRate < 1 then
                 if elementMeatAdjustRate >= 0.25 then
