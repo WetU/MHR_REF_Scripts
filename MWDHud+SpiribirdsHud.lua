@@ -30,6 +30,7 @@ local table = table;
 local table_insert = table.insert;
 
 local math = math;
+local math_min = math.min;
 local math_max = math.max;
 local math_ceil = math.ceil;
 
@@ -434,9 +435,7 @@ sdk_hook(addLvBuffCnt_method, function(args)
         if count > 0 then
             for k, v in pairs(LvBuff) do
                 if BuffType == v then
-                    local stackCount = AcquiredCounts[k] + count;
-                    local maxCount = BirdsMaxCounts[k];
-                    local newCount = stackCount >= maxCount and maxCount or stackCount;
+                    local newCount = math_min(AcquiredCounts[k] + count, BirdsMaxCounts[k]);
                     AcquiredCounts[k] = newCount;
                     AcquiredValues[k] = newCount * StatusBuffAddVal[k];
                     break;
