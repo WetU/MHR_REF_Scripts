@@ -32,11 +32,11 @@ end
 -- Cache
 local UpdateCameraReset_method = sdk_find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)");
 local get_MarionetteCameraType_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_MarionetteCameraType");
-local MarionetteType_type_def = get_MarionetteCameraType_method:get_return_type();
+local MarionetteCameraType_type_def = get_MarionetteCameraType_method:get_return_type();
 local NotResetTypes = {
-	MarionetteType_type_def:get_field("GetOff"):get_data(nil),
-	MarionetteType_type_def:get_field("GetOffTryAgainInput"):get_data(nil),
-	MarionetteType_type_def:get_field("GetOffFreeRun"):get_data(nil)
+	MarionetteCameraType_type_def:get_field("GetOff"):get_data(nil),
+	MarionetteCameraType_type_def:get_field("GetOffTryAgainInput"):get_data(nil),
+	MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)
 };
 -- Main Function
 local NoReset = sdk_to_ptr(0);
