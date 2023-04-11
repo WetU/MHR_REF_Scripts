@@ -261,28 +261,28 @@ local function CreateDataList()
                                                                 PartType    = partType,
                                                                 PartName    = GetPartName_method:call(nil, partGuid, Language.Korean),
                                                                 MeatType    = meatType,
+                                                                Slash       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Slash),
+                                                                Strike      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Strike),
+                                                                Shell       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Shell),
+                                                                Fire        = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Fire),
+                                                                Water       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Water),
+                                                                Elect       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Elect),
+                                                                Ice         = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Ice),
+                                                                Dragon      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Dragon),
                                                                 highest     = ""
                                                             };
-
-                                                            for _, types in pairs(MeatAttr) do
-                                                                for k, v in pairs(types) do
-                                                                    PartDataTable[k] = getMeatValue_method:call(meatData, meatType, 0, v);
-                                                                end
-                                                            end
 
                                                             local highestPhys = math_max(PartDataTable.Slash, PartDataTable.Strike, PartDataTable.Shell);
                                                             local highestElem = math_max(PartDataTable.Fire, PartDataTable.Water, PartDataTable.Elect, PartDataTable.Ice, PartDataTable.Dragon);
 
-                                                            for k, v in pairs(MeatAttr.Phys) do
-                                                                local Attr = PartDataTable[k];
-                                                                if Attr and Attr == highestPhys then
+                                                            for k in pairs(MeatAttr.Phys) do
+                                                                if PartDataTable[k] == highestPhys then
                                                                     PartDataTable.highest = PartDataTable.highest .. "_" .. k;
                                                                 end
                                                             end
 
-                                                            for k, v in pairs(MeatAttr.Elem) do
-                                                                local Attr = PartDataTable[k];
-                                                                if Attr and Attr == highestElem then
+                                                            for k in pairs(MeatAttr.Elem) do
+                                                                if PartDataTable[k] == highestElem then
                                                                     PartDataTable.highest = PartDataTable.highest .. "_" .. k;
                                                                 end
                                                             end
@@ -404,12 +404,12 @@ local function InitSpiribirdsHud(obj)
     BirdsMaxCounts = {};
     for k, v in pairs(BuffTypes) do
         local StatusBuffLimit = getStatusBuffLimit_method:call(obj, v);
-        local StatusBuffAddVal = getStatusBuffAddVal_method:call(obj, v);
+        local StatusBuffAddValue = getStatusBuffAddVal_method:call(obj, v);
         StatusBuffLimits[k] = StatusBuffLimit;
-        StatusBuffAddVal[k] = StatusBuffAddVal;
+        StatusBuffAddVal[k] = StatusBuffAddValue;
         AcquiredCounts[k] = 0;
         AcquiredValues[k] = 0;
-        BirdsMaxCounts[k] = math_ceil(StatusBuffLimit / StatusBuffAddVal);
+        BirdsMaxCounts[k] = math_ceil(StatusBuffLimit / StatusBuffAddValue);
     end
     SpiribirdsHudDataCreated = true;
 end
@@ -496,7 +496,7 @@ re_on_frame(function()
                     local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
                         imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
-                        for i = 0, #LocalizedMeatAttr - 1, 1 do
+                        for i = 0, #LocalizedMeatAttr, 1 do
                             imgui_table_setup_column(LocalizedMeatAttr[i], 1 << 3, 25);
                         end
                         imgui_table_headers_row();
