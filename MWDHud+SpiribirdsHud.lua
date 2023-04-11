@@ -437,7 +437,7 @@ sdk_hook(addLvBuffCnt_method, function(args)
                 if BuffType == v then
                     local newCount = math_min(AcquiredCounts[k] + count, BirdsMaxCounts[k]);
                     AcquiredCounts[k] = newCount;
-                    AcquiredValues[k] = newCount * StatusBuffAddVal[k];
+                    AcquiredValues[k] = math_min(newCount * StatusBuffAddVal[k], StatusBuffLimits[k]);
                     break;
                 end
             end
