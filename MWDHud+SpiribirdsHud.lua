@@ -15,7 +15,6 @@ local imgui_push_font = imgui.push_font;
 local imgui_pop_font = imgui.pop_font;
 local imgui_text = imgui.text;
 local imgui_text_colored = imgui.text_colored;
-local imgui_same_line = imgui.same_line;
 local imgui_begin_window = imgui.begin_window;
 local imgui_end_window = imgui.end_window;
 local imgui_begin_table = imgui.begin_table;
@@ -36,6 +35,7 @@ local math_ceil = math.ceil;
 
 local string = string;
 local string_find = string.find;
+local string_format = string.format;
 
 local pairs = pairs;
 local type = type;
@@ -107,16 +107,17 @@ local DataList_get_Count_method = DataList_type_def:get_method("get_Count");
 local DataList_get_Item_method = DataList_type_def:get_method("get_Item(System.Int32)");
 
 local BossMonsterData_type_def = DataList_get_Item_method:get_return_type();
+local getPartTableDataNum_method = BossMonsterData_type_def:get_method("getPartTableDataNum");
 local EmType_field = BossMonsterData_type_def:get_field("_EmType");
 local PartTableData_field = BossMonsterData_type_def:get_field("_PartTableData");
 
 local PartTableData_type_def = PartTableData_field:get_type();
-local PartTableData_get_Count_method = PartTableData_type_def:get_method("get_Count");
 local PartTableData_get_Item_method = PartTableData_type_def:get_method("get_Item(System.Int32)");
 
 local PartData_type_def = PartTableData_get_Item_method:get_return_type();
 local Part_field = PartData_type_def:get_field("_Part");
 local EmPart_field = PartData_type_def:get_field("_EmPart");
+local EmMeatGroupIdx_field = PartData_type_def:get_field("_EmMeatGroupIdx");
 --
 local getEquippingLvBuffcageData_method = sdk_find_type_definition("snow.data.EquipDataManager"):get_method("getEquippingLvBuffcageData");
 
@@ -125,7 +126,24 @@ local getStatusBuffLimit_method = NormalLvBuffCageData_type_def:get_method("getS
 local getStatusBuffAddVal_method = NormalLvBuffCageData_type_def:get_method("getStatusBuffAddVal(snow.data.NormalLvBuffCageData.BuffTypes)");
 
 local PlayerManager_type_def = sdk_find_type_definition("snow.player.PlayerManager");
+local findMasterPlayer_method = PlayerManager_type_def:get_method("findMasterPlayer");
 local addLvBuffCnt_method = PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)");
+
+local MasterPlayerBase_type_def = findMasterPlayer_method:get_return_type();
+local get_PlayerData_method = MasterPlayerBase_type_def:get_method("get_PlayerData");
+local get_PlayerSkillList_method = MasterPlayerBase_type_def:get_method("get_PlayerSkillList");
+
+local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer"); -- float
+
+local MasterPlayerSkillList_type_def = get_PlayerSkillList_method:get_return_type();
+local hasSkill_method = MasterPlayerSkillList_type_def:get_method("hasSkill(snow.data.DataDef.PlEquipSkillId, System.UInt32)");
+local getSkillData_method = MasterPlayerSkillList_type_def:get_method("getSkillData(snow.data.DataDef.PlEquipSkillId)");
+
+local SkillLv_field = getSkillData_method:get_return_type():get_field("SkillLv");
+
+local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQuestBase");
+local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
+local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local LvBuff_type_def = sdk_find_type_definition("snow.player.PlayerDefine.LvBuff");
 local LvBuff = {
@@ -143,70 +161,36 @@ local BuffTypes = {
     ["Vital"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Vital"):get_data(nil),
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
---
 
+local SpiribirdsCall_SkillId = sdk_find_type_definition("snow.data.DataDef.PlEquipSkillId"):get_field("Pl_EquipSkill_211"):get_data(nil);
+--
+local MeatAttr_type_def = sdk_find_type_definition("snow.enemy.EnemyDef.MeatAttr");
 local MeatAttr = {
     ["Phys"] = {
-        Slash = 0,
-        Strike = 1,
-        Shell = 2
+        Slash = MeatAttr_type_def:get_field("Slash"):get_data(nil),
+        Strike = MeatAttr_type_def:get_field("Strike"):get_data(nil),
+        Shell = MeatAttr_type_def:get_field("Shell"):get_data(nil)
     },
     ["Elem"] = {
-        Fire = 3,
-        Water = 4,
-        Ice = 5,
-        Elect = 6,
-        Dragon = 7
+        Fire = MeatAttr_type_def:get_field("Fire"):get_data(nil),
+        Water = MeatAttr_type_def:get_field("Water"):get_data(nil),
+        Ice = MeatAttr_type_def:get_field("Ice"):get_data(nil),
+        Elect = MeatAttr_type_def:get_field("Elect"):get_data(nil),
+        Dragon = MeatAttr_type_def:get_field("Dragon"):get_data(nil)
     }
 };
 
-local LocalizedMeatAttr = {
-    [0] = "절단",
-    [1] = "타격",
-    [2] = "탄",
-    [3] = "불",
-    [4] = "물",
-    [5] = "얼음",
-    [6] = "번개",
-    [7] = "용"
-};
+local via_Language_Korean = sdk_find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
 
-local Language = {
-    Japanese = 0,
-    English = 1,
-    French = 2,
-    Italian = 3,
-    German = 4,
-    Spanish = 5,
-    Russian = 6,
-    Polish = 7,
-    Dutch = 8,
-    Portuguese = 9,
-    PortugueseBr = 10,
-    Korean = 11,
-    TransitionalChinese = 12,
-    SimplelifiedChinese = 13,
-    Finnish = 14,
-    Swedish = 15,
-    Danish = 16,
-    Norwegian = 17,
-    Czech = 18,
-    Hungarian = 19,
-    Slovak = 20,
-    Arabic = 21,
-    Turkish = 22,
-    Bulgarian = 23,
-    Greek = 24,
-    Romanian = 25,
-    Thai = 26,
-    Ukrainian = 27,
-    Vietnamese = 28,
-    Indonesian = 29,
-    Fiction = 30,
-    Hindi = 31,
-    LatinAmericanSpanish = 32,
-    Max = 33,
-    Unknown = 33
+local LocalizedMeatAttr = {
+    [1] = "절단",
+    [2] = "타격",
+    [3] = "탄",
+    [4] = "불",
+    [5] = "물",
+    [6] = "얼음",
+    [7] = "번개",
+    [8] = "용"
 };
 
 
@@ -237,38 +221,39 @@ local function CreateDataList()
                         for i = 0, counts - 1, 1 do
                             local monster = DataList_get_Item_method:call(DataList, i);
                             if monster then
-                                local monsterType = EmType_field:get_data(monster);
-                                if monsterType then
-                                    local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
-                                    local partTableData = PartTableData_field:get_data(monster);
-                                    if meatData and partTableData then
-                                        local partTableData_counts = PartTableData_get_Count_method:call(partTableData);
-                                        if partTableData_counts > 0 then
+                                local partTableData_count = getPartTableDataNum_method:call(monster);
+                                if partTableData_count > 0 then
+                                    local monsterType = EmType_field:get_data(monster);
+                                    if monsterType then
+                                        local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
+                                        local partTableData = PartTableData_field:get_data(monster);
+                                        if meatData and partTableData then
                                             local MonsterDataTable = {
                                                 Name = GetMonsterName_method:call(nil, monsterType),
                                                 PartData = {}
                                             };
 
-                                            for i = 0, partTableData_counts - 1, 1 do
+                                            for i = 0, partTableData_count - 1, 1 do
                                                 local part = PartTableData_get_Item_method:call(partTableData, i);
                                                 if part then
                                                     local partType = Part_field:get_data(part);
                                                     local meatType = EmPart_field:get_data(part);
+                                                    local EmMeatGroupIdx = EmMeatGroupIdx_field:get_data(part) or 0;
                                                     if partType and meatType then
                                                         local partGuid = getMonsterPartName_method:call(MonsterList, partType);
                                                         if partGuid then
                                                             local PartDataTable = {
                                                                 PartType    = partType,
-                                                                PartName    = GetPartName_method:call(nil, partGuid, Language.Korean),
+                                                                PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
                                                                 MeatType    = meatType,
-                                                                Slash       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Slash),
-                                                                Strike      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Strike),
-                                                                Shell       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Phys.Shell),
-                                                                Fire        = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Fire),
-                                                                Water       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Water),
-                                                                Elect       = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Elect),
-                                                                Ice         = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Ice),
-                                                                Dragon      = getMeatValue_method:call(meatData, meatType, 0, MeatAttr.Elem.Dragon),
+                                                                Slash       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Slash),
+                                                                Strike      = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Strike),
+                                                                Shell       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Shell),
+                                                                Fire        = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Fire),
+                                                                Water       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Water),
+                                                                Elect       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Elect),
+                                                                Ice         = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Ice),
+                                                                Dragon      = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Dragon),
                                                                 highest     = ""
                                                             };
 
@@ -396,6 +381,9 @@ local BirdsMaxCounts = nil;
 
 local SpiribirdsHudDataCreated = false;
 
+local inQuest = false;
+local SpiribirdsCall_Timer = nil;
+
 local function InitSpiribirdsHud(obj)
     StatusBuffLimits = {};
     StatusBuffAddVal = {};
@@ -415,7 +403,9 @@ local function InitSpiribirdsHud(obj)
 end
 
 local function TerminateSpiribirdsHud()
+    inQuest = false;
     SpiribirdsHudDataCreated = false;
+    SpiribirdsCall_Timer = nil;
     StatusBuffLimits = nil;
     StatusBuffAddVal = nil;
     AcquiredCounts = nil;
@@ -424,27 +414,59 @@ local function TerminateSpiribirdsHud()
 end
 
 sdk_hook(addLvBuffCnt_method, function(args)
-    local BuffType = sdk_to_int64(args[4]) & 0xFF;
-    if BuffType == LvBuff.Rainbow then
-        for k, v in pairs(StatusBuffLimits) do
-            AcquiredCounts[k] = BirdsMaxCounts[k];
-            AcquiredValues[k] = v;
-        end
-    else
-        local count = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-        if count > 0 then
-            for k, v in pairs(LvBuff) do
-                if BuffType == v then
-                    local newCount = math_min(AcquiredCounts[k] + count, BirdsMaxCounts[k]);
-                    AcquiredCounts[k] = newCount;
-                    AcquiredValues[k] = math_min(newCount * StatusBuffAddVal[k], StatusBuffLimits[k]);
-                    break;
+    if SpiribirdsHudDataCreated then
+        local BuffType = sdk_to_int64(args[4]) & 0xFF;
+        if BuffType == LvBuff.Rainbow then
+            for k, v in pairs(StatusBuffLimits) do
+                AcquiredCounts[k] = BirdsMaxCounts[k];
+                AcquiredValues[k] = v;
+            end
+        else
+            local count = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+            if count > 0 then
+                for k, v in pairs(LvBuff) do
+                    if BuffType == v then
+                        local newCount = math_min(AcquiredCounts[k] + count, BirdsMaxCounts[k]);
+                        AcquiredCounts[k] = newCount;
+                        AcquiredValues[k] = math_min(newCount * StatusBuffAddVal[k], StatusBuffLimits[k]);
+                        break;
+                    end
                 end
             end
         end
     end
     return sdk_CALL_ORIGINAL;
 end);
+
+sdk_hook(updateEquipSkill211_method, function(args)
+    if inQuest then
+        local PlayerQuestBase = sdk_to_managed_object(args[2]);
+        if PlayerQuestBase then
+            if IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
+                local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
+                if masterPlayerSkillList then
+                    local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
+                    if SpiribirdsCall_Data then
+                        local hasSkill = hasSkill_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId, SkillLv_field:get_data(SpiribirdsCall_data));
+                        if hasSkill then
+                            local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
+                            if masterPlayerData then
+                                SpiribirdsCall_Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
+                            end
+                        end
+                    end
+                end
+            else
+                SpiribirdsCall_Timer = "향응 비활성 지역";
+            end
+        end
+    else
+        SpiribirdsCall_Timer = nil;
+    end
+    return sdk_CALL_ORIGINAL;
+end);
+
+--==--==--==--==--==--
 
 sdk_hook(onChangedGameStatus_method, function(args)
     local CurrentStatus = sdk_to_int64(args[3]) & 0xFFFFFFFF;
@@ -454,6 +476,7 @@ sdk_hook(onChangedGameStatus_method, function(args)
     elseif CurrentStatus ~= GameStatusType.Village then
         TerminateMonsterHud();
         if CurrentStatus == GameStatusType.Quest then
+            inQuest = true;
             if not StatusBuffLimits or not StatusBuffAddVal then
                 local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
                 if EquipDataManager then
@@ -496,9 +519,11 @@ re_on_frame(function()
                     local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
                     if imgui_begin_table("부위", 10, 1 << 21, 25) then
                         imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
-                        for i = 0, #LocalizedMeatAttr, 1 do
+
+                        for i = 1, #LocalizedMeatAttr, 1 do
                             imgui_table_setup_column(LocalizedMeatAttr[i], 1 << 3, 25);
                         end
+                        
                         imgui_table_headers_row();
 
                         for _, part in pairs(curMonsterData.PartData) do
@@ -511,8 +536,8 @@ re_on_frame(function()
                             testAttribute("Shell", part.Shell, part.highest);
                             testAttribute("Fire", part.Fire, part.highest);
                             testAttribute("Water", part.Water, part.highest);
-                            testAttribute("Elect", part.Elect, part.highest);
                             testAttribute("Ice", part.Ice, part.highest);
+                            testAttribute("Elect", part.Elect, part.highest);
                             testAttribute("Dragon", part.Dragon, part.highest);
                         end
                         imgui_end_table();
@@ -527,21 +552,60 @@ re_on_frame(function()
         end
     end
 
-    if SpiribirdsHudDataCreated then
+    if SpiribirdsHudDataCreated or SpiribirdsCall_Timer then
         imgui_push_font(font);
         if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
-            imgui_text_colored("빨간", 4278190335);
-            imgui_same_line();
-            imgui_text("인혼조: " .. tostring(AcquiredCounts.Atk) .. "/" .. tostring(BirdsMaxCounts.Atk) .. " (" .. tostring(AcquiredValues.Atk) .. "/" .. tostring(StatusBuffLimits.Atk) .. ")");
-            imgui_text_colored("주황", 4278222847);
-            imgui_same_line();
-            imgui_text("인혼조: " .. tostring(AcquiredCounts.Def) .. "/" .. tostring(BirdsMaxCounts.Def) .. " (" .. tostring(AcquiredValues.Def) .. "/" .. tostring(StatusBuffLimits.Def) .. ")");
-            imgui_text_colored("초록", 4278222848);
-            imgui_same_line();
-            imgui_text("인혼조: " .. tostring(AcquiredCounts.Vital) .. "/" .. tostring(BirdsMaxCounts.Vital) .. " (" .. tostring(AcquiredValues.Vital) .. "/" .. tostring(StatusBuffLimits.Vital) .. ")");
-            imgui_text_colored("노란", 4278255615);
-            imgui_same_line();
-            imgui_text("인혼조: " .. tostring(AcquiredCounts.Stamina) .. "/" .. tostring(BirdsMaxCounts.Stamina) .. " (" .. tostring(AcquiredValues.Stamina) .. "/" .. tostring(StatusBuffLimits.Stamina) .. ")");
+            if SpiribirdsHudDataCreated then
+                if imgui_begin_table("종류", 3, 1 << 21, 25) then
+                    imgui_table_setup_column("유형", 1 << 3, 25);
+                    imgui_table_setup_column("횟수", 1 << 3, 20);
+                    imgui_table_setup_column("수치", 1 << 3, 25);
+                    
+                    imgui_table_headers_row();
+
+                    imgui_table_next_row();
+                    imgui_table_next_column();
+                    imgui_text_colored("공격력: ", 4278190335);
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredCounts.Atk) .. "/" .. tostring(BirdsMaxCounts.Atk));
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredValues.Atk) .. "/" .. tostring(StatusBuffLimits.Atk));
+
+                    imgui_table_next_row();
+                    imgui_table_next_column();
+                    imgui_text_colored("방어력: ", 4278222847);
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredCounts.Def) .. "/" .. tostring(BirdsMaxCounts.Def));
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredValues.Def) .. "/" .. tostring(StatusBuffLimits.Def));
+
+                    imgui_table_next_row();
+                    imgui_table_next_column();
+                    imgui_text_colored("체력: ", 4278222848);
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredCounts.Vital) .. "/" .. tostring(BirdsMaxCounts.Vital));
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredValues.Vital) .. "/" .. tostring(StatusBuffLimits.Vital));
+
+                    imgui_table_next_row();
+                    imgui_table_next_column();
+                    imgui_text_colored("스태미나: ", 4278255615);
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredCounts.Stamina) .. "/" .. tostring(BirdsMaxCounts.Stamina));
+                    imgui_table_next_column();
+                    imgui_text(tostring(AcquiredValues.Stamina) .. "/" .. tostring(StatusBuffLimits.Stamina));
+                    imgui_end_table();
+                end
+            end
+
+            if SpiribirdsCall_Timer then
+                imgui_spacing();
+                if type(SpiribirdsCall_Timer) == "string" then
+                    imgui_text(SpiribirdsCall_Timer);
+                else
+                    imgui_text("향응 타이머: " .. string_format("%.2f초", 60.0 - (SpiribirdsCall_Timer / 60.0)));
+                end
+            end
             imgui_pop_font();
             imgui_end_window();
         end
