@@ -48,7 +48,7 @@ local Result = {
     Max = 3
 };
 
-local function autoArgosy()
+sdk_hook(getCurrentMapNo_method, nil, function(retval)
     local TradeCenterFacility = sdk_get_managed_singleton("snow.facility.TradeCenterFacility");
     if TradeCenterFacility then
         local tradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
@@ -56,14 +56,14 @@ local function autoArgosy()
             local tradeOrderList = get_TradeOrderList_method:call(tradeFunc);
             if tradeOrderList then
                 local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
-                local argosyItems = {};
-                local itemBoxResults = {};
                 if DataManager then
+                    local argosyItems = {};
+                    local itemBoxResults = {};
                     for i = 0, #tradeOrderList - 1, 1 do
                         local tradeOrder = tradeOrderList:get_element(i);
                         if tradeOrder then
-                            local inventoryList = get_InventoryList_method:call(tradeOrder);
                             local negotiationCount = get_NegotiationCount_method:call(tradeOrder);
+                            local inventoryList = get_InventoryList_method:call(tradeOrder);
 
                             if negotiationCount == 1 then
                                 local negotiationData = getNegotiationData_method:call(tradeFunc, get_NegotiationType_method:call(tradeOrder));
@@ -118,6 +118,5 @@ local function autoArgosy()
             end
         end
     end
-end
-
-sdk_hook(getCurrentMapNo_method, nil, autoArgosy);
+    return retval;
+end);
