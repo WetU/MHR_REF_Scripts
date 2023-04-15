@@ -240,29 +240,23 @@ local function CreateDataList()
                                                                     PartType    = partType,
                                                                     PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
                                                                     MeatType    = meatType,
-                                                                    Slash       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Slash),
-                                                                    Strike      = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Strike),
-                                                                    Shell       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Phys.Shell),
-                                                                    Fire        = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Fire),
-                                                                    Water       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Water),
-                                                                    Ice         = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Ice),
-                                                                    Elect       = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Elect),
-                                                                    Dragon      = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, MeatAttr.Elem.Dragon),
-                                                                    highest     = ""
+                                                                    MeatValues  = {},
+                                                                    HighestMeat = ""
                                                                 };
 
-                                                                local highestPhys = math_max(PartDataTable.Slash, PartDataTable.Strike, PartDataTable.Shell);
-                                                                local highestElem = math_max(PartDataTable.Fire, PartDataTable.Water, PartDataTable.Elect, PartDataTable.Ice, PartDataTable.Dragon);
-
-                                                                for k in pairs(MeatAttr.Phys) do
-                                                                    if PartDataTable[k] == highestPhys then
-                                                                        PartDataTable.highest = PartDataTable.highest .. "_" .. k;
+                                                                for _, attrType in pairs(MeatAttr) do
+                                                                    for k, v in pairs(attrType) do
+                                                                        PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, v);
                                                                     end
                                                                 end
 
-                                                                for k in pairs(MeatAttr.Elem) do
-                                                                    if PartDataTable[k] == highestElem then
-                                                                        PartDataTable.highest = PartDataTable.highest .. "_" .. k;
+                                                                local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
+                                                                local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
+
+                                                                for k, v in pairs(PartDataTable.MeatValues) do
+                                                                    local compareValue = (k == "Slash" or k == "Strike" or k == "Shell") and highestPhys or highestElem;
+                                                                    if v == compareValue then
+                                                                        PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
                                                                     end
                                                                 end
 
@@ -383,8 +377,6 @@ local AcquiredCounts = nil;
 local AcquiredValues = nil;
 local BirdsMaxCounts = nil;
 
-local isEnable_SpiribirdsCall = false;
-
 local SpiribirdsCall_Timer = nil;
 local SpiribirdsHudDataCreated = false;
 
@@ -416,29 +408,36 @@ local function TerminateSpiribirdsHud()
     BirdsMaxCounts = nil;
 end
 
+local BuffType = nil;
+local addCount = nil;
 sdk_hook(addLvBuffCnt_method, function(args)
     if SpiribirdsHudDataCreated then
-        local BuffType = sdk_to_int64(args[4]) & 0xFF;
-        if BuffType == LvBuff.Rainbow then
-            for k, v in pairs(StatusBuffLimits) do
-                AcquiredCounts[k] = BirdsMaxCounts[k];
-                AcquiredValues[k] = v;
-            end
-        else
-            local count = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-            if count > 0 then
-                for k, v in pairs(LvBuff) do
-                    if BuffType == v then
-                        local newCount = math_min(AcquiredCounts[k] + count, BirdsMaxCounts[k]);
-                        AcquiredCounts[k] = newCount;
-                        AcquiredValues[k] = math_min(newCount * StatusBuffAddVal[k], StatusBuffLimits[k]);
-                        break;
-                    end
+        BuffType = sdk_to_int64(args[4]) & 0xFF;
+        if BuffType ~= LvBuff.Rainbow then
+            addCount = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+        end
+    end
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if BuffType == LvBuff.Rainbow then
+        for k, v in pairs(StatusBuffLimits) do
+            AcquiredCounts[k] = BirdsMaxCounts[k];
+            AcquiredValues[k] = v;
+        end
+    else
+        if addCount > 0 then
+            for k, v in pairs(LvBuff) do
+                if BuffType == v then
+                    local newCount = math_min(AcquiredCounts[k] + addCount, BirdsMaxCounts[k]);
+                    AcquiredCounts[k] = newCount;
+                    AcquiredValues[k] = math_min(newCount * StatusBuffAddVal[k], StatusBuffLimits[k]);
+                    break;
                 end
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
+    BuffType = nil;
+    addCount = nil;
 end);
 
 local subBuffType = nil;
@@ -450,13 +449,20 @@ sdk_hook(subLvBuffFromEnemy_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if subBuffType and subCount > 0 then
+    if subBuffType == LvBuff.Rainbow then
         for k, v in pairs(LvBuff) do
-            if subBuffType == v then
-                local newCount = AcquiredCounts[k] - subCount;
-                AcquiredCounts[k] = newCount;
-                AcquiredValues[k] = newCount * StatusBuffAddVal[k];
-                break;
+            AcquiredCounts[k] = 0;
+            AcquiredValues[k] = 0;
+        end
+    else
+        if subCount > 0 then
+            for k, v in pairs(LvBuff) do
+                if subBuffType == v then
+                    local newCount = AcquiredCounts[k] - subCount;
+                    AcquiredCounts[k] = newCount;
+                    AcquiredValues[k] = newCount * StatusBuffAddVal[k];
+                    break;
+                end
             end
         end
     end
@@ -464,31 +470,37 @@ end, function()
     subCount = nil;
 end);
 
+local isEnable_SpiribirdsCall = false;
+local TimerString = {
+    Disabled = "향응 비활성 지역",
+    Enabled = "향응 타이머: %.2f초"
+};
+
 local PlayerQuestBase = nil;
 sdk_hook(start_method, function(args)
     PlayerQuestBase = sdk_to_managed_object(args[2]);
     isEnable_SpiribirdsCall = false;
     return sdk_CALL_ORIGINAL;
 end, function()
+    if not StatusBuffLimits or not StatusBuffAddVal then
+        local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+        if EquipDataManager then
+            local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
+            if EquippingLvBuffcageData then
+                InitSpiribirdsHud(EquippingLvBuffcageData);
+            end
+        end
+    end
+
     if PlayerQuestBase then
-        if not get_IsInTrainingArea_method:call(PlayerQuestBase) and IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
+        if get_IsInTrainingArea_method:call(PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
+            SpiribirdsCall_Timer = TimerString.Disabled;
+        else
             local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
             if masterPlayerSkillList then
                 local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
                 if SpiribirdsCall_Data then
                     isEnable_SpiribirdsCall = true;
-                end
-            end
-        else
-            SpiribirdsCall_Timer = "향응 비활성 지역";
-        end
-
-        if not StatusBuffLimits or not StatusBuffAddVal then
-            local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-            if EquipDataManager then
-                local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
-                if EquippingLvBuffcageData then
-                    InitSpiribirdsHud(EquippingLvBuffcageData);
                 end
             end
         end
@@ -507,7 +519,7 @@ end, function()
     if PlayerQuestBase then
         local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
         if masterPlayerData then
-            SpiribirdsCall_Timer = "향응 타이머: " .. string_format("%.2f초", 60.0 - (SpiribirdsCallTimer_field:get_data(masterPlayerData) / 60.0));
+            SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (SpiribirdsCallTimer_field:get_data(masterPlayerData) / 60.0));
         end
         PlayerQuestBase = nil;
     end
@@ -523,6 +535,49 @@ local function testAttribute(attribute, value, highest)
         imgui_text_colored(value, 4278190335);
     else
         imgui_text_colored(value, 4294901760);
+    end
+end
+
+local function buildLvBuffStatusTable()
+    if imgui_begin_table("종류", 3, 1 << 21, 25) then
+        imgui_table_setup_column("유형", 1 << 3, 25);
+        imgui_table_setup_column("횟수", 1 << 3, 20);
+        imgui_table_setup_column("수치", 1 << 3, 25);
+        
+        imgui_table_headers_row();
+
+        imgui_table_next_row();
+        imgui_table_next_column();
+        imgui_text_colored("공격력: ", 4278190335);
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredCounts.Atk) .. "/" .. tostring(BirdsMaxCounts.Atk));
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredValues.Atk) .. "/" .. tostring(StatusBuffLimits.Atk));
+
+        imgui_table_next_row();
+        imgui_table_next_column();
+        imgui_text_colored("방어력: ", 4278222847);
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredCounts.Def) .. "/" .. tostring(BirdsMaxCounts.Def));
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredValues.Def) .. "/" .. tostring(StatusBuffLimits.Def));
+
+        imgui_table_next_row();
+        imgui_table_next_column();
+        imgui_text_colored("체력: ", 4278222848);
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredCounts.Vital) .. "/" .. tostring(BirdsMaxCounts.Vital));
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredValues.Vital) .. "/" .. tostring(StatusBuffLimits.Vital));
+
+        imgui_table_next_row();
+        imgui_table_next_column();
+        imgui_text_colored("스태미나: ", 4278255615);
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredCounts.Stamina) .. "/" .. tostring(BirdsMaxCounts.Stamina));
+        imgui_table_next_column();
+        imgui_text(tostring(AcquiredValues.Stamina) .. "/" .. tostring(StatusBuffLimits.Stamina));
+        imgui_end_table();
     end
 end
 
@@ -548,17 +603,18 @@ re_on_frame(function()
                             imgui_table_next_column();
                             imgui_text(part.PartName);
 
-                            testAttribute("Slash", part.Slash, part.highest);
-                            testAttribute("Strike", part.Strike, part.highest);
-                            testAttribute("Shell", part.Shell, part.highest);
-                            testAttribute("Fire", part.Fire, part.highest);
-                            testAttribute("Water", part.Water, part.highest);
-                            testAttribute("Ice", part.Ice, part.highest);
-                            testAttribute("Elect", part.Elect, part.highest);
-                            testAttribute("Dragon", part.Dragon, part.highest);
+                            testAttribute("Slash", part.MeatValues.Slash, part.HighestMeat);
+                            testAttribute("Strike", part.MeatValues.Strike, part.HighestMeat);
+                            testAttribute("Shell", part.MeatValues.Shell, part.HighestMeat);
+                            testAttribute("Fire", part.MeatValues.Fire, part.HighestMeat);
+                            testAttribute("Water", part.MeatValues.Water, part.HighestMeat);
+                            testAttribute("Ice", part.MeatValues.Ice, part.HighestMeat);
+                            testAttribute("Elect", part.MeatValues.Elect, part.HighestMeat);
+                            testAttribute("Dragon", part.MeatValues.Dragon, part.HighestMeat);
                         end
                         imgui_end_table();
                     end
+
                     if i < curQuestTargetMonsterNum then
                         imgui_spacing();
                     end
@@ -569,107 +625,18 @@ re_on_frame(function()
         end
     end
 
-    if SpiribirdsHudDataCreated and SpiribirdsCall_Timer then
+    if SpiribirdsHudDataCreated or SpiribirdsCall_Timer then
         imgui_push_font(font);
         if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
-            if imgui_begin_table("종류", 3, 1 << 21, 25) then
-                imgui_table_setup_column("유형", 1 << 3, 25);
-                imgui_table_setup_column("횟수", 1 << 3, 20);
-                imgui_table_setup_column("수치", 1 << 3, 25);
-                
-                imgui_table_headers_row();
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("공격력: ", 4278190335);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Atk) .. "/" .. tostring(BirdsMaxCounts.Atk));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Atk) .. "/" .. tostring(StatusBuffLimits.Atk));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("방어력: ", 4278222847);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Def) .. "/" .. tostring(BirdsMaxCounts.Def));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Def) .. "/" .. tostring(StatusBuffLimits.Def));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("체력: ", 4278222848);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Vital) .. "/" .. tostring(BirdsMaxCounts.Vital));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Vital) .. "/" .. tostring(StatusBuffLimits.Vital));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("스태미나: ", 4278255615);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Stamina) .. "/" .. tostring(BirdsMaxCounts.Stamina));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Stamina) .. "/" .. tostring(StatusBuffLimits.Stamina));
-                imgui_end_table();
+            if SpiribirdsHudDataCreated then
+                buildLvBuffStatusTable();
+                if SpiribirdsCall_Timer then
+                    imgui_spacing();
+                    imgui_text(SpiribirdsCall_Timer);
+                end
+            else
+                imgui_text(SpiribirdsCall_Timer);
             end
-
-            imgui_spacing();
-            imgui_text(SpiribirdsCall_Timer);
-
-            imgui_pop_font();
-            imgui_end_window();
-        end
-    elseif SpiribirdsHudDataCreated then
-        imgui_push_font(font);
-        if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
-            if imgui_begin_table("종류", 3, 1 << 21, 25) then
-                imgui_table_setup_column("유형", 1 << 3, 25);
-                imgui_table_setup_column("횟수", 1 << 3, 20);
-                imgui_table_setup_column("수치", 1 << 3, 25);
-                
-                imgui_table_headers_row();
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("공격력: ", 4278190335);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Atk) .. "/" .. tostring(BirdsMaxCounts.Atk));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Atk) .. "/" .. tostring(StatusBuffLimits.Atk));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("방어력: ", 4278222847);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Def) .. "/" .. tostring(BirdsMaxCounts.Def));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Def) .. "/" .. tostring(StatusBuffLimits.Def));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("체력: ", 4278222848);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Vital) .. "/" .. tostring(BirdsMaxCounts.Vital));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Vital) .. "/" .. tostring(StatusBuffLimits.Vital));
-
-                imgui_table_next_row();
-                imgui_table_next_column();
-                imgui_text_colored("스태미나: ", 4278255615);
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredCounts.Stamina) .. "/" .. tostring(BirdsMaxCounts.Stamina));
-                imgui_table_next_column();
-                imgui_text(tostring(AcquiredValues.Stamina) .. "/" .. tostring(StatusBuffLimits.Stamina));
-                imgui_end_table();
-            end
-
-            imgui_pop_font();
-            imgui_end_window();
-        end
-    elseif SpiribirdsCall_Timer then
-        imgui_push_font(font);
-        if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
-            imgui_text(SpiribirdsCall_Timer);
             imgui_pop_font();
             imgui_end_window();
         end
