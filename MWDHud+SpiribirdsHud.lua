@@ -404,6 +404,16 @@ local function TerminateSpiribirdsHud()
     isEnable_SpiribirdsCall = false;
 end
 
+local function getCountsAndValues(pm, edm, buffType)
+    for k, v in pairs(LvBuff) do
+        if buffType == v then
+            AcquiredCounts[k] = math_min(math_max(getLvBuffCnt_method:call(pm, v), 0), BirdsMaxCounts[k]);
+            AcquiredValues[k] = math_min(math_max(calcLvBuffValue_method:call(edm, BuffTypes[k]), 0), StatusBuffLimits[k]);
+            break;
+        end
+    end
+end
+
 sdk_hook(start_method, function(args)
     PlayerQuestBase = sdk_to_managed_object(args[2]);
     isEnable_SpiribirdsCall = false;
@@ -428,11 +438,8 @@ end, function()
                         AcquiredCounts[k] = BirdsMaxCounts[k];
                         AcquiredValues[k] = StatusBuffLimits[k];
                     else
-                        local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                        AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
-
-                        local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                        AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
+                        AcquiredCounts[k] = math_min(math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), BirdsMaxCounts[k]);
+                        AcquiredValues[k] = math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimits[k]);
                     end
                 end
             end
@@ -472,16 +479,7 @@ end, function()
         local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
         local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
         if PlayerManager and EquipDataManager then
-            for k, v in pairs(LvBuff) do
-                if subBuffType == v then
-                    local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                    AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
-
-                    local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                    AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
-                    break;
-                end
-            end
+            getCountsAndValues(PlayerManager, EquipDataManager, subBuffType);
         end
     end
     subBuffType = nil;
@@ -509,16 +507,7 @@ end, function()
         if PlayerManager then
             local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
             if EquipDataManager then
-                for k, v in pairs(LvBuff) do
-                    if addBuffType == v then
-                        local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                        AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
-
-                        local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                        AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
-                        break;
-                    end
-                end
+                getCountsAndValues(PlayerManager, EquipDataManager, addBuffType);
             end
         end
     end

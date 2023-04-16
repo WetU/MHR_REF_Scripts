@@ -108,8 +108,8 @@ local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatI
 local reqAddChatItemInfo_method = ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
 
 local DataManager_type_def = sdk_find_type_definition("snow.data.DataManager");
-local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet");
 local getVillagePoint_method = DataManager_type_def:get_method("getVillagePoint");
+local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet");
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
 
 local VillagePoint_type_def = getVillagePoint_method:get_return_type();
@@ -193,7 +193,9 @@ local isEmpty_method = Inventory_type_def:get_method("isEmpty");
 local get_ItemId_method = Inventory_type_def:get_method("get_ItemId");
 local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
 local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)");
---
+
+local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
+
 local maxTypeOver = sdk_find_type_definition("snow.gui.ChatManager.ItemMaxType"):get_field("OverMax"):get_data(nil);
 --
 local itemBoxId = 65536
@@ -203,8 +205,6 @@ local Result = {
     Full = 2,
     Max = 3
 };
-
-local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 
 local function SendMessage(text)
     if config.EnableNotification then
@@ -686,13 +686,12 @@ local function autoArgosy()
     end
 end
 
-sdk_hook(applyEquipMySet_method, nil, function(retval)
-	Restock();
-	return retval;
+sdk_hook(applyEquipMySet_method, nil, function()
+    Restock(nil);
 end);
 
 sdk_hook(onVillageStart_method, nil, function()
-    Restock();
+    Restock(nil);
     Supply();
     autoArgosy();
 end);
