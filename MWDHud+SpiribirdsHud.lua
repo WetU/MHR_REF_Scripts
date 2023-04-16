@@ -306,29 +306,27 @@ sdk_hook(GetTargetEnemy_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
-    if TargetCameraManager then
-        if retval ~= nil then
-            local TargetCameraType = GetTargetCameraType_method:call(TargetCameraManager);
-            if TargetCameraType ~= TargetCameraType_Marionette then
-                local TargetEnemy = sdk_to_managed_object(retval);
-                if TargetEnemy then
-                    if savedTargetEnemy ~= TargetEnemy then
-                        savedTargetEnemy = TargetEnemy;
-                        local EnemyType = get_EnemyType_method:call(TargetEnemy);
-                        if EnemyType then
-                            currentQuestMonsterTypes = {EnemyType};
-                            MonsterHudDataCreated = true;
-                        else
-                            TerminateMonsterHud();
-                        end
+    if TargetCameraManager and retval ~= nil then
+        local TargetCameraType = GetTargetCameraType_method:call(TargetCameraManager);
+        if TargetCameraType ~= TargetCameraType_Marionette then
+            local TargetEnemy = sdk_to_managed_object(retval);
+            if TargetEnemy then
+                if savedTargetEnemy ~= TargetEnemy then
+                    savedTargetEnemy = TargetEnemy;
+                    local EnemyType = get_EnemyType_method:call(TargetEnemy);
+                    if EnemyType then
+                        currentQuestMonsterTypes = {EnemyType};
+                        MonsterHudDataCreated = true;
+                    else
+                        TerminateMonsterHud();
                     end
-                else
-                    TerminateMonsterHud();
                 end
+            else
+                TerminateMonsterHud();
             end
         end
-        TargetCameraManager = nil;
     end
+    TargetCameraManager = nil;
     return retval;
 end);
 
@@ -360,8 +358,8 @@ end, function()
                 end
             end
         end
-        QuestManager = nil;
     end
+    QuestManager = nil;
 end);
 
 sdk_hook(questCancel_method, nil, TerminateMonsterHud);
@@ -541,19 +539,17 @@ sdk_hook(onChangedGameStatus_method, function(args)
     GameStatus = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     return sdk_CALL_ORIGINAL;
 end, function()
-    if GameStatus then
-        if GameStatus ~= GameStatusType.Village then
-            TerminateMonsterHud();
-        end
-
-        if GameStatus ~= GameStatusType.Quest then
-            hasRainbow = false;
-            if GameStatus == GameStatusType.Village then
-                savedTargetEnemy = nil;
-            end
-        end
-        GameStatus = nil;
+    if GameStatus ~= GameStatusType.Village then
+        TerminateMonsterHud();
     end
+
+    if GameStatus ~= GameStatusType.Quest then
+        hasRainbow = false;
+        if GameStatus == GameStatusType.Village then
+            savedTargetEnemy = nil;
+        end
+    end
+    GameStatus = nil;
 end);
 
 
