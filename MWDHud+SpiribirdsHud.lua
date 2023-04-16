@@ -429,10 +429,10 @@ end, function()
                         AcquiredValues[k] = StatusBuffLimits[k];
                     else
                         local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                        AcquiredCounts[k] = math_max(math_max(cnt, 0), math_min(cnt, BirdsMaxCounts[k]));
+                        AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
 
                         local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                        AcquiredValues[k] = math_max(math_max(value, 0), math_min(value, StatusBuffLimits[k]));
+                        AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
                     end
                 end
             end
@@ -475,10 +475,10 @@ end, function()
             for k, v in pairs(LvBuff) do
                 if subBuffType == v then
                     local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                    AcquiredCounts[k] = math_max(math_max(cnt, 0), math_min(cnt, BirdsMaxCounts[k]));
+                    AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
 
                     local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                    AcquiredValues[k] = math_max(math_max(value, 0), math_min(value, StatusBuffLimits[k]));
+                    AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
                     break;
                 end
             end
@@ -512,10 +512,10 @@ end, function()
                 for k, v in pairs(LvBuff) do
                     if addBuffType == v then
                         local cnt = getLvBuffCnt_method:call(PlayerManager, v);
-                        AcquiredCounts[k] = math_max(math_max(cnt, 0), math_min(cnt, BirdsMaxCounts[k]));
+                        AcquiredCounts[k] = cnt <= 0 and 0 or math_min(cnt, BirdsMaxCounts[k]);
 
                         local value = calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]);
-                        AcquiredValues[k] = math_max(math_max(value, 0), math_min(value, StatusBuffLimits[k]));
+                        AcquiredValues[k] = value <= 0 and 0 or math_min(value, StatusBuffLimits[k]);
                         break;
                     end
                 end
