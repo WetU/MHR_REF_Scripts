@@ -142,8 +142,8 @@ local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQue
 local start_method = PlayerQuestBase_type_def:get_method("start");
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)");
-local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
+local IsInTrainingArea_field = PlayerQuestBase_type_def:get_field("<IsInTrainingArea>k__BackingField");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local LvBuff_type_def = sdk_find_type_definition("snow.player.PlayerDefine.LvBuff");
@@ -306,24 +306,15 @@ sdk_hook(GetTargetEnemy_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
-    if TargetCameraManager and retval ~= nil then
-        local TargetCameraType = GetTargetCameraType_method:call(TargetCameraManager);
-        if TargetCameraType ~= TargetCameraType_Marionette then
-            local TargetEnemy = sdk_to_managed_object(retval);
-            if TargetEnemy then
-                if savedTargetEnemy ~= TargetEnemy then
-                    savedTargetEnemy = TargetEnemy;
-                    local EnemyType = get_EnemyType_method:call(TargetEnemy);
-                    if EnemyType then
-                        currentQuestMonsterTypes = {EnemyType};
-                        MonsterHudDataCreated = true;
-                    else
-                        TerminateMonsterHud();
-                    end
-                end
-            else
-                TerminateMonsterHud();
-            end
+    local TargetEnemy = sdk_to_managed_object(retval);
+    if TargetEnemy and savedTargetEnemy ~= TargetEnemy and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
+        savedTargetEnemy = TargetEnemy;
+        local EnemyType = get_EnemyType_method:call(TargetEnemy);
+        if EnemyType then
+            currentQuestMonsterTypes = {EnemyType};
+            MonsterHudDataCreated = true;
+        else
+            TerminateMonsterHud();
         end
     end
     TargetCameraManager = nil;
@@ -339,21 +330,19 @@ sdk_hook(questActivate_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if QuestManager then
-        if getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
-            local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
-            if QuestTargetEmTypeList then
-                local listCount = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
-                if listCount > 0 then
-                    for i = 0, listCount - 1, 1 do
-                        local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
-                        if isBoss_method:call(nil, QuestTargetEmType) then
-                            if not currentQuestMonsterTypes then
-                                currentQuestMonsterTypes = {};
-                            end
-                            table_insert(currentQuestMonsterTypes, QuestTargetEmType);
-                            MonsterHudDataCreated = true;
+    if getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
+        local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
+        if QuestTargetEmTypeList then
+            local listCount = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
+            if listCount > 0 then
+                for i = 0, listCount - 1, 1 do
+                    local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
+                    if isBoss_method:call(nil, QuestTargetEmType) then
+                        if not currentQuestMonsterTypes then
+                            currentQuestMonsterTypes = {};
                         end
+                        table_insert(currentQuestMonsterTypes, QuestTargetEmType);
+                        MonsterHudDataCreated = true;
                     end
                 end
             end
@@ -386,7 +375,6 @@ local SpiribirdsCall_Timer = nil;
 local SpiribirdsHudDataCreated = false;
 
 local PlayerManager = nil;
-local PlayerQuestBase = nil;
 
 local addBuffType = nil;
 local subBuffType = nil;
@@ -412,53 +400,54 @@ local function getCountsAndValues(pm, edm, buffType)
     end
 end
 
+local start_PlayerQuestBase = nil;
 sdk_hook(start_method, function(args)
-    PlayerQuestBase = sdk_to_managed_object(args[2]);
+    start_PlayerQuestBase = sdk_to_managed_object(args[2]);
     isEnable_SpiribirdsCall = false;
     return sdk_CALL_ORIGINAL;
 end, function()
     local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-    local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
-    if EquipDataManager and PlayerManager then
+    if EquipDataManager then
+        BirdsMaxCounts = {};
         local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
         if EquippingLvBuffcageData then
             StatusBuffLimits = {};
             StatusBuffAddValues = {};
-            BirdsMaxCounts = {};
-            AcquiredCounts = {};
             AcquiredValues = {};
-            for k, v in pairs(LvBuff) do
-                if k ~= "Rainbow" then
-                    StatusBuffLimits[k] = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
-                    StatusBuffAddValues[k] = getStatusBuffAddVal_method:call(EquippingLvBuffcageData, BuffTypes[k]);
-                    BirdsMaxCounts[k] = calcLvBuffNumToMax_method:call(EquipDataManager, v);
-                    if hasRainbow then
-                        AcquiredCounts[k] = BirdsMaxCounts[k];
-                        AcquiredValues[k] = StatusBuffLimits[k];
-                    else
-                        AcquiredCounts[k] = math_min(math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), BirdsMaxCounts[k]);
-                        AcquiredValues[k] = math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimits[k]);
+            local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+            if PlayerManager then
+                AcquiredCounts = {};
+                for k, v in pairs(LvBuff) do
+                    if k ~= "Rainbow" then
+                        StatusBuffLimits[k] = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
+                        StatusBuffAddValues[k] = getStatusBuffAddVal_method:call(EquippingLvBuffcageData, BuffTypes[k]);
+                        BirdsMaxCounts[k] = calcLvBuffNumToMax_method:call(EquipDataManager, v);
+                        if hasRainbow then
+                            AcquiredCounts[k] = BirdsMaxCounts[k];
+                            AcquiredValues[k] = StatusBuffLimits[k];
+                        else
+                            AcquiredCounts[k] = math_min(math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), BirdsMaxCounts[k]);
+                            AcquiredValues[k] = math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimits[k]);
+                        end
                     end
                 end
+                SpiribirdsHudDataCreated = true;
             end
-            SpiribirdsHudDataCreated = true;
         end
     end
 
-    if PlayerQuestBase then
-        if get_IsInTrainingArea_method:call(PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
-            SpiribirdsCall_Timer = TimerString.Disabled;
-        else
-            local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
-            if masterPlayerSkillList then
-                local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
-                if SpiribirdsCall_Data then
-                    isEnable_SpiribirdsCall = true;
-                end
+    if IsInTrainingArea_field:get_data(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(Pstart_PlayerQuestBase) then
+        SpiribirdsCall_Timer = TimerString.Disabled;
+    else
+        local masterPlayerSkillList = get_PlayerSkillList_method:call(start_PlayerQuestBase);
+        if masterPlayerSkillList then
+            local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
+            if SpiribirdsCall_Data then
+                isEnable_SpiribirdsCall = true;
             end
         end
     end
-    PlayerQuestBase = nil;
+    start_PlayerQuestBase = nil;
 end);
 
 sdk_hook(subLvBuffFromEnemy_method, function(args)
@@ -513,6 +502,7 @@ end, function()
     PlayerManager = nil;
 end);
 
+local PlayerQuestBase = nil;
 sdk_hook(updateEquipSkill211_method, function(args)
     if isEnable_SpiribirdsCall then
         PlayerQuestBase = sdk_to_managed_object(args[2]);

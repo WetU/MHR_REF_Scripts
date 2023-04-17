@@ -62,6 +62,7 @@ local function fps_handler(retval)
 	end
 	return retval;
 end
+
 sdk_hook(writeGraphicOptionOnIniFile_method, nil, fps_handler); -- allows title screen fps changes to appear immediately, if there's a better method to hook, let me know
 sdk_hook(playEventCommon_method, nil, fps_handler); -- only bother setting fps for cutscenes
 

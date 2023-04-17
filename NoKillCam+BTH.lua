@@ -73,13 +73,15 @@ local QuestEndFlowTimer_field = QuestManager_type_def:get_field("_QuestEndFlowTi
 local TotalJoinNum_field = QuestManager_type_def:get_field("_TotalJoinNum");
 
 local EndFlow_type_def = sdk_find_type_definition("snow.QuestManager.EndFlow");
-local EndFlow_Start = EndFlow_type_def:get_field("Start"):get_data(nil); -- 0
-local EndFlow_WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil); -- 1
-local EndFlow_CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil); -- 8
-local EndFlow_None = EndFlow_type_def:get_field("None"):get_data(nil); -- 16
+local EndFlow = {
+	["Start"] = EndFlow_type_def:get_field("Start"):get_data(nil),
+	["WaitEndTimer"] = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
+	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
+	["None"] = EndFlow_type_def:get_field("None"):get_data(nil)
+};
 -- Remove Town Interaction Delay cache
 local getStatus_method = QuestManager_type_def:get_method("getStatus");
-local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable");
+local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
@@ -116,7 +118,7 @@ sdk_hook(RequestActive_method, function(args)
 		if QuestManager then
 			local endFlow = EndFlow_field:get_data(QuestManager);
 			local endCapture = EndCaptureFlag_field:get_data(QuestManager);
-			if endFlow <= EndFlow_WaitEndTimer and endCapture == EndCaptureFlag_CaptureEnd then
+			if endFlow <= EndFlow.WaitEndTimer and endCapture == EndCaptureFlag_CaptureEnd then
 				return sdk_SKIP_ORIGINAL;
 			end
 		end
@@ -130,9 +132,9 @@ sdk_hook(updateQuestEndFlow_method, nil, function()
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
 		if QuestManager then
 			local endFlow = EndFlow_field:get_data(QuestManager);
-			if endFlow > EndFlow_Start and endFlow < EndFlow_None then
+			if endFlow > EndFlow.Start and endFlow < EndFlow.None then
 				if QuestEndFlowTimer_field:get_data(QuestManager) > 1.0 then
-					if endFlow == EndFlow_WaitEndTimer and TotalJoinNum_field:get_data(QuestManager) == 1 then
+					if endFlow == EndFlow.WaitEndTimer and TotalJoinNum_field:get_data(QuestManager) == 1 then
 						if settings.BTH.autoSkipCountdown then
 							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 						elseif settings.BTH.enableKeyboard then
@@ -144,7 +146,7 @@ sdk_hook(updateQuestEndFlow_method, nil, function()
 								end
 							end
 						end
-					elseif endFlow == EndFlow_CameraDemo then
+					elseif endFlow == EndFlow.CameraDemo then
 						if settings.BTH.autoSkipPostAnim then
 							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 						elseif settings.BTH.enableKeyboard then

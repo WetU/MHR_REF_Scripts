@@ -111,8 +111,8 @@ end, function(ret)
 		if DurationTime then
 			seek_method:call(currentMovie, DurationTime);
 		end
-		currentMovie = nil;
 	end
+	currentMovie = nil;
 	return ret;
 end);
 
@@ -120,7 +120,7 @@ end);
 local SkipTrg = sdk_to_ptr(1);
 sdk_hook(getTitleDispSkipTrg_method, nil, function(retval)
 	if isLoading() then
-		retval = SkipTrg;
+		return SkipTrg;
 	end
 	return retval;
 end);

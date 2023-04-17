@@ -380,6 +380,7 @@ end, function(retval)
             end
         end
     end
+    nextArg = nil;
     return retval;
 end);
 

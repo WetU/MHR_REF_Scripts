@@ -71,8 +71,8 @@ end, function()
 		end
 		GoodRelationshipHud:set_field("_gaugeAngleY", gaugeAngleMax_field:get_data(GoodRelationshipHud));
 		GoodRelationshipHud:set_field("WaitTime", 0.0);
-		GoodRelationshipHud = nil;
 	end
+	GoodRelationshipHud = nil;
 end);
 ---- re Callbacks ----
 local function save_config()
