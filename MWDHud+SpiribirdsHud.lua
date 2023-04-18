@@ -143,7 +143,7 @@ local start_method = PlayerQuestBase_type_def:get_method("start");
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)");
 local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
-local IsInTrainingArea_field = PlayerQuestBase_type_def:get_field("<IsInTrainingArea>k__BackingField");
+local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local LvBuff_type_def = sdk_find_type_definition("snow.player.PlayerDefine.LvBuff");
@@ -436,7 +436,7 @@ end, function()
         end
     end
 
-    if IsInTrainingArea_field:get_data(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(Pstart_PlayerQuestBase) then
+    if get_IsInTrainingArea_method:call(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(Pstart_PlayerQuestBase) then
         SpiribirdsCall_Timer = TimerString.Disabled;
     else
         local masterPlayerSkillList = get_PlayerSkillList_method:call(start_PlayerQuestBase);
