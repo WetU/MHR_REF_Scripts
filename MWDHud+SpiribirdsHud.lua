@@ -436,14 +436,16 @@ end, function()
         end
     end
 
-    if get_IsInTrainingArea_method:call(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(Pstart_PlayerQuestBase) then
-        SpiribirdsCall_Timer = TimerString.Disabled;
-    else
-        local masterPlayerSkillList = get_PlayerSkillList_method:call(start_PlayerQuestBase);
-        if masterPlayerSkillList then
-            local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
-            if SpiribirdsCall_Data then
-                isEnable_SpiribirdsCall = true;
+    if start_PlayerQuestBase then
+        if get_IsInTrainingArea_method:call(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(start_PlayerQuestBase) then
+            SpiribirdsCall_Timer = TimerString.Disabled;
+        else
+            local masterPlayerSkillList = get_PlayerSkillList_method:call(start_PlayerQuestBase);
+            if masterPlayerSkillList then
+                local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
+                if SpiribirdsCall_Data then
+                    isEnable_SpiribirdsCall = true;
+                end
             end
         end
     end
@@ -455,21 +457,24 @@ sdk_hook(subLvBuffFromEnemy_method, function(args)
         subBuffType = sdk_to_int64(args[3]) & 0xFF;
     end
     return sdk_CALL_ORIGINAL;
-end, function()
-    if subBuffType == LvBuff.Rainbow then
-        hasRainbow = false;
-        for k, v in pairs(LvBuff) do
-            AcquiredCounts[k] = 0;
-            AcquiredValues[k] = 0;
-        end
-    else
-        local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
-        local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-        if PlayerManager and EquipDataManager then
-            getCountsAndValues(PlayerManager, EquipDataManager, subBuffType);
+end, function(retval)
+    if (sdk_to_int64(retval) & 1) == 1 then
+        if subBuffType == LvBuff.Rainbow then
+            hasRainbow = false;
+            for k, v in pairs(LvBuff) do
+                AcquiredCounts[k] = 0;
+                AcquiredValues[k] = 0;
+            end
+        else
+            local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+            local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+            if PlayerManager and EquipDataManager then
+                getCountsAndValues(PlayerManager, EquipDataManager, subBuffType);
+            end
         end
     end
     subBuffType = nil;
+    return retval;
 end);
 
 sdk_hook(addLvBuffCnt_method, function(args)
