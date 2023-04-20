@@ -67,7 +67,7 @@ local req_matchmaking_random_method = session_manager_type_def:get_method("reqMa
 local req_matchmaking_hyakuryu_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionHyakuryu(System.UInt32, System.Nullable`1<System.UInt32>, System.Nullable`1<System.UInt32>)");
 local req_matchmaking_random_master_rank_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMasterRank(System.UInt32, System.UInt32)");
 local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery(System.UInt32, System.UInt32, System.UInt32)");
-local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>)");
+local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>, snow.data.ContentsIdSystem.ItemId, System.Boolean)");
 local funcOnTimeoutMatchmaking_method = session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)");
 
 local nullable_uint32_type_def = sdk_find_type_definition("System.Nullable`1<System.UInt32>");
@@ -129,7 +129,7 @@ function timeout_fix.on_post_timeout_matchmaking(retval)
 					enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
 					
 					skip_next_hook = true;
-					req_matchmaking_random_mystery_quest_method:call(session_manager, quest_type.min_level, quest_type.max_level, quest_type.party_limit, enemy_id_pointer);
+					req_matchmaking_random_mystery_quest_method:call(session_manager, quest_type.min_level, quest_type.max_level, quest_type.party_limit, enemy_id_pointer, quest_type.rewardItem, quest_type.isSpecialRandomMystery);
 				end
 			end
 		end
@@ -195,7 +195,7 @@ function timeout_fix.on_req_matchmaking_random_anomaly(my_hunter_rank, my_master
 	quest_type.my_master_rank = my_master_rank;
 end
 
-function timeout_fix.on_req_matchmaking_random_anomaly_quest(min_level, max_level, party_limit, enemy_id_pointer)
+function timeout_fix.on_req_matchmaking_random_anomaly_quest(min_level, max_level, party_limit, enemy_id_pointer, rewardItem, isSpecialRandomMystery)
 	if skip_next_hook then
 		skip_next_hook = false;
 		return;
@@ -205,10 +205,11 @@ function timeout_fix.on_req_matchmaking_random_anomaly_quest(min_level, max_leve
 	quest_type.max_level = max_level;
 	quest_type.party_limit = party_limit;
 	quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id_pointer);
-
 	if quest_type.enemy_id.has_value then
 		quest_type.enemy_id.value = nullable_uint32_get_value_or_default_method:call(enemy_id_pointer);
 	end
+	quest_type.rewardItem = rewardItem;
+	quest_type.isSpecialRandomMystery = isSpecialRandomMystery == 1 and true or false;
 end
 
 function timeout_fix.on_req_online()
@@ -266,7 +267,7 @@ function timeout_fix.init_module()
 	end);
 
 	sdk_hook(req_matchmaking_random_mystery_quest_method, function(args)
-		timeout_fix.on_req_matchmaking_random_anomaly_quest(sdk_to_int64(args[3]) & 0xFFFFFFFF, sdk_to_int64(args[4]) & 0xFFFFFFFF, sdk_to_int64(args[5]) & 0xFFFFFFFF, args[6]);
+		timeout_fix.on_req_matchmaking_random_anomaly_quest(sdk_to_int64(args[3]) & 0xFFFFFFFF, sdk_to_int64(args[4]) & 0xFFFFFFFF, sdk_to_int64(args[5]) & 0xFFFFFFFF, args[6], sdk_to_int64(args[7]) & 0xFFFFFFFF, sdk_to_int64(args[8]) & 1);
 	end);
 end
 
