@@ -1,7 +1,7 @@
 local pcall = pcall;
 local require = require;
 
-local reframework =reframework;
+local reframework = reframework;
 
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;

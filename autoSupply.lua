@@ -524,13 +524,9 @@ local function Restock(loadoutIndex)
     local msg = "";
     if isEnoughItem_method:call(loadout) then
         ApplyItemLoadout(itemLoadoutIndex);
-        if matchedType == "Loadout" then
-            msg = FromLoadout(matchedName, itemLoadoutName);
-        elseif matchedType == "WeaponType" then
-            msg = FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
-        else
-            msg = FromDefault(itemLoadoutName, loadoutMismatch);
-        end
+        msg = matchedType == "Loadout" and FromLoadout(matchedName, itemLoadoutName)
+            or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
+            or FromDefault(itemLoadoutName, loadoutMismatch);
 
         local paletteIndex = get_PaletteSetIndex_method:call(loadout);
         if not paletteIndex then

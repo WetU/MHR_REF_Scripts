@@ -19,7 +19,6 @@ function this.init()
 	this.default_config = {
 		timeout_fix = {
 			enabled = true,
-
 			quest_types = {
 				regular = true,
 				random = true,
@@ -31,7 +30,7 @@ function this.init()
 		},
 
 		hide_online_warning = {
-			enabled = true,
+			enabled = true
 		},
 
 		hide_network_errors = {
@@ -39,7 +38,6 @@ function this.init()
 			when_to_hide = {
 				on_quests = true,
 				outside_quests = false
-				
 			}
 		},
 
