@@ -203,7 +203,11 @@ local DataListCreated = false;
 local creating = false;
 
 local currentQuestMonsterTypes = nil;
-local savedTargetEnemy = nil;
+local savedTarget = {
+    Enemy = nil,
+    EmType = nil
+};
+local savedTargetEnemyType = nil;
 local MonsterHudDataCreated = false;
 
 local function CreateDataList()
@@ -309,14 +313,22 @@ end, function(retval)
     if not TargetEnemy then
         TerminateMonsterHud();
     else
-        if savedTargetEnemy ~= TargetEnemy and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
-            savedTargetEnemy = TargetEnemy;
-            local EnemyType = get_EnemyType_method:call(TargetEnemy);
-            if EnemyType then
-                currentQuestMonsterTypes = {EnemyType};
+        if GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
+            if TargetEnemy == savedTarget.Enemy then
+                currentQuestMonsterTypes = {savedTarget.EnemyType};
                 MonsterHudDataCreated = true;
             else
-                TerminateMonsterHud();
+                local EnemyType = get_EnemyType_method:call(TargetEnemy);
+                if not EnemyType then
+                    TerminateMonsterHud();
+                else
+                    savedTarget = {
+                        ["Enemy"] = TargetEnemy,
+                        ["EnemyType"] = EnemyType
+                    };
+                    currentQuestMonsterTypes = {EnemyType};
+                    MonsterHudDataCreated = true;
+                end
             end
         end
     end
@@ -544,7 +556,7 @@ end, function()
     if GameStatus ~= GameStatusType.Quest then
         hasRainbow = false;
         if GameStatus == GameStatusType.Village then
-            savedTargetEnemy = nil;
+            savedTargetEnemyType = nil;
         end
     end
     GameStatus = nil;
