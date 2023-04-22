@@ -203,11 +203,7 @@ local DataListCreated = false;
 local creating = false;
 
 local currentQuestMonsterTypes = nil;
-local savedTarget = {
-    Enemy = nil,
-    EmType = nil
-};
-local savedTargetEnemyType = nil;
+local savedTarget = nil;
 local MonsterHudDataCreated = false;
 
 local function CreateDataList()
@@ -307,6 +303,12 @@ sdk_hook(GetTargetEnemy_method, function(args)
     if not creating and not DataListCreated then
         CreateDataList();
     end
+    if not savedTarget then
+        savedTarget = {
+            ["Enemy"] = nil,
+            ["Type"] = nil
+        };
+    end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
     local TargetEnemy = sdk_to_managed_object(retval);
@@ -314,22 +316,19 @@ end, function(retval)
         TerminateMonsterHud();
     else
         if GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
-            if TargetEnemy == savedTarget.Enemy then
-                currentQuestMonsterTypes = {savedTarget.EnemyType};
-                MonsterHudDataCreated = true;
-            else
+            if TargetEnemy ~= savedTarget.Enemy then
                 local EnemyType = get_EnemyType_method:call(TargetEnemy);
                 if not EnemyType then
                     TerminateMonsterHud();
+                    TargetCameraManager = nil;
+                    return retval;
                 else
-                    savedTarget = {
-                        ["Enemy"] = TargetEnemy,
-                        ["EnemyType"] = EnemyType
-                    };
-                    currentQuestMonsterTypes = {EnemyType};
-                    MonsterHudDataCreated = true;
+                    savedTarget.Enemy = TargetEnemy;
+                    savedTarget.Type = EnemyType;
                 end
             end
+            currentQuestMonsterTypes = {savedTarget.Type};
+            MonsterHudDataCreated = true;
         end
     end
     TargetCameraManager = nil;
@@ -556,7 +555,7 @@ end, function()
     if GameStatus ~= GameStatusType.Quest then
         hasRainbow = false;
         if GameStatus == GameStatusType.Village then
-            savedTargetEnemyType = nil;
+            savedTarget = nil;
         end
     end
     GameStatus = nil;
