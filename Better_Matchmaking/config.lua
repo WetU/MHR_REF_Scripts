@@ -1,3 +1,8 @@
+local this = {};
+local version = "2.3.2";
+
+local utils;
+
 local json = json;
 local jsonAvailable = json ~= nil;
 local json_load_file = jsonAvailable and json.load_file or nil;
@@ -5,15 +10,13 @@ local json_dump_file = jsonAvailable and json.dump_file or nil;
 
 local require = require;
 
-local config = {};
-local table_helpers;
+this.current_config = nil;
+this.config_file_name = "Better Matchmaking/config.json";
 
-config.current_config = nil;
-config.config_file_name = "Better Matchmaking/config.json";
-config.default_config = {};
+this.default_config = {};
 
-function config.init()
-	config.default_config = {
+function this.init()
+	this.default_config = {
 		timeout_fix = {
 			enabled = true,
 
@@ -28,7 +31,7 @@ function config.init()
 		},
 
 		hide_online_warning = {
-			enabled = true
+			enabled = true,
 		},
 
 		hide_network_errors = {
@@ -36,6 +39,7 @@ function config.init()
 			when_to_hide = {
 				on_quests = true,
 				outside_quests = false
+				
 			}
 		},
 
@@ -46,25 +50,34 @@ function config.init()
 	};
 end
 
-function config.load()
-	if jsonAvailable then
-		local loaded_config = json_load_file(config.config_file_name);
-		config.current_config = loaded_config and table_helpers.merge(config.default_config, loaded_config) or table_helpers.deep_copy(config.default_config);
+function this.load()
+	if json_load_file then
+		local loaded_config = json_load_file(this.config_file_name);
+		if loaded_config ~= nil then
+			this.current_config = utils.table.merge(this.default_config, loaded_config);
+		else
+			this.current_config = utils.table.deep_copy(this.default_config);
+		end
 	end
 end
 
-function config.save()
-	if jsonAvailable then
-		json_dump_file(config.config_file_name, config.current_config);
+function this.save()
+	if json_dump_file then
+		json_dump_file(this.config_file_name, this.current_config);
 	end
 end
 
-function config.init_module()
-	table_helpers = require("Better_Matchmaking.table_helpers");
-
-	config.init();
-	config.load();
-	config.current_config.version = "2.3.1";
+function this.reset()
+	this.current_config = utils.table.deep_copy(this.default_config);
+	this.current_config.version = version;
 end
 
-return config;
+function this.init_module()
+	utils = require("Better_Matchmaking.utils");
+
+	this.init();
+	this.load();
+	this.current_config.version = version;
+end
+
+return this;

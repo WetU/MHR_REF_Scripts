@@ -240,7 +240,6 @@ local function CreateDataList()
                                                     if part then
                                                         local partType = Part_field:get_data(part);
                                                         local meatType = EmPart_field:get_data(part);
-                                                        local EmMeatGroupIdx = EmMeatGroupIdx_field:get_data(part) or 0;
                                                         if partType and meatType then
                                                             local partGuid = getMonsterPartName_method:call(MonsterList, partType);
                                                             if partGuid then
@@ -254,7 +253,7 @@ local function CreateDataList()
 
                                                                 for _, attrType in pairs(MeatAttr) do
                                                                     for k, v in pairs(attrType) do
-                                                                        PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx, v);
+                                                                        PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
                                                                     end
                                                                 end
 
@@ -262,7 +261,7 @@ local function CreateDataList()
                                                                 local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
 
                                                                 for k, v in pairs(PartDataTable.MeatValues) do
-                                                                    local compareValue = (k == "Slash" or k == "Strike" or k == "Shell") and highestPhys or highestElem;
+                                                                    local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
                                                                     if v == compareValue then
                                                                         PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
                                                                     end
@@ -278,13 +277,13 @@ local function CreateDataList()
                                                     MonsterListData = {};
                                                 end
                                                 MonsterListData[monsterType] = MonsterDataTable;
-                                                DataListCreated = true;
                                             end
                                         end
                                     end
                                 end
                             end
                         end
+                        DataListCreated = true;
                     end
                 end
             end
@@ -307,14 +306,18 @@ sdk_hook(GetTargetEnemy_method, function(args)
     return sdk_CALL_ORIGINAL;
 end, function(retval)
     local TargetEnemy = sdk_to_managed_object(retval);
-    if TargetEnemy and savedTargetEnemy ~= TargetEnemy and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
-        savedTargetEnemy = TargetEnemy;
-        local EnemyType = get_EnemyType_method:call(TargetEnemy);
-        if EnemyType then
-            currentQuestMonsterTypes = {EnemyType};
-            MonsterHudDataCreated = true;
-        else
-            TerminateMonsterHud();
+    if not TargetEnemy then
+        TerminateMonsterHud();
+    else
+        if savedTargetEnemy ~= TargetEnemy and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
+            savedTargetEnemy = TargetEnemy;
+            local EnemyType = get_EnemyType_method:call(TargetEnemy);
+            if EnemyType then
+                currentQuestMonsterTypes = {EnemyType};
+                MonsterHudDataCreated = true;
+            else
+                TerminateMonsterHud();
+            end
         end
     end
     TargetCameraManager = nil;

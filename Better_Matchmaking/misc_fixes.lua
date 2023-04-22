@@ -1,3 +1,10 @@
+local this = {};
+
+local utils;
+local config;
+
+local require = require;
+
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
@@ -5,12 +12,6 @@ local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
-
-local require = require;
-
-local misc_fixes = {};
-local table_helpers;
-local config;
 
 local quest_manager_type_def = sdk_find_type_definition("snow.QuestManager");
 local isPlayQuest_method = quest_manager_type_def:get_method("isPlayQuest");
@@ -22,18 +23,18 @@ local setOpenNetworkErrorWindowSelection_method = sdk_find_type_definition("snow
 
 local quest_status_index = 0;
 
-function misc_fixes.on_changed_game_status(new_quest_status)
+function this.on_changed_game_status(new_quest_status)
 	quest_status_index = new_quest_status;
 end
 
-function misc_fixes.on_req_online_warning()
+function this.on_req_online_warning()
 	if not config.current_config.hide_online_warning.enabled then
 		return sdk_CALL_ORIGINAL;
 	end
 	return sdk_SKIP_ORIGINAL;
 end
 
-function misc_fixes.on_set_open_network_error_window_selection()
+function this.on_set_open_network_error_window_selection()
 	local cached_config = config.current_config.hide_network_errors;
 	if cached_config.enabled then
 		local quest_manager = sdk_get_managed_singleton("snow.QuestManager");
@@ -68,19 +69,17 @@ function misc_fixes.on_set_open_network_error_window_selection()
 	return sdk_CALL_ORIGINAL;
 end
 
-function misc_fixes.init_module()
+function this.init_module()
 	config = require("Better_Matchmaking.config");
-	table_helpers = require("Better_Matchmaking.table_helpers");
+	utils = require("Better_Matchmaking.utils");
 
-	sdk_hook(reqOnlineWarning_method, misc_fixes.on_req_online_warning);
+	sdk_hook(reqOnlineWarning_method, this.on_req_online_warning);
 
 	sdk_hook(onChangedGameStatus_method, function(args)
-		misc_fixes.on_changed_game_status(sdk_to_int64(args[3]) & 0xFFFFFFFF);
+		this.on_changed_game_status(sdk_to_int64(args[3]));
 	end);
 
-	sdk_hook(setOpenNetworkErrorWindowSelection_method, function(args)
-		return misc_fixes.on_set_open_network_error_window_selection();
-	end);
+	sdk_hook(setOpenNetworkErrorWindowSelection_method, this.on_set_open_network_error_window_selection);
 end
 
-return misc_fixes;
+return this;

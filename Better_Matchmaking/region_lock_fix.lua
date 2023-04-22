@@ -1,3 +1,8 @@
+local this = {};
+
+local utils;
+local config;
+
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
@@ -16,27 +21,28 @@ local setIsInvisible_method = session_steam_type_def:get_method("setIsInvisible(
 
 local last_session_steam_object = nil;
 
-function region_lock_fix.on_set_is_invisible(session_steam)
+function this.on_set_is_invisible(session_steam)
 	local region_lock_fix_config = config.current_config.region_lock_fix;
 	if not region_lock_fix_config.enabled then
 		if session_steam ~= last_session_steam_object then
 			set_lobby_distance_filter_method:call(session_steam, 1);
 		end
 	else
-		local distance = region_lock_fix_config.distance_filter == "Worldwide" and 3 or region_lock_fix_config.distance_filter == "Far" and 2 or region_lock_fix_config.distance_filter == "Close" and 0 or 1;
+		local distance_filter = region_lock_fix_config.distance_filter;
+		local distance = distance_filter == "Worldwide" and 3 or distance_filter == "Far" and 2 or distance_filter == "Close" and 0 or 1;
 		set_lobby_distance_filter_method:call(session_steam, distance);
 	end
 	last_session_steam_object = session_steam;
 	return sdk_CALL_ORIGINAL;
 end
 
-function region_lock_fix.init_module()
-	table_helpers = require("Better_Matchmaking.table_helpers");
+function this.init_module()
 	config = require("Better_Matchmaking.config");
+	utils = require("Better_Matchmaking.utils");
 
 	sdk_hook(setIsInvisible_method, function(args)
-		region_lock_fix.on_set_is_invisible(sdk_to_managed_object(args[1]));
+		this.on_set_is_invisible(sdk_to_managed_object(args[1]));
 	end);
 end
 
-return region_lock_fix;
+return this;

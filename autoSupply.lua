@@ -151,6 +151,8 @@ local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type
 
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
+local GuiCampFsmManager_start_method = sdk_find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start");
+
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
 local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
@@ -516,98 +518,94 @@ end
 
 ------------------------
 local function Restock(loadoutIndex)
-    if config.Enabled then
-        local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(loadoutIndex);
-        local loadout = GetItemLoadout(itemLoadoutIndex);
-        local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
-        local msg = "";
-        if isEnoughItem_method:call(loadout) then
-            ApplyItemLoadout(itemLoadoutIndex);
-            if matchedType == "Loadout" then
-                msg = FromLoadout(matchedName, itemLoadoutName);
-            elseif matchedType == "WeaponType" then
-                msg = FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
-            else
-                msg = FromDefault(itemLoadoutName, loadoutMismatch);
-            end
-
-            local paletteIndex = get_PaletteSetIndex_method:call(loadout);
-            if not paletteIndex then
-                msg = msg .. "\n" .. PaletteNilError();
-            else
-                local SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
-                if SystemDataManager then
-                    local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
-                    local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
-                    local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
-                    if paletteList then
-                        local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
-                        if palette then
-                            msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
-                        end
-                    else
-                        msg = msg .. "\n" .. PaletteListEmpty();
-                    end
-                    setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
-                end
-            end
+    local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(loadoutIndex);
+    local loadout = GetItemLoadout(itemLoadoutIndex);
+    local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+    local msg = "";
+    if isEnoughItem_method:call(loadout) then
+        ApplyItemLoadout(itemLoadoutIndex);
+        if matchedType == "Loadout" then
+            msg = FromLoadout(matchedName, itemLoadoutName);
+        elseif matchedType == "WeaponType" then
+            msg = FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
         else
-            msg = OutOfStock(itemLoadoutName);
+            msg = FromDefault(itemLoadoutName, loadoutMismatch);
         end
-        SendMessage(msg);
+
+        local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+        if not paletteIndex then
+            msg = msg .. "\n" .. PaletteNilError();
+        else
+            local SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
+            if SystemDataManager then
+                local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
+                local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
+                local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
+                if paletteList then
+                    local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
+                    if palette then
+                        msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
+                    end
+                else
+                    msg = msg .. "\n" .. PaletteListEmpty();
+                end
+                setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
+            end
+        end
+    else
+        msg = OutOfStock(itemLoadoutName);
     end
+    SendMessage(msg);
 end
 
 local function Supply()
-    if config.EnableCohoot then
-        local ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
-        if ProgressOwlNestManager then
-            local saveData = get_SaveData_method:call(ProgressOwlNestManager);
-            if saveData then
-                local kamuraStack = kamuraStackCount_field:get_data(saveData);
-                local elgadoStack = elgadoStackCount_field:get_data(saveData);
-                if kamuraStack >= config.CohootMaxStock and elgadoStack < config.CohootMaxStock then
-                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-                    if VillageAreaManager then
-                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-                        if savedAreaNo ~= KAMURA then
-                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                        else
-                            supply_method:call(ProgressOwlNestManager);
-                        end
-                    end
-                elseif elgadoStack >= config.CohootMaxStock and kamuraStack < config.CohootMaxStock then
-                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-                    if VillageAreaManager then
-                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-                        if savedAreaNo ~= ELGADO then
-                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                        else
-                            supply_method:call(ProgressOwlNestManager);
-                        end
-                    end
-                elseif kamuraStack >= config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
-                    local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
-                    if VillageAreaManager then
-                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-                        if savedAreaNo == KAMURA then
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                        elseif savedAreaNo == ELGADO then
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
-                        end
+    local ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
+    if ProgressOwlNestManager then
+        local saveData = get_SaveData_method:call(ProgressOwlNestManager);
+        if saveData then
+            local kamuraStack = kamuraStackCount_field:get_data(saveData);
+            local elgadoStack = elgadoStackCount_field:get_data(saveData);
+            if kamuraStack >= config.CohootMaxStock and elgadoStack < config.CohootMaxStock then
+                local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                if VillageAreaManager then
+                    local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                    if savedAreaNo ~= KAMURA then
+                        set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
                         supply_method:call(ProgressOwlNestManager);
                         set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                    else
+                        supply_method:call(ProgressOwlNestManager);
                     end
+                end
+            elseif elgadoStack >= config.CohootMaxStock and kamuraStack < config.CohootMaxStock then
+                local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                if VillageAreaManager then
+                    local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                    if savedAreaNo ~= ELGADO then
+                        set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                    else
+                        supply_method:call(ProgressOwlNestManager);
+                    end
+                end
+            elseif kamuraStack >= config.CohootMaxStock and elgadoStack >= config.CohootMaxStock then
+                local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                if VillageAreaManager then
+                    local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                    if savedAreaNo == KAMURA then
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                    elseif savedAreaNo == ELGADO then
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                    else
+                        set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                        supply_method:call(ProgressOwlNestManager);
+                        set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                    end
+                    supply_method:call(ProgressOwlNestManager);
+                    set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                 end
             end
         end
@@ -686,13 +684,26 @@ local function autoArgosy()
     end
 end
 
-sdk_hook(applyEquipMySet_method, nil, function()
-    Restock(nil);
+sdk_hook(applyEquipMySet_method, nil, function(retval)
+    if config.Enabled then
+        Restock(nil);
+    end
+    return retval;
+end);
+
+sdk_hook(GuiCampFsmManager_start_method, nil, function()
+    if config.Enabled then
+        Restock(nil);
+    end
 end);
 
 sdk_hook(onVillageStart_method, nil, function()
-    Restock(nil);
-    Supply();
+    if config.Enabled then
+        Restock(nil);
+    end
+    if config.EnableCohoot then
+        Supply();
+    end
     autoArgosy();
 end);
 ----------------------------------------------
