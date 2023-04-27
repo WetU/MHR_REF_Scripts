@@ -187,27 +187,19 @@ local TradeOrder_type_def = sdk_find_type_definition("snow.facility.tradeCenter.
 local initialize_method = TradeOrder_type_def:get_method("initialize");
 local get_InventoryList_method = TradeOrder_type_def:get_method("get_InventoryList");
 local get_NegotiationCount_method = TradeOrder_type_def:get_method("get_NegotiationCount");
-local setNegotiationCount_method = TradeOrder_type_def:get_method("setNegotiationCount");
+local setNegotiationCount_method = TradeOrder_type_def:get_method("setNegotiationCount(System.UInt32)");
 local get_NegotiationType_method = TradeOrder_type_def:get_method("get_NegotiationType");
 
 local Inventory_type_def = sdk_find_type_definition("snow.data.ItemInventoryData");
 local isEmpty_method = Inventory_type_def:get_method("isEmpty");
 local get_ItemId_method = Inventory_type_def:get_method("get_ItemId");
 local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
-local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)");
+local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)");
+
+local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
 
 local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
-
-local maxTypeOver = sdk_find_type_definition("snow.gui.ChatManager.ItemMaxType"):get_field("OverMax"):get_data(nil);
 --
-local itemBoxId = 65536
-local Result = {
-    All = 0,
-    Some = 1,
-    Full = 2,
-    Max = 3
-};
-
 local function SendMessage(text)
     if config.EnableNotification then
         local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
@@ -617,8 +609,6 @@ local function autoArgosy()
             if tradeOrderList then
                 local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
                 if DataManager then
-                    local argosyItems = {};
-                    local itemBoxResults = {};
                     for i = 0, #tradeOrderList - 1, 1 do
                         local tradeOrder = tradeOrderList:get_element(i);
                         if tradeOrder then
@@ -640,38 +630,14 @@ local function autoArgosy()
                             for j = 0, #inventoryList - 1, 1 do
                                 local inventory = inventoryList:get_element(j);
                                 if inventory and not isEmpty_method:call(inventory) then
-                                    local itemId = get_ItemId_method:call(inventory);
-                                    local count = Inventory_get_Count_method:call(inventory);
-                                    if argosyItems[itemId] then
-                                        argosyItems[itemId] = argosyItems[itemId] + count;
-                                    else
-                                        argosyItems[itemId] = count;
-                                    end
-                                    
-                                    local sendResult = sendInventory_method:call(inventory, inventory, itemBoxId);
-                                    itemBoxResults[itemId] = sendResult;
-
-                                    if sendResult ~= Result.All then
+                                    local sendResult = sendInventory_method:call(inventory, inventory, 65536);
+                                    if sendResult ~= SendInventoryResult_AllSended then
                                         trySellGameItem_method:call(DataManager, inventory, Inventory_get_Count_method:call(inventory));
                                     end
                                 end
                             end
 
                             initialize_method:call(tradeOrder);
-                        end
-                    end
-
-                    local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
-                    if ChatManager then
-                        for i, v in pairs(argosyItems) do
-                            if v ~= 0 then
-                                local sendResult = itemBoxResults[i];
-                                local maxType = sendResult;
-                                if sendResult == Result.Max or sendResult == Result.Some then
-                                    maxType = maxTypeOver;
-                                end
-                                reqAddChatItemInfo_method:call(ChatManager, i, v, maxType, false);
-                            end
                         end
                     end
                 end
@@ -731,7 +697,7 @@ re_on_draw_ui(function()
         end
 
         if imgui_tree_node("Loadout") then
-            for i = 1, 112, 1 do
+            for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
                 local name = GetEquipmentLoadoutName(loadoutIndex);
                 if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then

@@ -78,13 +78,16 @@ local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 --
-local TargetCameraManager_type_def = sdk_find_type_definition("snow.camera.TargetCameraManager");
-local GetTargetCameraType_method = TargetCameraManager_type_def:get_method("GetTargetCameraType");
-local GetTargetEnemy_method = TargetCameraManager_type_def:get_method("GetTargetEnemy");
+local get_RefTargetCameraManager_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_RefTargetCameraManager");
 
-local get_EnemyType_method = GetTargetEnemy_method:get_return_type():get_method("get_EnemyType");
+local GetTargetCameraType_method = get_RefTargetCameraManager_method:get_return_type():get_method("GetTargetCameraType");
 
 local TargetCameraType_Marionette = GetTargetCameraType_method:get_return_type():get_field("Marionette"):get_data(nil);
+
+local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)");
+
+local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
+local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType");
 --
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
@@ -203,7 +206,6 @@ local DataListCreated = false;
 local creating = false;
 
 local currentQuestMonsterTypes = nil;
-local savedTarget = nil;
 local MonsterHudDataCreated = false;
 
 local function CreateDataList()
@@ -297,42 +299,32 @@ local function TerminateMonsterHud()
     currentQuestMonsterTypes = nil;
 end
 
-local TargetCameraManager = nil;
-sdk_hook(GetTargetEnemy_method, function(args)
-    TargetCameraManager = sdk_to_managed_object(args[2]);
+local TargetEnemy = nil;
+sdk_hook(UpdateTargetCameraParamData_method, function(args)
+    TargetEnemy = sdk_to_managed_object(args[3]);
     if not creating and not DataListCreated then
         CreateDataList();
     end
-    if not savedTarget then
-        savedTarget = {
-            ["Enemy"] = nil,
-            ["Type"] = nil
-        };
-    end
     return sdk_CALL_ORIGINAL;
-end, function(retval)
-    local TargetEnemy = sdk_to_managed_object(retval);
+end, function()
     if not TargetEnemy then
         TerminateMonsterHud();
     else
-        if GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
-            if TargetEnemy ~= savedTarget.Enemy then
+        local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
+        if CameraManager then
+            local TargetCameraManager = get_RefTargetCameraManager_method:call(CameraManager);
+            if TargetCameraManager and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
                 local EnemyType = get_EnemyType_method:call(TargetEnemy);
-                if not EnemyType then
-                    TerminateMonsterHud();
-                    TargetCameraManager = nil;
-                    return retval;
+                if EnemyType then
+                    currentQuestMonsterTypes = {EnemyType};
+                    MonsterHudDataCreated = true;
                 else
-                    savedTarget.Enemy = TargetEnemy;
-                    savedTarget.Type = EnemyType;
+                    TerminateMonsterHud();
                 end
             end
-            currentQuestMonsterTypes = {savedTarget.Type};
-            MonsterHudDataCreated = true;
         end
     end
-    TargetCameraManager = nil;
-    return retval;
+    TargetEnemy = nil;
 end);
 
 local QuestManager = nil;
@@ -554,9 +546,6 @@ end, function()
 
     if GameStatus ~= GameStatusType.Quest then
         hasRainbow = false;
-        if GameStatus == GameStatusType.Village then
-            savedTarget = nil;
-        end
     end
     GameStatus = nil;
 end);

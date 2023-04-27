@@ -115,12 +115,8 @@ QuestManager.CaptureStatus
 sdk_hook(RequestActive_method, function(args)
 	if settings.NoKillCam.disableKillCam and sdk_to_int64(args[3]) & 0xFFFFFFFF == 3 then --type 3 == 'demo' camera type
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-		if QuestManager then
-			local endFlow = EndFlow_field:get_data(QuestManager);
-			local endCapture = EndCaptureFlag_field:get_data(QuestManager);
-			if endFlow <= EndFlow.WaitEndTimer and endCapture == EndCaptureFlag_CaptureEnd then
-				return sdk_SKIP_ORIGINAL;
-			end
+		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
+			return sdk_SKIP_ORIGINAL;
 		end
 	end
 	return sdk_CALL_ORIGINAL;
@@ -137,7 +133,9 @@ sdk_hook(updateQuestEndFlow_method, nil, function()
 					if endFlow == EndFlow.WaitEndTimer and TotalJoinNum_field:get_data(QuestManager) == 1 then
 						if settings.BTH.autoSkipCountdown then
 							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-						elseif settings.BTH.enableKeyboard then
+							return;
+						end
+						if settings.BTH.enableKeyboard then
 							local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
 							if GameKeyboard_singleton then
 								local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
@@ -149,7 +147,9 @@ sdk_hook(updateQuestEndFlow_method, nil, function()
 					elseif endFlow == EndFlow.CameraDemo then
 						if settings.BTH.autoSkipPostAnim then
 							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-						elseif settings.BTH.enableKeyboard then
+							return;
+						end
+						if settings.BTH.enableKeyboard then
 							local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
 							if GameKeyboard_singleton then
 								local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
