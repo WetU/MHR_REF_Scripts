@@ -34,13 +34,7 @@ end
 local UpdateCameraReset_method = sdk_find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)");
 local get_MarionetteCameraType_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_MarionetteCameraType");
 
-local PlayerCamera_ResetState_type_def = UpdateCameraReset_method:get_return_type();
-local ResetState = {
-	["None"] = PlayerCamera_ResetState_type_def:get_field("None"):get_data(nil),
-	["Reset"] = PlayerCamera_ResetState_type_def:get_field("Reset"):get_data(nil),
-	["Target"] = PlayerCamera_ResetState_type_def:get_field("Target"):get_data(nil),
-	["TargetContinue"] = PlayerCamera_ResetState_type_def:get_field("TargetContinue"):get_data(nil)
-};
+local ResetState_None = UpdateCameraReset_method:get_return_type():get_field("None"):get_data(nil);
 
 local MarionetteCameraType_type_def = get_MarionetteCameraType_method:get_return_type();
 local NotResetTypes = {
@@ -49,9 +43,9 @@ local NotResetTypes = {
 	["GetOffFreeRun"] = MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)
 };
 -- Main Function
-local NoReset = sdk_to_ptr(ResetState.None);
+local NoReset = sdk_to_ptr(ResetState_None);
 sdk_hook(UpdateCameraReset_method, nil, function(retval)
-	if settings.enable and (sdk_to_int64(retval) & 0xFFFFFFFF) ~= ResetState.None then
+	if settings.enable and (sdk_to_int64(retval) & 0xFFFFFFFF) ~= ResetState_None then
 		local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 		if CameraManager then
 			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);

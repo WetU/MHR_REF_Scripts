@@ -105,7 +105,6 @@ re_on_config_save(save_config);
 
 local ChatManager_type_def = sdk_find_type_definition("snow.gui.ChatManager");
 local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
-local reqAddChatItemInfo_method = ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
 
 local DataManager_type_def = sdk_find_type_definition("snow.data.DataManager");
 local getVillagePoint_method = DataManager_type_def:get_method("getVillagePoint");
@@ -612,6 +611,7 @@ local function autoArgosy()
                     for i = 0, #tradeOrderList - 1, 1 do
                         local tradeOrder = tradeOrderList:get_element(i);
                         if tradeOrder then
+                            local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
                             local negotiationCount = get_NegotiationCount_method:call(tradeOrder);
                             local inventoryList = get_InventoryList_method:call(tradeOrder);
 
@@ -638,6 +638,9 @@ local function autoArgosy()
                             end
 
                             initialize_method:call(tradeOrder);
+                            if ChatManager then
+                                reqAddChatInfomation_method:call(ChatManager, "교역선 아이템을 받았습니다", 2289944406);
+                            end
                         end
                     end
                 end

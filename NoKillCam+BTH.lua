@@ -69,8 +69,8 @@ local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.Keybo
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
 
 local updateQuestEndFlow_method = QuestManager_type_def:get_method("updateQuestEndFlow");
-local QuestEndFlowTimer_field = QuestManager_type_def:get_field("_QuestEndFlowTimer");
-local TotalJoinNum_field = QuestManager_type_def:get_field("_TotalJoinNum");
+local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec");
+local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum");
 
 local EndFlow_type_def = sdk_find_type_definition("snow.QuestManager.EndFlow");
 local EndFlow = {
@@ -80,11 +80,11 @@ local EndFlow = {
 	["None"] = EndFlow_type_def:get_field("None"):get_data(nil)
 };
 -- Remove Town Interaction Delay cache
-local getStatus_method = QuestManager_type_def:get_method("getStatus");
+local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
-local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
 
-local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
+local EndCaptureFlag_CaptureEnd = sdk_find_type_definition("snow.QuestManager.CaptureStatus"):get_field("CaptureEnd"):get_data(nil);
+local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --[[
 QuestManager.EndFlow
  0 == Start;
@@ -129,8 +129,8 @@ sdk_hook(updateQuestEndFlow_method, nil, function()
 		if QuestManager then
 			local endFlow = EndFlow_field:get_data(QuestManager);
 			if endFlow > EndFlow.Start and endFlow < EndFlow.None then
-				if QuestEndFlowTimer_field:get_data(QuestManager) > 1.0 then
-					if endFlow == EndFlow.WaitEndTimer and TotalJoinNum_field:get_data(QuestManager) == 1 then
+				if getQuestReturnTimerSec_method:call(QuestManager) > 1.0 then
+					if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager) == 1 then
 						if settings.BTH.autoSkipCountdown then
 							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 							return;
@@ -169,7 +169,7 @@ end);
 sdk_hook(changeAllMarkerEnable_method, function(args)
 	if (sdk_to_int64(args[3]) & 1) ~= 1 then
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-		if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None then
+		if QuestManager and checkStatus_method:call(QuestManager, QuestStatus_None) then
 			return sdk_SKIP_ORIGINAL;
 		end
 	end
