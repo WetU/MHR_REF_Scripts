@@ -150,7 +150,7 @@ sdk_hook(get_SkillActiveRate_method, function(args)
 	end
 	return sdk_CALL_ORIGINAL;
 end, function(retval)
-	if Param and SavedDangoChance then
+	if SavedDangoChance ~= nil then
 		Param:set_field("_SkillActiveRate", SavedDangoChance);
 	end
 	Param = nil;
@@ -212,20 +212,17 @@ end, function(retval)
 					local DangoDataList = get_DangoDataList_method:call(mealFunc);
 					if DangoDataList then
 						local DangoDataList_count = DangoDataList_get_Count_method:call(DangoDataList);
-						if DangoDataList_count > 0 then
+						if DangoDataList_count >= 0 then
 							local FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
 							if FlagManager then
-								for i = 0, DangoDataList_count - 1 do
+								for i = 0, DangoDataList_count - 1, 1 do
 									local dango = DangoDataList_get_Item_method:call(DangoDataList, i);
 									if dango then
 										local param_data = dangoData_param_field:get_data(dango);
 										if param_data then
 											local param_Id = param_Id_field:get_data(param_data);
-											if param_Id then
-												local isUnlocked = isUnlocked_method:call(FlagManager, param_Id);
-												if isUnlocked then
-													param_data:set_field("_DailyRate", 0);
-												end
+											if param_Id and isUnlocked_method:call(FlagManager, param_Id) then
+												param_data:set_field("_DailyRate", 0);
 											end
 										end
 									end
@@ -255,44 +252,42 @@ end);
 
 -- Skip Dango Song Main Function
 local DemoHandler = nil;
-local DemoHandlerType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
+local DemoType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
 sdk_hook(play_method, function(args)
 	if settings.skipDangoSong or settings.skipEating or settings.skipMotley then
 		DemoHandler = sdk_to_managed_object(args[2]);
 		if DemoHandler then
 			local EventId = get_EventId_method:call(DemoHandler);
 			if EventId then
-				DemoHandlerType = (cooking_events[EventId] and 1) or (eating_events[EventId] and 2) or (bbq_events[EventId] and 3) or nil;
+				DemoType = (cooking_events[EventId] and 1) or (eating_events[EventId] and 2) or (bbq_events[EventId] and 3) or nil;
 			end
-			if not DemoHandlerType then
+			if not DemoType then
 				DemoHandler = nil;
 			end
 		end
 	end
 	return sdk_CALL_ORIGINAL;
 end, function()
-	if DemoHandler and DemoHandlerType then
+	if DemoHandler and DemoType then
 		if get_LoadState_method:call(DemoHandler) == LOADSTATE_ACTIVE and get_Playing_method:call(DemoHandler) then
 			reqFinish_method:call(DemoHandler, 0.0);
 			DemoHandler = nil;
-			if DemoHandlerType == 1 then
-				DemoHandlerType = nil;
-				if not settings.skipEating then
+			if DemoType ~= 2 then
+				if DemoType == 1 and not settings.skipEating then
 					local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 					if kitchenFsm ~= nil then
 						set_IsCookDemoSkip_method:call(kitchenFsm, true);
 					end
 				end
-			elseif DemoHandlerType == 3 then
-				DemoHandlerType = nil;
+				DemoType = nil;
 			end
 		end
 	end
 end);
 
 sdk_hook(requestAutoSaveAll_method, nil, function()
-	if DemoHandlerType == 2 then
-		DemoHandlerType = nil;
+	if DemoType == 2 then
+		DemoType = nil;
 		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
 		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 		if GuiManager and kitchenFsm then

@@ -40,8 +40,7 @@ local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 
-local OtherPlayerInfo_type_def = get_Item_method:get_return_type();
-local uniqueHunterId_field = OtherPlayerInfo_type_def:get_field("_uniqueHunterId");
+local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
 -- Main Function
 local GoodRelationshipHud = nil;
 sdk_hook(doOpen_method, function(args)
@@ -63,7 +62,7 @@ end, function()
 						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
 						isChanged = true;
 					end
-				end						
+				end
 			end
 			if isChanged then
 				GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
