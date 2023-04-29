@@ -58,7 +58,7 @@ local config = {};
 
 if json_load_file then
     local loadedConfig = json_load_file("AutoSupply.json");
-    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, , EnableArgosy = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "ko-KR"};
+    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, EnableArgosy = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "ko-KR"};
 end
 if config.Enabled == nil then
     config.Enabled = true;
