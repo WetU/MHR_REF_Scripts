@@ -38,9 +38,13 @@ local ResetState_None = UpdateCameraReset_method:get_return_type():get_field("No
 
 local MarionetteCameraType_type_def = get_MarionetteCameraType_method:get_return_type();
 local NotResetTypes = {
-	["GetOff"] = MarionetteCameraType_type_def:get_field("GetOff"):get_data(nil),
-	["GetOffTryAgainInput"] = MarionetteCameraType_type_def:get_field("GetOffTryAgainInput"):get_data(nil),
-	["GetOffFreeRun"] = MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)
+	[MarionetteCameraType_type_def:get_field("None"):get_data(nil)] = false,
+	[MarionetteCameraType_type_def:get_field("Normal"):get_data(nil)] = false,
+	[MarionetteCameraType_type_def:get_field("FreeRun"):get_data(nil)] = false,
+	[MarionetteCameraType_type_def:get_field("FeverAttack"):get_data(nil)] = false,
+	[MarionetteCameraType_type_def:get_field("GetOff"):get_data(nil)] = true,
+	[MarionetteCameraType_type_def:get_field("GetOffTryAgainInput"):get_data(nil)] = true,
+	[MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)] = true
 };
 -- Main Function
 local NoReset = sdk_to_ptr(ResetState_None);
@@ -49,12 +53,8 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 		local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 		if CameraManager then
 			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);
-			if MarionetteCameraType then
-				for _, v in pairs(NotResetTypes) do
-					if MarionetteCameraType == v then
-						return NoReset;
-					end
-				end
+			if MarionetteCameraType ~= nil and NotResetTypes[MarionetteCameraType] then
+				return NoReset;
 			end
 		end
 	end

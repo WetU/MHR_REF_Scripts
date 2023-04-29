@@ -608,10 +608,10 @@ local function autoArgosy()
             if tradeOrderList then
                 local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
                 if DataManager then
+                    local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
                     for i = 0, #tradeOrderList - 1, 1 do
                         local tradeOrder = tradeOrderList:get_element(i);
                         if tradeOrder then
-                            local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
                             local negotiationCount = get_NegotiationCount_method:call(tradeOrder);
                             local inventoryList = get_InventoryList_method:call(tradeOrder);
 
@@ -638,10 +638,10 @@ local function autoArgosy()
                             end
 
                             initialize_method:call(tradeOrder);
-                            if ChatManager then
-                                reqAddChatInfomation_method:call(ChatManager, "교역선 아이템을 받았습니다", 2289944406);
-                            end
                         end
+                    end
+                    if ChatManager then
+                        reqAddChatInfomation_method:call(ChatManager, "교역선 아이템을 받았습니다", 2289944406);
                     end
                 end
             end
