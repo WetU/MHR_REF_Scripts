@@ -58,11 +58,7 @@ local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_metho
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
 local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)");
 
-local GameStatusType_type_def = sdk_find_type_definition("snow.SnowGameManager.StatusType");
-local GameStatusType = {
-    ["Village"] = GameStatusType_type_def:get_field("Village"):get_data(nil),
-    ["Quest"] = GameStatusType_type_def:get_field("Quest"):get_data(nil)
-};
+local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local getStatus_method = QuestManager_type_def:get_method("getStatus");
@@ -392,6 +388,7 @@ local function TerminateSpiribirdsHud()
     AcquiredValues = nil;
     BirdsMaxCounts = nil;
     AcquiredCounts = nil;
+    hasRainbow = false;
     SpiribirdsCall_Timer = nil;
     isEnable_SpiribirdsCall = false;
 end
@@ -423,6 +420,7 @@ end, function()
             local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
             if PlayerManager then
                 AcquiredCounts = {};
+                hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
                 for k, v in pairs(LvBuff) do
                     if k ~= "Rainbow" then
                         StatusBuffLimits[k] = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
@@ -485,7 +483,7 @@ end);
 
 sdk_hook(addLvBuffCnt_method, function(args)
     if SpiribirdsHudDataCreated then
-        addBuffType = sdk_to_int64(args[4]) & 0xFF;
+        addBuffType = sdk_to_int64(args[4]) & 0xFFFFFFFF;
         if addBuffType ~= LvBuff.Rainbow then
             PlayerManager = sdk_to_managed_object(args[2]);
         end
@@ -523,7 +521,7 @@ end, function()
     if PlayerQuestBase then
         local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
         if masterPlayerData then
-            SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (SpiribirdsCallTimer_field:get_data(masterPlayerData) / 60.0));
+            SpiribirdsCall_Timer = string_format(TimerString.Enabled, (3600.0 - SpiribirdsCallTimer_field:get_data(masterPlayerData)) / 60.0);
         end
     end
     PlayerQuestBase = nil;
@@ -540,12 +538,8 @@ sdk_hook(onChangedGameStatus_method, function(args)
     GameStatus = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     return sdk_CALL_ORIGINAL;
 end, function()
-    if GameStatus ~= GameStatusType.Village then
+    if GameStatus ~= GameStatusType_Village then
         TerminateMonsterHud();
-    end
-
-    if GameStatus ~= GameStatusType.Quest then
-        hasRainbow = false;
     end
     GameStatus = nil;
 end);

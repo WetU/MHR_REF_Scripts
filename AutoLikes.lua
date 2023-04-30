@@ -34,9 +34,9 @@ local doOpen_method = GoodRelationship_type_def:get_method("doOpen");
 local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
-local iter_Num = GoodRelationship_type_def:get_field("_OtherPlayerNum"):get_data(nil) - 1;
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
+local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count");
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 
@@ -51,21 +51,24 @@ sdk_hook(doOpen_method, function(args)
 end, function()
 	if GoodRelationshipHud then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
-		if OtherPlayerInfos and iter_Num then
-			local isChanged = false;
-			for i = 0, iter_Num, 1 do
-				local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
-				if OtherPlayerInfo then
-					local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
-					if OtherPlayerHunterId and not isInBlockList_method:call(GoodRelationshipHud, OtherPlayerHunterId) then
-						OtherPlayerInfo:set_field("_good", true);
-						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-						isChanged = true;
+		if OtherPlayerInfos then
+			local count = get_Count_method:call(OtherPlayerInfos);
+			if count >= 0 then
+				local isChanged = false;
+				for i = 0, count - 1, 1 do
+					local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
+					if OtherPlayerInfo then
+						local OtherPlayerHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
+						if OtherPlayerHunterId and not isInBlockList_method:call(GoodRelationshipHud, OtherPlayerHunterId) then
+							OtherPlayerInfo:set_field("_good", true);
+							set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+							isChanged = true;
+						end
 					end
 				end
-			end
-			if isChanged then
-				GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
+				if isChanged then
+					GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
+				end
 			end
 		end
 		GoodRelationshipHud:set_field("_gaugeAngleY", gaugeAngleMax_field:get_data(GoodRelationshipHud));
