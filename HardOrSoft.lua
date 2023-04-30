@@ -229,7 +229,7 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
             if MasterPlayer then
                 local masterIdx = getPlayerIndex_method:call(MasterPlayer);
                 local dmgInfo = sdk_to_managed_object(args[3]);
-                if masterIdx and dmgInfo and get_AttackerID_method(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
+                if masterIdx ~= nil and dmgInfo and get_AttackerID_method(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
                     table_insert(preDmg, {
                         ["dmg"] = get_TotalDamage_method:call(dmgInfo),
                         ["physical"] = get_PhysicalDamage_method:call(dmgInfo),
