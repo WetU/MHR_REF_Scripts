@@ -212,7 +212,7 @@ end, function(retval)
 					local DangoDataList = get_DangoDataList_method:call(mealFunc);
 					if DangoDataList then
 						local DangoDataList_count = DangoDataList_get_Count_method:call(DangoDataList);
-						if DangoDataList_count >= 0 then
+						if DangoDataList_count > 0 then
 							local FlagManager = sdk_get_managed_singleton("snow.data.FlagDataManager");
 							if FlagManager then
 								for i = 0, DangoDataList_count - 1, 1 do

@@ -143,27 +143,29 @@ local DamageAttackerType = {
     DetonationGrenade = 11,
     Kabutowari = 12,
     FlashBoll = 13,
-    HmBallista = 14,
-    HmCannon = 15,
-    HmGatling = 16,
-    HmTrap = 17,
-    HmNpc = 18,
-    HmFlameThrower = 19,
-    HmDragnator = 20,
-    Otomo = 21,
-    OtAirouShell014 = 22,
-    OtAirouShell102 = 23,
-    Fg005 = 24,
-    EcBatExplode = 25,
-    EcWallTrapBugExplode = 26,
-    EcPiranha = 27,
-    EcFlash = 28,
-    EcSandWallShooter = 29,
-    EcForestWallShooter = 30,
-    EcSwampLeech = 31,
-    EcPenetrateFish = 32,
-    Max = 33,
-    Invalid = 34
+    Em058BallistaOneShotBinder = 14,
+    Em058CannonKantsu = 15,
+    HmBallista = 16,
+    HmCannon = 17,
+    HmGatling = 18,
+    HmTrap = 19,
+    HmNpc = 20,
+    HmFlameThrower = 21,
+    HmDragnator = 22,
+    Otomo = 23,
+    OtAirouShell014 = 24,
+    OtAirouShell102 = 25,
+    Fg005 = 26,
+    EcBatExplode = 27,
+    EcWallTrapBugExplode = 28,
+    EcPiranha = 29,
+    EcFlash = 30,
+    EcSandWallShooter = 31,
+    EcForestWallShooter = 32,
+    EcSwampLeech = 33,
+    EcPenetrateFish = 34,
+    Max = 35,
+    Invalid = 36
 };
 
 local DamageFlowOwnerType = {
@@ -225,19 +227,17 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
         if PlayerManager then
             local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
             if MasterPlayer then
-                local masterId = getPlayerIndex_method:call(MasterPlayer);
+                local masterIdx = getPlayerIndex_method:call(MasterPlayer);
                 local dmgInfo = sdk_to_managed_object(args[3]);
-                if masterId and dmgInfo then
-                    if get_AttackerID_method(dmgInfo) == masterId and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
-                        table_insert(preDmg, {
-                            ["dmg"] = get_TotalDamage_method:call(dmgInfo),
-                            ["physical"] = get_PhysicalDamage_method:call(dmgInfo),
-                            ["element"] = get_ElementDamage_method:call(dmgInfo),
-                            ["critical"] = get_CriticalResult_method:call(dmgInfo),
-                            ["find"] = 0
-                        });
-                        lastShowTimer = get_UpTimeSecond_method:call(nil);
-                    end
+                if masterIdx and dmgInfo and get_AttackerID_method(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
+                    table_insert(preDmg, {
+                        ["dmg"] = get_TotalDamage_method:call(dmgInfo),
+                        ["physical"] = get_PhysicalDamage_method:call(dmgInfo),
+                        ["element"] = get_ElementDamage_method:call(dmgInfo),
+                        ["critical"] = get_CriticalResult_method:call(dmgInfo),
+                        ["find"] = 0
+                    });
+                    lastShowTimer = get_UpTimeSecond_method:call(nil);
                 end
             end
         end
@@ -314,9 +314,9 @@ sdk_hook(getHitUIColorType_method, function(args)
     return sdk_CALL_ORIGINAL;
 end, function(retval)
     if nextArg then
-        elementExploit = 0;
         local calcParam = CalcParam_field:get_data(nextArg);
         nextArg = nil;
+        elementExploit = 0;
         if calcParam then
             local ownerType = get_OwnerType_method:call(calcParam);
             local calcType = get_CalcType_method:call(calcParam);
@@ -332,10 +332,9 @@ end, function(retval)
             end
 
             -- Buddy
-            if (ownerType == DamageFlowOwnerType.Otomo or ownerType == DamageFlowOwnerType.OtomoShell) and (ownerType ~= DamageFlowOwnerType.Player and ownerTYpe ~= DamageFlowOwnerType.PlayerShell) then
+            if (ownerType == DamageFlowOwnerType.Otomo or ownerType == DamageFlowOwnerType.OtomoShell) and (ownerType ~= DamageFlowOwnerType.Player and ownerType ~= DamageFlowOwnerType.PlayerShell) then
                 elementExploit = 0;
-                retval = (ownerType == 5 or ownerType == 6) and temp.BuddyAttack or retval;
-                return retval;
+                return temp.BuddyAttack;
             end
 
             -- Blademaster

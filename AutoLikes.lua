@@ -53,7 +53,7 @@ end, function()
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos then
 			local count = get_Count_method:call(OtherPlayerInfos);
-			if count >= 0 then
+			if count > 0 then
 				local isChanged = false;
 				for i = 0, count - 1, 1 do
 					local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
