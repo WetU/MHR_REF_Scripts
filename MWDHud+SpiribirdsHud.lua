@@ -4,6 +4,7 @@ local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
+local sdk_hook_vtable = sdk.hook_vtable;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
@@ -139,7 +140,6 @@ local getSkillData_method = get_PlayerSkillList_method:get_return_type():get_met
 
 local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQuestBase");
 local start_method = PlayerQuestBase_type_def:get_method("start");
-local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)");
 local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
@@ -306,18 +306,12 @@ end, function()
     if not TargetEnemy then
         TerminateMonsterHud();
     else
-        local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
-        if CameraManager then
-            local TargetCameraManager = get_RefTargetCameraManager_method:call(CameraManager);
-            if TargetCameraManager and GetTargetCameraType_method:call(TargetCameraManager) ~= TargetCameraType_Marionette then
-                local EnemyType = get_EnemyType_method:call(TargetEnemy);
-                if EnemyType then
-                    currentQuestMonsterTypes = {EnemyType};
-                    MonsterHudDataCreated = true;
-                else
-                    TerminateMonsterHud();
-                end
-            end
+        local EnemyType = get_EnemyType_method:call(TargetEnemy);
+        if EnemyType then
+            currentQuestMonsterTypes = {EnemyType};
+            MonsterHudDataCreated = true;
+        else
+            TerminateMonsterHud();
         end
     end
     TargetEnemy = nil;
@@ -332,7 +326,7 @@ sdk_hook(questActivate_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
+    if QuestManager ~= nil and getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
             local listCount = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
@@ -403,9 +397,13 @@ local function getCountsAndValues(pm, edm, buffType)
     end
 end
 
-local start_PlayerQuestBase = nil;
+local PlayerQuestBase = nil;
 sdk_hook(start_method, function(args)
-    start_PlayerQuestBase = sdk_to_managed_object(args[2]);
+    local obj = sdk_to_managed_object(args[2]);
+    if obj ~= nil then
+        PlayerQuestBase = obj;
+        sdk_hook_vtable(obj, obj:get_type_definition():get_method("onDestroy"), nil, TerminateSpiribirdsHud);
+    end
     isEnable_SpiribirdsCall = false;
     return sdk_CALL_ORIGINAL;
 end, function()
@@ -440,11 +438,11 @@ end, function()
         end
     end
 
-    if start_PlayerQuestBase then
-        if get_IsInTrainingArea_method:call(start_PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(start_PlayerQuestBase) then
+    if PlayerQuestBase then
+        if get_IsInTrainingArea_method:call(PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
             SpiribirdsCall_Timer = TimerString.Disabled;
         else
-            local masterPlayerSkillList = get_PlayerSkillList_method:call(start_PlayerQuestBase);
+            local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
             if masterPlayerSkillList then
                 local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
                 if SpiribirdsCall_Data then
@@ -453,7 +451,7 @@ end, function()
             end
         end
     end
-    start_PlayerQuestBase = nil;
+    PlayerQuestBase = nil;
 end);
 
 sdk_hook(subLvBuffFromEnemy_method, function(args)
@@ -462,7 +460,7 @@ sdk_hook(subLvBuffFromEnemy_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
-    if (sdk_to_int64(retval) & 1) == 1 then
+    if (sdk_to_int64(retval) & 1) == 1 and subBuffType ~= nil then
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
             for k, v in pairs(LvBuff) do
@@ -484,7 +482,7 @@ end);
 sdk_hook(addLvBuffCnt_method, function(args)
     if SpiribirdsHudDataCreated then
         addBuffType = sdk_to_int64(args[4]) & 0xFFFFFFFF;
-        if addBuffType ~= LvBuff.Rainbow then
+        if addBuffType ~= nil and addBuffType ~= LvBuff.Rainbow then
             PlayerManager = sdk_to_managed_object(args[2]);
         end
     end
@@ -511,23 +509,21 @@ end, function()
     PlayerManager = nil;
 end);
 
-local PlayerQuestBase = nil;
+local PlayerQuestBase_2 = nil;
 sdk_hook(updateEquipSkill211_method, function(args)
     if isEnable_SpiribirdsCall then
-        PlayerQuestBase = sdk_to_managed_object(args[2]);
+        PlayerQuestBase_2 = sdk_to_managed_object(args[2]);
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if PlayerQuestBase then
-        local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
+    if PlayerQuestBase_2 then
+        local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_2);
         if masterPlayerData then
             SpiribirdsCall_Timer = string_format(TimerString.Enabled, (3600.0 - SpiribirdsCallTimer_field:get_data(masterPlayerData)) / 60.0);
         end
     end
-    PlayerQuestBase = nil;
+    PlayerQuestBase_2 = nil;
 end);
-
-sdk_hook(onDestroy_method, nil, TerminateSpiribirdsHud);
 
 
 --==--==--==--==--==--
@@ -538,7 +534,7 @@ sdk_hook(onChangedGameStatus_method, function(args)
     GameStatus = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     return sdk_CALL_ORIGINAL;
 end, function()
-    if GameStatus ~= GameStatusType_Village then
+    if GameStatus ~= nil and GameStatus ~= GameStatusType_Village then
         TerminateMonsterHud();
     end
     GameStatus = nil;
