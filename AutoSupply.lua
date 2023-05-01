@@ -208,8 +208,6 @@ local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get
 
 local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 --
-local EquipDataManager = nil;
-
 local function SendMessage(text)
     if config.EnableNotification then
         local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
