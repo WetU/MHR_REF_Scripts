@@ -6,6 +6,7 @@ local json_dump_file = jsonAvailable and json.dump_file or nil;
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
+local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
 
 local re = re;
@@ -665,10 +666,10 @@ sdk_hook(applyEquipMySet_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function(retval)
-    if config.Enabled then
-        if EquipDataManager then
-            Restock(EquipDataManager, nil);
-        else
+    if EquipDataManager then
+        Restock(EquipDataManager, nil);
+    else
+        if config.Enabled then
             Restock(nil, nil);
         end
     end
