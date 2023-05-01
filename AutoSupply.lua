@@ -208,6 +208,8 @@ local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get
 
 local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 --
+local EquipDataManager = nil;
+
 local function SendMessage(text)
     if config.EnableNotification then
         local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
@@ -259,19 +261,19 @@ local function GetCurrentWeaponType()
     return nil;
 end
 
-local function GetEquipmentLoadout(loadoutIndex)
-    local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-    if EquipDataManager then
-        local PlEquipMySetList = PlEquipMySetList_field:get_data(EquipDataManager);
-        if PlEquipMySetList then
-            return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
-        end
+local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
+    if not equipDataManager then
+        equipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+    end
+    local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
+    if PlEquipMySetList then
+        return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
     end
     return nil;
 end
 
 local function GetEquipmentLoadoutWeaponType(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
+	local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
 	if EquipmentLoadout then
 		local WeaponData = getWeaponData_method:call(EquipmentLoadout);
 		if WeaponData then
@@ -281,8 +283,8 @@ local function GetEquipmentLoadoutWeaponType(loadoutIndex)
     return nil;
 end
 
-local function GetEquipmentLoadoutName(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
+local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
+	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
 	if EquipmentLoadout then
 		return get_Name_method:call(EquipmentLoadout);
 	end
@@ -290,15 +292,15 @@ local function GetEquipmentLoadoutName(loadoutIndex)
 end
 
 local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
+	local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
 	if EquipmentLoadout then
 		return get_IsUsing_method:call(EquipmentLoadout);
 	end
     return nil;
 end
 
-local function EquipmentLoadoutIsEquipped(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(loadoutIndex);
+local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
+	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
 	if EquipmentLoadout then
 		return isSamePlEquipPack_method:call(EquipmentLoadout);
 	end
@@ -461,7 +463,7 @@ local function GetLoadoutItemLoadoutIndex(loadoutIndex)
     return GetItemLoadoutName(got);
 end
 
-local function AutoChooseItemLoadout(expectedLoadoutIndex)
+local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     local cacheHit = false;
     local loadoutMismatch = false;
     if expectedLoadoutIndex then
@@ -469,17 +471,17 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
         lastHitLoadoutIndex = expectedLoadoutIndex;
         local got = config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
         if got ~= nil and got ~= -1 then
-            return got, "Loadout", GetEquipmentLoadoutName(expectedLoadoutIndex);
+            return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
         end
     else
 		if lastHitLoadoutIndex ~= -1 then
             local cachedLoadoutIndex = lastHitLoadoutIndex;
-            if EquipmentLoadoutIsEquipped(cachedLoadoutIndex) then
+            if EquipmentLoadoutIsEquipped(equipDataManager, cachedLoadoutIndex) then
                 lastHitLoadoutIndex = cachedLoadoutIndex;
                 cacheHit = true;
                 local got = config.EquipLoadoutConfig[cachedLoadoutIndex + 1];
                 if got ~= nil and got ~= -1 then
-                    return got, "Loadout", GetEquipmentLoadoutName(cachedLoadoutIndex);
+                    return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, cachedLoadoutIndex);
                 end
             end
         end
@@ -487,13 +489,13 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
             local found = false;
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
-                if EquipmentLoadoutIsEquipped(loadoutIndex) then
+                if EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex) then
                     found = true;
                     expectedLoadoutIndex = loadoutIndex;
                     lastHitLoadoutIndex = loadoutIndex;
                     local got = config.EquipLoadoutConfig[i];
                     if got ~= nil and got ~= -1 then
-                        return got, "Loadout", GetEquipmentLoadoutName(loadoutIndex);
+                        return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, loadoutIndex);
                     end
                     break;
                 end
@@ -512,8 +514,8 @@ local function AutoChooseItemLoadout(expectedLoadoutIndex)
 end
 
 ------------------------
-local function Restock(loadoutIndex)
-    local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(loadoutIndex);
+local function Restock(equipDataManager, loadoutIndex)
+    local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
     local loadout = GetItemLoadout(itemLoadoutIndex);
     local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
     local msg = "";
@@ -658,22 +660,33 @@ local function autoArgosy()
     end
 end
 
-sdk_hook(applyEquipMySet_method, nil, function(retval)
+local EquipDataManager = nil;
+sdk_hook(applyEquipMySet_method, function(args)
     if config.Enabled then
-        Restock(nil);
+        EquipDataManager = sdk_to_managed_object(args[2]);
     end
+    return sdk_CALL_ORIGINAL;
+end, function(retval)
+    if config.Enabled then
+        if EquipDataManager then
+            Restock(EquipDataManager, nil);
+        else
+            Restock(nil, nil);
+        end
+    end
+    EquipDataManager = nil;
     return retval;
 end);
 
 sdk_hook(GuiCampFsmManager_start_method, nil, function()
     if config.Enabled then
-        Restock(nil);
+        Restock(nil, nil);
     end
 end);
 
 sdk_hook(onVillageStart_method, nil, function()
     if config.Enabled then
-        Restock(nil);
+        Restock(nil, nil);
     end
     if config.EnableCohoot then
         Supply();
@@ -714,10 +727,10 @@ re_on_draw_ui(function()
         if imgui_tree_node("Loadout") then
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
-                local name = GetEquipmentLoadoutName(loadoutIndex);
+                local name = GetEquipmentLoadoutName(nil, loadoutIndex);
                 if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then
                     local msg = "";
-                    if EquipmentLoadoutIsEquipped(loadoutIndex) then 
+                    if EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
                         msg = " (Current)";
                     end
                     changed, config.EquipLoadoutConfig[i] = imgui_slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));

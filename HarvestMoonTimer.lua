@@ -22,6 +22,7 @@ local imgui_end_window = imgui.end_window;
 local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShell010");
 local LongSwordShell010_start_method = LongSwordShell010_type_def:get_method("start");
 local get_IsMaster_method = LongSwordShell010_type_def:get_method("get_IsMaster");
+local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
 local CircleType_Inside = CircleType_field:get_type():get_field("Inside"):get_data(nil);
@@ -53,7 +54,7 @@ sdk_hook(LongSwordShell010_start_method, function(args)
 
         sdk_hook_vtable(obj, obj_type_def:get_method("update"), nil, function()
             if obj ~= nil then
-                PrintStr = string_format("원월 타이머: %.f초", obj:get_field("_lifeTimer"));
+                PrintStr = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(obj));
             end
         end);
     end
