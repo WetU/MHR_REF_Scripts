@@ -439,8 +439,6 @@ end, function()
     end
 
     if PlayerQuestBase then
-        local IsInTrainingArea = get_IsInTrainingArea_method:call(PlayerQuestBase);
-        local IsEnableStage_Skill211 = IsEnableStage_Skill211_field:get_data(PlayerQuestBase);
         local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
         if masterPlayerSkillList then
             local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
@@ -448,8 +446,12 @@ end, function()
                 isEnable_SpiribirdsCall = true;
             end
         end
-        if isEnable_SpiribirdsCall and (IsInTrainingArea ~= nil and IsInTrainingArea) or (IsEnableStage_Skill211 ~= nil and IsEnableStage_Skill211) then
-            SpiribirdsCall_Timer = TimerString.Disabled;
+        if isEnable_SpiribirdsCall then
+            local IsInTrainingArea = get_IsInTrainingArea_method:call(PlayerQuestBase);
+            local IsEnableStage_Skill211 = IsEnableStage_Skill211_field:get_data(PlayerQuestBase);
+            if (IsInTrainingArea ~= nil and IsInTrainingArea) or (IsEnableStage_Skill211 ~= nil and IsEnableStage_Skill211) then
+                SpiribirdsCall_Timer = TimerString.Disabled;
+            end
         end
     end
     PlayerQuestBase = nil;
@@ -520,7 +522,10 @@ end, function()
     if PlayerQuestBase_2 then
         local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_2);
         if masterPlayerData then
-            SpiribirdsCall_Timer = string_format(TimerString.Enabled, (3600.0 - SpiribirdsCallTimer_field:get_data(masterPlayerData)) / 60.0);
+            local SpiribirdsCallTimer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
+            if SpiribirdsCallTimer ~= nil then
+                SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (SpiribirdsCallTimer / 60.0));
+            end
         end
     end
     PlayerQuestBase_2 = nil;
