@@ -75,14 +75,12 @@ local req_matchmaking_random_master_rank_method = session_manager_type_def:get_m
 local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery(System.UInt32, System.UInt32, System.UInt32)");
 local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>, snow.data.ContentsIdSystem.ItemId, System.Boolean)");
 
-local funcOnTimeoutMatchmaking_method = session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)");
-
 local nullable_uint32_type_def = sdk_find_type_definition("System.Nullable`1<System.UInt32>");
 local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault");
 local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue");
 local nullable_uint32_constructor_method = nullable_uint32_type_def:get_method(".ctor(System.UInt32)");
 
-local network_util_type_def = sdk.find_type_definition("snow.network.Util");
+local network_util_type_def = sdk_find_type_definition("snow.network.Util");
 local get_re_and_lib_version_method = network_util_type_def:get_method("getReAndLibVersion");
 local tostring_error_method = network_util_type_def:get_method("toString_Error(via.network.Error)");
 
@@ -97,58 +95,43 @@ function this.on_post_timeout_matchmaking(retval)
 	if timeout_fix_config.enabled then
 		local session_manager = sdk_get_managed_singleton("snow.SnowSessionManager");
 		if session_manager then
-			if quest_type == quest_types.regular then
-				if timeout_fix_config.quest_types.regular then
-					skip_next_hook = true;
-					req_matchmaking_method:call(session_manager, quest_type.quest_id);
-				end
-			elseif quest_type == quest_types.random then
-				if timeout_fix_config.quest_types.random then
-					skip_next_hook = true;
-					req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
-				end
-			elseif quest_type == quest_types.rampage then
-				if timeout_fix_config.quest_types.rampage then
-					local quest_level_pointer = ValueType_new(nullable_uint32_type_def);
-					local target_enemy_pointer = ValueType_new(nullable_uint32_type_def);
+			if quest_type == quest_types.regular and timeout_fix_config.quest_types.regular then
+				skip_next_hook = true;
+				req_matchmaking_method:call(session_manager, quest_type.quest_id);
+			elseif quest_type == quest_types.random and timeout_fix_config.quest_types.random then
+				skip_next_hook = true;
+				req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
+			elseif quest_type == quest_types.rampage and timeout_fix_config.quest_types.rampage then
+				local quest_level_pointer = ValueType_new(nullable_uint32_type_def);
+				local target_enemy_pointer = ValueType_new(nullable_uint32_type_def);
 
-					nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
-					nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
+				nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
+				nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
 
-					quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
-					target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
+				quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
+				target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
 
-					skip_next_hook = true;
-					req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
-				end
-			elseif quest_type == quest_types.random_master_rank then
-				if timeout_fix_config.quest_types.random_master_rank then
-					skip_next_hook = true;
-					req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
-				end
-			elseif quest_type == quest_types.random_anomaly then
-				if timeout_fix_config.quest_types.random_anomaly then
-					skip_next_hook = true;
-					req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank, quest_type.anomaly_research_level);
-				end
-			elseif quest_type == quest_types.anomaly_investigation then
-				if timeout_fix_config.quest_types.anomaly_investigation then
-					local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);
-
-					nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
-
-					enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
-					
-					skip_next_hook = true;
-					req_matchmaking_random_mystery_quest_method:call(session_manager,
-						quest_type.min_level,
-						quest_type.max_level,
-						quest_type.party_limit,
-						enemy_id_pointer,
-						quest_type.reward_item,
-						quest_type.is_special_random_mystery
-					);
-				end
+				skip_next_hook = true;
+				req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
+			elseif quest_type == quest_types.random_master_rank and timeout_fix_config.quest_types.random_master_rank then
+				skip_next_hook = true;
+				req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
+			elseif quest_type == quest_types.random_anomaly and timeout_fix_config.quest_types.random_anomaly then
+				skip_next_hook = true;
+				req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank, quest_type.anomaly_research_level);
+			elseif quest_type == quest_types.anomaly_investigation and timeout_fix_config.quest_types.anomaly_investigation then
+				local enemy_id_pointer = ValueType_new(nullable_uint32_type_def);
+				nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
+				enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
+				skip_next_hook = true;
+				req_matchmaking_random_mystery_quest_method:call(session_manager,
+					quest_type.min_level,
+					quest_type.max_level,
+					quest_type.party_limit,
+					enemy_id_pointer,
+					quest_type.reward_item,
+					quest_type.is_special_random_mystery
+				);
 			end
 		end
 	end
@@ -269,6 +252,7 @@ function this.init_module()
 	sdk_hook(req_matchmaking_method, function(args)
 		local quest_id = sdk_to_int64(args[3]) & 0xFFFFFFFF;
 		this.on_req_matchmaking(quest_id);
+		return sdk_CALL_ORIGINAL;
 	end);
 
 	--snow.SnowSessionManager.
@@ -276,8 +260,9 @@ function this.init_module()
 	--	System.UInt32 						myHunterRank
 	--)
 	sdk_hook(req_matchmaking_random_method, function(args)
-		local my_hunter_rank = sdk.to_int64(args[3]) & 0xFFFFFFFF;
+		local my_hunter_rank = sdk_to_int64(args[3]) & 0xFFFFFFFF;
 		this.on_req_matchmaking_random(my_hunter_rank);
+		return sdk_CALL_ORIGINAL;
 	end);
 
 	--snow.SnowSessionManager.
@@ -287,10 +272,11 @@ function this.init_module()
 	--	System.Nullable`1<System.UInt32>	targetEnemy
 	--)
 	sdk_hook(req_matchmaking_hyakuryu_method, function(args)
-		local difficulty = sdk.to_int64(args[3]) & 0xFFFFFFFF;
+		local difficulty = sdk_to_int64(args[3]) & 0xFFFFFFFF;
 		local quest_level = args[4];
 		local target_enemy = args[5];
 		this.on_req_matchmaking_rampage(difficulty, quest_level, target_enemy);
+		return sdk_CALL_ORIGINAL;
 	end);
 
 	--snow.SnowSessionManager.
@@ -299,9 +285,10 @@ function this.init_module()
 	--	System.UInt32						myMasterRank
 	--)
 	sdk_hook(req_matchmaking_random_master_rank_method, function(args)
-		local my_hunter_rank = sdk.to_int64(args[3]) & 0xFFFFFFFF;
-		local my_master_rank = sdk.to_int64(args[4]) & 0xFFFFFFFF;
+		local my_hunter_rank = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+		local my_master_rank = sdk_to_int64(args[4]) & 0xFFFFFFFF;
 		this.on_req_matchmaking_random_master_rank(my_hunter_rank, my_master_rank);
+		return sdk_CALL_ORIGINAL;
 	end);
 
 	--snow.SnowSessionManager.
@@ -311,10 +298,11 @@ function this.init_module()
 	--	System.UInt32						myMasterRank (it is actually anomaly research level)
 	--)
 	sdk_hook(req_matchmaking_random_mystery_method, function(args)
-		local my_hunter_rank = sdk.to_int64(args[3]) & 0xFFFFFFFF;
-		local my_master_rank = sdk.to_int64(args[4]) & 0xFFFFFFFF;
-		local anomaly_research_level = sdk.to_int64(args[5]) & 0xFFFFFFFF;
+		local my_hunter_rank = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+		local my_master_rank = sdk_to_int64(args[4]) & 0xFFFFFFFF;
+		local anomaly_research_level = sdk_to_int64(args[5]) & 0xFFFFFFFF;
 		this.on_req_matchmaking_random_anomaly(my_hunter_rank, my_master_rank, anomaly_research_level);
+		return sdk_CALL_ORIGINAL;
 	end);
 
 	--snow.SnowSessionManager.
@@ -327,13 +315,14 @@ function this.init_module()
 	--	System.Boolean						isSpecialRandomMystery
 	--)
 	sdk_hook(req_matchmaking_random_mystery_quest_method, function(args)
-		local lv_min = sdk.to_int64(args[3]) & 0xFFFFFFFF;
-		local lv_max = sdk.to_int64(args[4]) & 0xFFFFFFFF;
-		local limit = sdk.to_int64(args[5]) & 0xFFFFFFFF;
+		local lv_min = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+		local lv_max = sdk_to_int64(args[4]) & 0xFFFFFFFF;
+		local limit = sdk_to_int64(args[5]) & 0xFFFFFFFF;
 		local enemy_id = args[6];
-		local reward_item = sdk.to_int64(args[7]) & 0xFFFFFFFF;
-		local is_special_random_mystery = (sdk.to_int64(args[8]) & 1) == 1;
+		local reward_item = sdk_to_int64(args[7]) & 0xFFFFFFFF;
+		local is_special_random_mystery = (sdk_to_int64(args[8]) & 1) == 1;
 		this.on_req_matchmaking_random_anomaly_quest( lv_min, lv_max, limit, enemy_id, reward_item, is_special_random_mystery);
+		return sdk_CALL_ORIGINAL;
 	end);
 end
 

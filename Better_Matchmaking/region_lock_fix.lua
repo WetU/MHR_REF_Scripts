@@ -33,7 +33,6 @@ function this.on_set_is_invisible(session_steam)
 		set_lobby_distance_filter_method:call(session_steam, distance);
 	end
 	last_session_steam_object = session_steam;
-	return sdk_CALL_ORIGINAL;
 end
 
 function this.init_module()
@@ -42,6 +41,7 @@ function this.init_module()
 
 	sdk_hook(setIsInvisible_method, function(args)
 		this.on_set_is_invisible(sdk_to_managed_object(args[1]));
+		return sdk_CALL_ORIGINAL;
 	end);
 end
 
