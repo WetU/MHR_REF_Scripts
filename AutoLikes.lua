@@ -43,12 +43,15 @@ local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.In
 local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
 -- Main Function
 local GoodRelationshipHud = nil;
-sdk_hook(doOpen_method, function(args)
+
+local function getGoodRelationshipHud(args)
 	if settings.enable then
 		GoodRelationshipHud = sdk_to_managed_object(args[2]);
 	end
 	return sdk_CALL_ORIGINAL;
-end, function()
+end
+
+local function SwitchGoodPlayer()
 	if GoodRelationshipHud then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos then
@@ -75,7 +78,9 @@ end, function()
 		GoodRelationshipHud:set_field("WaitTime", 0.0);
 	end
 	GoodRelationshipHud = nil;
-end);
+end
+
+sdk_hook(doOpen_method, getGoodRelationshipHud, SwitchGoodPlayer);
 ---- re Callbacks ----
 local function save_config()
 	if json_dump_file then

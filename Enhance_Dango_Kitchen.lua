@@ -63,6 +63,7 @@ if settings.skewerLvs == nil then
 end
 -- VIP Dango Ticket Cache
 local kitchen_field = sdk_find_type_definition("snow.data.FacilityDataManager"):get_field("_Kitchen");
+
 local mealFunc_field = kitchen_field:get_type():get_field("_MealFunc");
 
 local mealFunc_type_def = mealFunc_field:get_type();
@@ -93,6 +94,7 @@ local guiKitchen_SpecialSkewerDangoLv_field = guiKitchen_type_def:get_field("Spe
 local guiKitchen_SpecialSkewerDangoLv_set_Item_method = guiKitchen_SpecialSkewerDangoLv_field:get_type():get_method("set_Item(System.Int32, System.Object)");
 
 local isUnlocked_method = sdk_find_type_definition("snow.data.FlagDataManager"):get_method("isUnlocked(snow.data.DataDef.DangoId)");
+
 local plItemBox_field = sdk_find_type_definition("snow.data.DataManager"):get_field("_PlItemBox");
 
 local tryAddGameItem_method = plItemBox_field:get_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
