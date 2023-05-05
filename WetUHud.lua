@@ -1,4 +1,4 @@
-﻿local sdk = sdk;
+local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
@@ -695,7 +695,7 @@ re_on_frame(function()
     if HarvestMoonTimer then
         imgui_push_font(font);
         if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
-            imgui_text(PrintStr);
+            imgui_text(HarvestMoonTimer);
             imgui_pop_font();
             imgui_end_window();
         end
