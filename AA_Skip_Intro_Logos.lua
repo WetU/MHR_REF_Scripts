@@ -34,43 +34,44 @@ local LOADING_STATES =
 	};
 local FINISHED = sdk_find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 ------------
+-- clear fadeout
 local function ClearFade()
 	local FadeManager = sdk_get_managed_singleton("snow.FadeManager");
 	if FadeManager then
 		set_FadeMode_method:call(FadeManager, FINISHED);
 		FadeManager:set_field("fadeOutInFlag", false);
 	end
-	return sdk_CALL_ORIGINAL;
 end
 
-local function ClearFadeWithAction(args)
-	local ActionArg = sdk_to_managed_object(args[3]);
-	if ActionArg then
-		notifyActionEnd_method:call(ActionArg);
-	end
-	ClearFade();
-end
-
--- clear fadeout
-sdk_hook(cautionFadeIn_update_method, ClearFade);
-sdk_hook(capcomLogoFadeIn_update_method, ClearFade);
-sdk_hook(healthCautionFadeIn_update_method, ClearFade);
+sdk_hook(cautionFadeIn_update_method, nil, ClearFade);
+sdk_hook(capcomLogoFadeIn_update_method, nil, ClearFade);
+sdk_hook(healthCautionFadeIn_update_method, nil, ClearFade);
 
 -- Actual skip actions
-sdk_hook(reLogoFadeIn_update_method, ClearFadeWithAction);
-sdk_hook(otherLogoFadeIn_update_method, ClearFadeWithAction);
-
 local currentAction = nil;
 local function PreHook_GetActionObject(args)
 	currentAction = sdk_to_managed_object(args[3]);
 	return sdk_CALL_ORIGINAL;
 end
 
-local function PostHook_SkipAction(ret)
+local function PostHook_notifyActionEnd()
 	if currentAction then
 		notifyActionEnd_method:call(currentAction);
 	end
 	currentAction = nil;
+end
+
+local function ClearFadeWithAction()
+	PostHook_notifyActionEnd();
+	ClearFade();
+end
+
+sdk_hook(reLogoFadeIn_update_method, PreHook_GetActionObject, ClearFadeWithAction);
+sdk_hook(otherLogoFadeIn_update_method, PreHook_GetActionObject, ClearFadeWithAction);
+
+--
+local function PostHook_SkipAction(ret)
+	PostHook_notifyActionEnd();
 	return ret;
 end
 
