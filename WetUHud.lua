@@ -315,13 +315,15 @@ sdk_hook(UpdateTargetCameraParamData_method, function(args)
     return sdk_CALL_ORIGINAL;
 end);
 
+local QuestManager = nil;
 sdk_hook(questActivate_method, function(args)
     if not creating and not DataListCreated then
         CreateDataList();
     end
     TerminateMonsterHud();
-
-    local QuestManager = sdk_to_managed_object(args[2]);
+    QuestManager = sdk_to_managed_object(args[2]);
+    return sdk_CALL_ORIGINAL;
+end, function()
     if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
@@ -340,7 +342,7 @@ sdk_hook(questActivate_method, function(args)
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
+    QuestManager = nil;
 end);
 
 sdk_hook(questCancel_method, nil, TerminateMonsterHud);
