@@ -620,7 +620,9 @@ re_on_frame(function()
     if MonsterHudDataCreated then
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         if curQuestTargetMonsterNum > 0 then
-            imgui_push_font(font);
+            if font then
+                imgui_push_font(font);
+            end
             if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
                 for i = 1, curQuestTargetMonsterNum, 1 do
                     local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
@@ -654,14 +656,18 @@ re_on_frame(function()
                         imgui_spacing();
                     end
                 end
-                imgui_pop_font();
                 imgui_end_window();
+            end
+            if font then
+                imgui_pop_font();
             end
         end
     end
 
     if SpiribirdsHudDataCreated or SpiribirdsCall_Timer then
-        imgui_push_font(font);
+        if font then
+            imgui_push_font(font);
+        end
         if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
             if SpiribirdsHudDataCreated then
                 if imgui_begin_table("종류", 3, 1 << 21, 25) then
@@ -682,17 +688,23 @@ re_on_frame(function()
             else
                 imgui_text(SpiribirdsCall_Timer);
             end
-            imgui_pop_font();
             imgui_end_window();
+        end
+        if font then
+            imgui_pop_font();
         end
     end
 
     if HarvestMoonTimer then
-        imgui_push_font(font);
+        if font then
+            imgui_push_font(font);
+        end
         if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
             imgui_text(HarvestMoonTimer);
-            imgui_pop_font();
             imgui_end_window();
+        end
+        if font then
+            imgui_pop_font();
         end
     end
 end);

@@ -256,11 +256,10 @@ re_on_draw_ui(function()
 				setAnimSkipKey = false;
 			end
 		end
-        imgui_tree_pop();
-	else
 		if changed then
 			SaveSettings();
 		end
+        imgui_tree_pop();
     end
 end);
 

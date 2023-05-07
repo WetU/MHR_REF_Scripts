@@ -742,11 +742,10 @@ re_on_draw_ui(function()
             changed, config.CohootMaxStock = imgui_slider_int("Maximum stock", config.CohootMaxStock, 1, 5);
             imgui_tree_pop();
         end
-        imgui_tree_pop();
-    else
         if changed then
             save_config();
         end
+        imgui_tree_pop();
     end
     if Font then
         imgui_pop_font();

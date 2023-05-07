@@ -351,11 +351,11 @@ re_on_draw_ui(function()
 				end
 			end
 			imgui_end_window();
-        else
-            isDrawOptionWindow = false;
 			if changed then
 				save_config();
 			end
+        else
+            isDrawOptionWindow = false;
         end
     end
 end);

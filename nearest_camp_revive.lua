@@ -218,11 +218,10 @@ re_on_draw_ui(function()
     local changed = false;
 	if imgui_tree_node("Nearest Camp Revive") then
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-		imgui_tree_pop();
-    else
         if changed then
             SaveSettings();
         end
+		imgui_tree_pop();
 	end
 end);
 

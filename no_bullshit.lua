@@ -1,6 +1,7 @@
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
@@ -23,6 +24,17 @@ local table_insert = table.insert;
 
 local pairs = pairs;
 --
+local settings = {};
+if json_load_file then
+    local loadedSettings = json_load_file("no_bullshit.json");
+    if loadedSettings then
+        settings = loadedSettings or {enable = true};
+    end
+end
+if settings.enable == nil then
+    settings.enable = true;
+end
+--
 local NpcTalkMessageCtrl_type_def = sdk_find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local constructor_method = NpcTalkMessageCtrl_type_def:get_method(".ctor");
 local start_method = NpcTalkMessageCtrl_type_def:get_method("start");
@@ -35,54 +47,77 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 
 local getCurrentMapNo_method = sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo");
 
+local MapNoType_type_def = getCurrentMapNo_method:get_return_type();
+local KAMURA = MapNoType_type_def:get_field("No00"):get_data(nil);
+local ELGADO = MapNoType_type_def:get_field("No01"):get_data(nil);
+
 local TalkAttribute_NONE = sdk_find_type_definition("snow.npc.TalkAttribute"):get_field("TALK_ATTR_NONE"):get_data(nil);
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-    -- Kamura
-    [NpcId_type_def:get_field("nid001"):get_data(nil)] = true,  -- Fugen
-    [NpcId_type_def:get_field("nid003"):get_data(nil)] = true,  -- Kagero
-    [NpcId_type_def:get_field("nid004"):get_data(nil)] = true,  -- Yomogi
-    [NpcId_type_def:get_field("nid101"):get_data(nil)] = true, -- Hojo
-    [NpcId_type_def:get_field("nid306"):get_data(nil)] = true, -- Iori
-    -- Elgado
-    [NpcId_type_def:get_field("nid502"):get_data(nil)] = true, -- Galleus
-    [NpcId_type_def:get_field("nid503"):get_data(nil)] = true, -- Bahari
-    [NpcId_type_def:get_field("nid606"):get_data(nil)] = true, -- Nagi
-    [NpcId_type_def:get_field("nid607"):get_data(nil)] = true, -- Oboro
-    [NpcId_type_def:get_field("nid608"):get_data(nil)] = true, -- Azuki
-    [NpcId_type_def:get_field("nid715"):get_data(nil)] = true -- Pingarh
+    ["KAMURA"] = {
+        [NpcId_type_def:get_field("nid001"):get_data(nil)] = true,  -- Fugen
+        [NpcId_type_def:get_field("nid003"):get_data(nil)] = true,  -- Kagero
+        [NpcId_type_def:get_field("nid004"):get_data(nil)] = true,  -- Yomogi
+        [NpcId_type_def:get_field("nid101"):get_data(nil)] = true,  -- Hojo
+        [NpcId_type_def:get_field("nid306"):get_data(nil)] = true   -- Iori
+    },
+    ["ELGADO"] = {
+        [NpcId_type_def:get_field("nid502"):get_data(nil)] = true,  -- Galleus
+        [NpcId_type_def:get_field("nid503"):get_data(nil)] = true,  -- Bahari
+        [NpcId_type_def:get_field("nid606"):get_data(nil)] = true,  -- Nagi
+        [NpcId_type_def:get_field("nid607"):get_data(nil)] = true,  -- Oboro
+        [NpcId_type_def:get_field("nid608"):get_data(nil)] = true,  -- Azuki
+        [NpcId_type_def:get_field("nid715"):get_data(nil)] = true   -- Pingarh
+    }
 };
 --
-local settings = {
-    enable = true
-};
+local npcTalkMessageList = nil;
 
-local ctorActivated = false;
-local npcTalkMessageList = {};
-
-local function getTalkTargetCtor(args)
-    ctorActivated = true;
+local NpcTalkMessageCtrl_ctor = nil;
+sdk_hook(constructor_method, function(args)
     if settings.enable then
-        local obj = sdk_to_managed_object(args[2]);
-        if obj then
-            table_insert(npcTalkMessageList, obj);
-        end
+        NpcTalkMessageCtrl_ctor = sdk_to_managed_object(args[2]);
     end
-end
-
-local function getTalkTarget(args)
-    if settings.enable and not ctorActivated then
-        local obj = sdk_to_managed_object(args[2]);
-        if obj then
-            local npcId = get_NpcId_method:call(obj);
-            if npcList[npcId] and not npcTalkMessageList[npcId] then
-                npcTalkMessageList[npcId] = obj;
-            end
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if NpcTalkMessageCtrl_ctor then
+        if not npcTalkMessageList then
+            npcTalkMessageList = {};
         end
+        table_insert(npcTalkMessageList, NpcTalkMessageCtrl_ctor);
+    end
+    NpcTalkMessageCtrl_ctor = nil;
+end);
+
+local NpcTalkMessageCtrl = nil;
+local function pre_getTalkTarget(args)
+    if settings.enable then
+        NpcTalkMessageCtrl = sdk_to_managed_object(args[2]);
     end
     return sdk_CALL_ORIGINAL;
 end
+
+local function post_getTalkTarget()
+    if NpcTalkMessageCtrl then
+        if not npcTalkMessageList then
+            npcTalkMessageList = {};
+        end
+
+        local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
+        if npcId ~= nil then
+            if npcList[npcId] and not npcTalkMessageList[npcId] then
+                npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
+            end
+        else
+            table_insert(npcTalkMessageList, NpcTalkMessageCtrl);
+        end
+    end
+    NpcTalkMessageCtrl = nil;
+end
+
+sdk_hook(start_method, pre_getTalkTarget, post_getTalkTarget);
+sdk_hook(onLoad_method, pre_getTalkTarget, post_getTalkTarget);
 
 local function talkAction(npcTalkMessageCtrl)
     resetTalkDispName_method:call(npcTalkMessageCtrl);
@@ -91,59 +126,53 @@ local function talkAction(npcTalkMessageCtrl)
     set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
 end
 
-local function talkHandler(retval)
-    if settings.enable then
-        if #npcTalkMessageList > 0 then
-            if ctorActivated then
-                for _, v in pairs(npcTalkMessageList) do
-                    local npcId = get_NpcId_method:call(v);
-                    if npcList[npcId] then
+sdk_hook(getCurrentMapNo_method, nil, function(retval)
+    if settings.enable and npcTalkMessageList ~= nil then
+        local currentMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
+        if currentMapNo ~= nil then
+            local isKamura = currentMapNo == KAMURA;
+            for k, v in pairs(npcTalkMessageList) do
+                if v:get_reference_count() > 0 then
+                    if npcList.KAMURA[k] and isKamura then
                         talkAction(v);
+                    elseif npcList.ELGADO[k] and not isKamura then
+                        talkAction(v);
+                    else
+                        local NpcId = get_NpcId_method:call(v);
+                        if NpcId ~= nil then
+                            if npcList.KAMURA[NpcId] and isKamura then
+                                talkAction(v);
+                            elseif npcList.ELGADO[NpcId] and not isKamura then
+                                talkAction(v);
+                            end
+                        end
                     end
                 end
-                ctorActivated = false;
-            else
-                for _, v in pairs(npcTalkMessageList) do
-                    talkAction(v);
-                end
             end
-            npcTalkMessageList = {};
         end
+        npcTalkMessageList = nil;
     end
     return retval;
-end
-
+end);
+--
 local function SaveSettings()
     if json_dump_file then
 	    json_dump_file("no_bullshit.json", settings);
     end
 end
 
-local function LoadSettings()
-    if json_load_file then
-	    local loadedSettings = json_load_file("no_bullshit.json");
-        if loadedSettings then
-            settings = loadedSettings;
-        end
-    end
-end
+re_on_config_save(SaveSettings);
 
 re_on_draw_ui(function()
 	local changed = false;
 	if imgui_tree_node("No Bullshit") then
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
+        if changed then
+            if not settings.enable then
+                npcTalkMessageList = nil;
+            end
+            SaveSettings();
+        end
 		imgui_tree_pop();
 	end
-    if changed then
-        SaveSettings();
-    end
 end);
-
-re_on_config_save(SaveSettings);
-
-LoadSettings();
-
-sdk_hook(constructor_method, getTalkTargetCtor);
-sdk_hook(start_method, getTalkTarget);
-sdk_hook(onLoad_method, getTalkTarget);
-sdk_hook(getCurrentMapNo_method, nil, talkHandler);

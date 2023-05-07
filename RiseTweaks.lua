@@ -85,14 +85,13 @@ re_on_draw_ui(function()
 					changed, config.desiredFPS = imgui_slider_float("Frame Rate", config.desiredFPS, 10.0, 600.0, "%.2f");
 				end
 			end
-			imgui_tree_pop();
-		end
-	else
-		if changed then
-			if config.enableFPS then
-				fps_handler();
+			if changed then
+				if config.enableFPS then
+					fps_handler();
+				end
+				save_config();
 			end
-			save_config();
+			imgui_tree_pop();
 		end
 	end
 end);

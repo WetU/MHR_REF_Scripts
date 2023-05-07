@@ -94,10 +94,9 @@ re_on_draw_ui(function()
 	local changed = false;
 	if imgui_tree_node("Auto Likes") then
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-		imgui_tree_pop();
-	else
 		if changed then
 			save_config();
 		end
+		imgui_tree_pop();
 	end
 end);
