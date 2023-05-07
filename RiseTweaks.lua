@@ -1,7 +1,6 @@
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -21,10 +20,10 @@ local imgui_slider_float = imgui.slider_float;
 
 local fps_option = {30.0, 60.0, 90.0, 120.0, 144.0, 165.0, 240.0, 600.0};
 local config = {};
-if json_load_file then
-	local config_file = json_load_file("RiseTweaks/config.json");
-	config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2]};
-end
+
+local config_file = json_load_file("RiseTweaks/config.json");
+config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2]};
+
 if config.enableFPS == nil then
 	config.enableFPS = true;
 end
@@ -67,9 +66,7 @@ sdk_hook(writeGraphicOptionOnIniFile_method, nil, fps_handler); -- allows title 
 sdk_hook(playEventCommon_method, nil, fps_handler); -- only bother setting fps for cutscenes
 
 local function save_config()
-	if json_dump_file then
-		json_dump_file("RiseTweaks/config.json", config);
-	end
+	json_dump_file("RiseTweaks/config.json", config);
 end
 
 re_on_config_save(save_config);

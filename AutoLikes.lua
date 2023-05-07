@@ -1,8 +1,7 @@
 -- Initialize
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -21,10 +20,9 @@ local imgui_tree_pop = imgui.tree_pop;
 
 local settings = {};
 
-if json_load_file then
-	local loadedSettings = json_load_file("AutoLikes.json");
-	settings = loadedSettings or {enable = true};
-end
+local loadedSettings = json_load_file("AutoLikes.json");
+settings = loadedSettings or {enable = true};
+
 if settings.enable == nil then
 	settings.enable = true;
 end
@@ -83,9 +81,7 @@ end
 sdk_hook(doOpen_method, getGoodRelationshipHud, SwitchGoodPlayer);
 ---- re Callbacks ----
 local function save_config()
-	if json_dump_file then
-		json_dump_file("AutoLikes.json", settings);
-	end
+	json_dump_file("AutoLikes.json", settings);
 end
 
 re_on_config_save(save_config);

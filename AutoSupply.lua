@@ -1,7 +1,6 @@
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -57,10 +56,19 @@ end
 ------------- Config Management --------------
 local config = {};
 
-if json_load_file then
-    local loadedConfig = json_load_file("AutoSupply.json");
-    config = loadedConfig or {Enabled = true, EnableNotification = true, EnableCohoot = true, EnableArgosy = true, DefaultSet = 1, WeaponTypeConfig = {}, EquipLoadoutConfig = {}, CohootMaxStock = 5, Language = "ko-KR"};
-end
+local loadedConfig = json_load_file("AutoSupply.json");
+config = loadedConfig or {
+    Enabled = true,
+    EnableNotification = true,
+    EnableCohoot = true,
+    EnableArgosy = true,
+    DefaultSet = 1,
+    WeaponTypeConfig = {},
+    EquipLoadoutConfig = {},
+    CohootMaxStock = 5,
+    Language = "ko-KR"
+};
+
 if config.Enabled == nil then
     config.Enabled = true;
 end
@@ -100,9 +108,7 @@ if config.Language == nil or FindIndex(Languages, config.Language) == nil then
 end
 
 local function save_config()
-    if json_dump_file then
-        json_dump_file("AutoSupply.json", config);
-    end
+    json_dump_file("AutoSupply.json", config);
 end
 
 re_on_config_save(save_config);

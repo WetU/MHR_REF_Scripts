@@ -6,9 +6,8 @@ local sdk_hook = sdk.hook;
 local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
+local json_dump_file = json.dump_file;
+local json_load_file = json.load_file;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -25,12 +24,12 @@ local table_insert = table.insert;
 local pairs = pairs;
 --
 local settings = {};
-if json_load_file then
-    local loadedSettings = json_load_file("no_bullshit.json");
-    if loadedSettings then
-        settings = loadedSettings or {enable = true};
-    end
+
+local loadedSettings = json_load_file("no_bullshit.json");
+if loadedSettings then
+    settings = loadedSettings or {enable = true};
 end
+
 if settings.enable == nil then
     settings.enable = true;
 end
@@ -156,9 +155,7 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
 end);
 --
 local function SaveSettings()
-    if json_dump_file then
-	    json_dump_file("no_bullshit.json", settings);
-    end
+    json_dump_file("no_bullshit.json", settings);
 end
 
 re_on_config_save(SaveSettings);

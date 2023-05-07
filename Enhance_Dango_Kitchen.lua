@@ -1,8 +1,7 @@
 -- Initialize
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -30,10 +29,20 @@ local imgui_spacing = imgui.spacing;
 local pairs = pairs;
 
 local settings = {};
-if json_load_file then
-	local savedConfig = json_load_file("Enhance_Dango_kitchen.json");
-	settings = savedConfig or {skipDangoSong = true, skipEating = true, skipMotley = true, InfiniteDangoTickets = false, ShowAllDango = false, TicketByDefault = true, SkillAlwaysActive = false, EnableSkewerLv = false, skewerLvs = {4, 3, 1}};
-end
+
+local savedConfig = json_load_file("Enhance_Dango_kitchen.json");
+settings = savedConfig or {
+	skipDangoSong = true,
+	skipEating = true,
+	skipMotley = true,
+	InfiniteDangoTickets = false,
+	ShowAllDango = false,
+	TicketByDefault = true,
+	SkillAlwaysActive = false,
+	EnableSkewerLv = false,
+	skewerLvs = {4, 3, 1}
+};
+
 if settings.skipDangoSong == nil then
 	settings.skipDangoSong = true;
 end
@@ -304,9 +313,7 @@ end);
 
 ---- re Callbacks ----
 local function save_config()
-	if json_dump_file then
-		json_dump_file("Enhance_Dango_kitchen.json", settings);
-	end
+	json_dump_file("Enhance_Dango_kitchen.json", settings);
 end
 
 re_on_config_save(save_config);

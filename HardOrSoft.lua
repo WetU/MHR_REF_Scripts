@@ -1,7 +1,6 @@
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local re = re;
 local re_on_config_save = re.on_config_save;
@@ -58,19 +57,16 @@ local function Reset()
 end
 
 local function SaveConfig()
-    if json_dump_file then
-	    json_dump_file("HardOrSoft.json", config);
-    end
+    json_dump_file("HardOrSoft.json", config);
 end
 
 Reset();
-if json_load_file then
-    local loadConfig = json_load_file("HardOrSoft.json");
-    if loadConfig then
-        config = loadConfig;
-    else
-        SaveConfig();
-    end
+
+local loadConfig = json_load_file("HardOrSoft.json");
+if loadConfig then
+    config = loadConfig;
+else
+    SaveConfig();
 end
 
 local temp = nil;

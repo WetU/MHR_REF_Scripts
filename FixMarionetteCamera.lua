@@ -1,8 +1,7 @@
 -- Initialize
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -23,10 +22,10 @@ local imgui_tree_pop = imgui.tree_pop;
 local pairs = pairs;
 
 local settings = {};
-if json_load_file then
-	local loadedSettings = json_load_file("Fix_Marionette_Camera.json");
-	settings = loadedSettings or {enable = true};
-end
+
+local loadedSettings = json_load_file("Fix_Marionette_Camera.json");
+settings = loadedSettings or {enable = true};
+
 if settings.enable == nil then
 	settings.enable = true;
 end
@@ -62,9 +61,7 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 end);
 ---- re Callbacks ----
 local function save_config()
-	if json_dump_file then
-		json_dump_file("Fix_Marionette_Camera.json", settings);
-	end
+	json_dump_file("Fix_Marionette_Camera.json", settings);
 end
 
 re_on_config_save(save_config);

@@ -4,9 +4,8 @@ local version = "2.3.2";
 local utils;
 
 local json = json;
-local jsonAvailable = json ~= nil;
-local json_load_file = jsonAvailable and json.load_file or nil;
-local json_dump_file = jsonAvailable and json.dump_file or nil;
+local json_load_file = json.load_file;
+local json_dump_file = json.dump_file;
 
 local require = require;
 
@@ -49,20 +48,16 @@ function this.init()
 end
 
 function this.load()
-	if json_load_file then
-		local loaded_config = json_load_file(this.config_file_name);
-		if loaded_config ~= nil then
-			this.current_config = utils.table.merge(this.default_config, loaded_config);
-		else
-			this.current_config = utils.table.deep_copy(this.default_config);
-		end
+	local loaded_config = json_load_file(this.config_file_name);
+	if loaded_config ~= nil then
+		this.current_config = utils.table.merge(this.default_config, loaded_config);
+	else
+		this.current_config = utils.table.deep_copy(this.default_config);
 	end
 end
 
 function this.save()
-	if json_dump_file then
-		json_dump_file(this.config_file_name, this.current_config);
-	end
+	json_dump_file(this.config_file_name, this.current_config);
 end
 
 function this.reset()
