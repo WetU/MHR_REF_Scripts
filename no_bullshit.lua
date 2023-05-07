@@ -26,9 +26,7 @@ local pairs = pairs;
 local settings = {};
 
 local loadedSettings = json_load_file("no_bullshit.json");
-if loadedSettings then
-    settings = loadedSettings or {enable = true};
-end
+settings = loadedSettings or {enable = true};
 
 if settings.enable == nil then
     settings.enable = true;

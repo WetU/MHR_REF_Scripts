@@ -60,12 +60,11 @@ local function SaveConfig()
     json_dump_file("HardOrSoft.json", config);
 end
 
-Reset();
-
 local loadConfig = json_load_file("HardOrSoft.json");
 if loadConfig then
     config = loadConfig;
 else
+    Reset();
     SaveConfig();
 end
 
