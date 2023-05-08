@@ -83,8 +83,7 @@ local TargetCameraType_Marionette = GetTargetCameraType_method:get_return_type()
 
 local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)");
 
-local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
-local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType");
+local get_EnemyType_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("get_EnemyType");
 --
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
@@ -109,8 +108,7 @@ local getPartTableDataNum_method = BossMonsterData_type_def:get_method("getPartT
 local EmType_field = BossMonsterData_type_def:get_field("_EmType");
 local PartTableData_field = BossMonsterData_type_def:get_field("_PartTableData");
 
-local PartTableData_type_def = PartTableData_field:get_type();
-local PartTableData_get_Item_method = PartTableData_type_def:get_method("get_Item(System.Int32)");
+local PartTableData_get_Item_method = PartTableData_field:get_type():get_method("get_Item(System.Int32)");
 
 local PartData_type_def = PartTableData_get_Item_method:get_return_type();
 local Part_field = PartData_type_def:get_field("_Part");
@@ -146,14 +144,6 @@ local PlayerManager_type_def = sdk_find_type_definition("snow.player.PlayerManag
 local addLvBuffCnt_method = PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 
-local PlayerBase_type_def = sdk_find_type_definition("snow.player.PlayerBase");
-local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
-local get_PlayerSkillList_method = PlayerBase_type_def:get_method("get_PlayerSkillList");
-
-local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
-
-local getSkillData_method = get_PlayerSkillList_method:get_return_type():get_method("getSkillData(snow.data.DataDef.PlEquipSkillId)");
-
 local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQuestBase");
 local PlayerQuestBase_start_method = PlayerQuestBase_type_def:get_method("start");
 local PlayerQuestBase_onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
@@ -161,6 +151,10 @@ local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuff
 local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
+
+local get_PlayerData_method = sdk_find_type_definition("snow.player.PlayerBase"):get_method("get_PlayerData");
+
+local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
 
 local LvBuff_type_def = sdk_find_type_definition("snow.player.PlayerDefine.LvBuff");
 local LvBuff = {
@@ -178,8 +172,6 @@ local BuffTypes = {
     ["Vital"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Vital"):get_data(nil),
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
-
-local SpiribirdsCall_SkillId = sdk_find_type_definition("snow.data.DataDef.PlEquipSkillId"):get_field("Pl_EquipSkill_211"):get_data(nil);
 --
 local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShell010");
 local LongSwordShell010_start_method = LongSwordShell010_type_def:get_method("start");
@@ -363,10 +355,11 @@ local BirdsMaxCounts = nil;
 local AcquiredCounts = nil;
 local hasRainbow = false;
 
-local isEnable_SpiribirdsCall = false;
+local firstHook = true;
+local skipUpdate = false;
 
-local SpiribirdsCall_Timer = nil;
 local SpiribirdsHudDataCreated = false;
+local SpiribirdsCall_Timer = nil;
 
 local function TerminateSpiribirdsHud()
     SpiribirdsHudDataCreated = false;
@@ -376,8 +369,9 @@ local function TerminateSpiribirdsHud()
     BirdsMaxCounts = nil;
     AcquiredCounts = nil;
     hasRainbow = false;
+    firstHook = true;
+    skipUpdate = false;
     SpiribirdsCall_Timer = nil;
-    isEnable_SpiribirdsCall = false;
 end
 
 local function getCountsAndValues(pm, edm, buffType)
@@ -390,16 +384,7 @@ local function getCountsAndValues(pm, edm, buffType)
     end
 end
 
-local PlayerQuestBase = nil;
-sdk_hook(PlayerQuestBase_start_method, function(args)
-    local obj = sdk_to_managed_object(args[2]);
-    if obj ~= nil then
-        sdk_hook_vtable(obj, PlayerQuestBase_onDestroy_method, nil, TerminateSpiribirdsHud);
-        PlayerQuestBase = obj;
-    end
-    isEnable_SpiribirdsCall = false;
-    return sdk_CALL_ORIGINAL;
-end, function()
+sdk_hook(PlayerQuestBase_start_method, nil, function()
     local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
     if EquipDataManager then
         BirdsMaxCounts = {};
@@ -430,25 +415,9 @@ end, function()
             end
         end
     end
-
-    if PlayerQuestBase then
-        local masterPlayerSkillList = get_PlayerSkillList_method:call(PlayerQuestBase);
-        if masterPlayerSkillList then
-            local SpiribirdsCall_Data = getSkillData_method:call(masterPlayerSkillList, SpiribirdsCall_SkillId);
-            if SpiribirdsCall_Data then
-                isEnable_SpiribirdsCall = true;
-            end
-        end
-        if isEnable_SpiribirdsCall then
-            local IsInTrainingArea = get_IsInTrainingArea_method:call(PlayerQuestBase);
-            local IsEnableStage_Skill211 = IsEnableStage_Skill211_field:get_data(PlayerQuestBase);
-            if (IsInTrainingArea ~= nil and IsInTrainingArea) or (IsEnableStage_Skill211 ~= nil and IsEnableStage_Skill211) then
-                SpiribirdsCall_Timer = TimerString.Disabled;
-            end
-        end
-    end
-    PlayerQuestBase = nil;
 end);
+
+sdk_hook(PlayerQuestBase_onDestroy_method, nil, TerminateSpiribirdsHud);
 
 local subBuffType = nil;
 sdk_hook(subLvBuffFromEnemy_method, function(args)
@@ -508,25 +477,35 @@ end, function()
     PlayerManager_obj = nil;
 end);
 
+local PlayerQuestBase_obj = nil;
 sdk_hook(updateEquipSkill211_method, function(args)
-    if isEnable_SpiribirdsCall then
-        local PlayerQuestBase = sdk_to_managed_object(args[2]);
-        if PlayerQuestBase then
-            local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
+    if firstHook or not skipUpdate then
+        PlayerQuestBase_obj = sdk_to_managed_object(args[2]);
+    end
+    return sdk_CALL_ORIGINAL;
+end, function()
+    if PlayerQuestBase_obj then
+        if firstHook then
+            firstHook = false;
+            if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
+                SpiribirdsCall_Timer = TimerString.Disabled;
+                skipUpdate = true;
+            end
+        else
+            local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
             if masterPlayerData then
-                local SpiribirdsCallTimer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-                if SpiribirdsCallTimer ~= nil then
-                    SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (SpiribirdsCallTimer / 60.0));
+                local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
+                if Timer ~= nil then
+                    SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
                 end
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
+    PlayerQuestBase_obj = nil;
 end);
 
 
 --==--==--==--==--==--
-
 
 local HarvestMoonTimer = nil;
 
@@ -535,17 +514,15 @@ local function TerminateHarvestMoonTimer()
 end
 
 sdk_hook(LongSwordShell010_start_method, function(args)
-    local obj = sdk_to_managed_object(args[2]);
-    if obj ~= nil and get_IsMaster_method:call(obj) and CircleType_field:get_data(obj) == CircleType_Inside then
-        sdk_hook_vtable(obj, LongSwordShell010_update_method, nil, function()
-            if obj ~= nil then
-                local lifeTimer = lifeTimer_field:get_data(obj);
-                if lifeTimer ~= nil then
-                    HarvestMoonTimer = string_format("원월 타이머: %.f초", lifeTimer);
-                end
+    local LongSwordShell010 = sdk_to_managed_object(args[2]);
+    if LongSwordShell010 ~= nil and get_IsMaster_method:call(LongSwordShell010) and CircleType_field:get_data(LongSwordShell010) == CircleType_Inside then
+        sdk_hook_vtable(LongSwordShell010, LongSwordShell010_update_method, nil, function()
+            local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+            if lifeTimer ~= nil then
+                HarvestMoonTimer = string_format("원월 타이머: %.f초", lifeTimer);
             end
         end);
-        sdk_hook_vtable(obj, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
+        sdk_hook_vtable(LongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
     end
     return sdk_CALL_ORIGINAL;
 end);

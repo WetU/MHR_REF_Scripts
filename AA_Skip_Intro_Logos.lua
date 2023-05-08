@@ -51,9 +51,9 @@ local function ClearFade()
 end
 
 sdk_hook(healthCautionFadeIn_start_method, function(args)
-	local obj = sdk_to_managed_object(args[2]);
-	if obj ~= nil then
-		sdk_hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
+	local healthCautionFadeIn = sdk_to_managed_object(args[2]);
+	if healthCautionFadeIn ~= nil then
+		sdk_hook_vtable(healthCautionFadeIn, healthCautionFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
 	end
 end);
 sdk_hook(cautionFadeIn_update_method, nil, ClearFade);
@@ -73,27 +73,21 @@ local function PostHook_notifyActionEnd()
 	currentAction = nil;
 end
 
+sdk_hook(autoSaveCaution_Action_start_method, PreHook_GetActionObject, PostHook_notifyActionEnd);
+sdk_hook(pressAnyButton_Action_start_method, PreHook_GetActionObject, PostHook_notifyActionEnd);
+
 local function ClearFadeWithAction()
 	PostHook_notifyActionEnd();
 	ClearFade();
 end
 
 sdk_hook(otherLogoFadeIn_start_method, function(args)
-	local obj = sdk_to_managed_object(args[2]);
-	if obj ~= nil then
-		sdk_hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, ClearFadeWithAction);
+	local otherLogoFadeIn = sdk_to_managed_object(args[2]);
+	if otherLogoFadeIn ~= nil then
+		sdk_hook_vtable(otherLogoFadeIn, otherLogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, ClearFadeWithAction);
 	end
 end);
 sdk_hook(reLogoFadeIn_update_method, PreHook_GetActionObject, ClearFadeWithAction);
-
---
-local function PostHook_SkipAction(ret)
-	PostHook_notifyActionEnd();
-	return ret;
-end
-
-sdk_hook(autoSaveCaution_Action_start_method, PreHook_GetActionObject, PostHook_SkipAction);
-sdk_hook(pressAnyButton_Action_start_method, PreHook_GetActionObject, PostHook_SkipAction);
 
 -- Fast forward movies to the end to mute audio
 local function isLoading()
@@ -110,7 +104,7 @@ sdk_hook(play_method, function(args)
 		currentMovie = sdk_to_managed_object(args[2]);
 	end
 	return sdk_CALL_ORIGINAL;
-end, function(ret)
+end, function()
 	if currentMovie then
 		local DurationTime = get_DurationTime_method:call(currentMovie);
 		if DurationTime ~= nil then
@@ -118,7 +112,6 @@ end, function(ret)
 		end
 	end
 	currentMovie = nil;
-	return ret;
 end);
 
 -- Fake title skip input for HEALTH/Capcom
