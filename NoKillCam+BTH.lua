@@ -120,46 +120,46 @@ sdk_hook(RequestActive_method, function(args)
 end);
 
 -- BTH
-sdk_hook(updateQuestEndFlow_method, nil, function()
+local QuestManager_obj = nil;
+sdk_hook(updateQuestEndFlow_method, function(args)
 	if settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim then
-		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
-		if QuestManager then
-			local endFlow = EndFlow_field:get_data(QuestManager);
-			if endFlow > EndFlow.Start and endFlow < EndFlow.None then
-				if getQuestReturnTimerSec_method:call(QuestManager) > 1.0 then
-					if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager) == 1 then
-						local requestCDSkip = settings.BTH.autoSkipCountdown;
-						if not requestCDSkip and settings.BTH.enableKeyboard then
-							local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-							if GameKeyboard_singleton then
-								local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
-								if hwKB and getTrg_method:call(hwKB, settings.BTH.kbCDSkipKey) then
-									requestCDSkip = true;
-								end
-							end
-						end
-						if requestCDSkip then
-							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-						end
-					elseif endFlow == EndFlow.CameraDemo then
-						local requestAnimSkip = settings.BTH.autoSkipPostAnim;
-						if not requestAnimSkip and settings.BTH.enableKeyboard then
-							local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-							if GameKeyboard_singleton then
-								local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
-								if hwKB and getTrg_method:call(hwKB, settings.BTH.kbAnimSkipKey) then
-									requestAnimSkip = true;
-								end
-							end
-						end
-						if requestAnimSkip then
-							QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-						end
+		QuestManager_obj = sdk_to_managed_object(args[2]);
+	end
+	return sdk_CALL_ORIGINAL;
+end, function()
+	if QuestManager_obj and getQuestReturnTimerSec_method:call(QuestManager_obj) > 1.0 then
+		local endFlow = EndFlow_field:get_data(QuestManager_obj);
+		if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 then
+			local requestCDSkip = settings.BTH.autoSkipCountdown;
+			if not requestCDSkip and settings.BTH.enableKeyboard then
+				local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+				if GameKeyboard_singleton then
+					local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+					if hwKB and getTrg_method:call(hwKB, settings.BTH.kbCDSkipKey) then
+						requestCDSkip = true;
 					end
 				end
 			end
+			if requestCDSkip then
+				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+			end
+		elseif endFlow == EndFlow.CameraDemo then
+			local requestAnimSkip = settings.BTH.autoSkipPostAnim;
+			if not requestAnimSkip and settings.BTH.enableKeyboard then
+				local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
+				if GameKeyboard_singleton then
+					local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
+					if hwKB and getTrg_method:call(hwKB, settings.BTH.kbAnimSkipKey) then
+						requestAnimSkip = true;
+					end
+				end
+			end
+			if requestAnimSkip then
+				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+			end
 		end
     end
+	QuestManager_obj = nil;
 end);
 
 -- Remove Town Interaction Delay

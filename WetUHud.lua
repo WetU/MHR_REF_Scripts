@@ -132,13 +132,11 @@ local MeatAttr = {
 };
 --
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
-local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("getEquippingLvBuffcageData");
 local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
 local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)");
+local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("getEquippingLvBuffcageData");
 
-local EquippingLvBuffcageData_type_def = getEquippingLvBuffcageData_method:get_return_type();
-local getStatusBuffLimit_method = EquippingLvBuffcageData_type_def:get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
-local getStatusBuffAddVal_method = EquippingLvBuffcageData_type_def:get_method("getStatusBuffAddVal(snow.data.NormalLvBuffCageData.BuffTypes)");
+local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 
 local PlayerManager_type_def = sdk_find_type_definition("snow.player.PlayerManager");
 local addLvBuffCnt_method = PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)");
@@ -350,7 +348,6 @@ local TimerString = {
     Enabled = "향응 타이머: %.2f초"
 };
 
-local StatusBuffAddValues = nil;
 local StatusBuffLimits = nil;
 local AcquiredValues = nil;
 local BirdsMaxCounts = nil;
@@ -365,7 +362,6 @@ local SpiribirdsCall_Timer = nil;
 
 local function TerminateSpiribirdsHud()
     SpiribirdsHudDataCreated = false;
-    StatusBuffAddValues = nil;
     StatusBuffLimits = nil;
     AcquiredValues = nil;
     BirdsMaxCounts = nil;
@@ -391,40 +387,32 @@ sdk_hook(PlayerQuestBase_start_method, function(args)
     PlayerQuestBase_start = sdk_to_managed_object(args[2]);
     return sdk_CALL_ORIGINAL;
 end, function()
-    if PlayerQuestBase_start then
-        local isMasterPlayer = isMasterPlayer_method:call(PlayerQuestBase_start);
-        if isMasterPlayer then
-            local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-            local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
-            if EquipDataManager and PlayerManager then
+    if PlayerQuestBase_start and isMasterPlayer_method:call(PlayerQuestBase_start) then
+        local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+        local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+        if EquipDataManager and PlayerManager then
+            hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
+            local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
+            if EquippingLvBuffcageData then
+                StatusBuffLimits = {};
                 BirdsMaxCounts = {};
                 AcquiredCounts = {};
-                hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
+                AcquiredValues = {};
+                for k, v in pairs(LvBuff) do
+                    if k ~= "Rainbow" then
+                        local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
+                        local LvBuffNumToMax = calcLvBuffNumToMax_method:call(EquipDataManager, v);
 
-                local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
-                if EquippingLvBuffcageData then
-                    StatusBuffLimits = {};
-                    StatusBuffAddValues = {};
-                    AcquiredValues = {};
-                    for k, v in pairs(LvBuff) do
-                        if k ~= "Rainbow" then
-                            StatusBuffLimits[k] = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
-                            StatusBuffAddValues[k] = getStatusBuffAddVal_method:call(EquippingLvBuffcageData, BuffTypes[k]);
-                            BirdsMaxCounts[k] = calcLvBuffNumToMax_method:call(EquipDataManager, v);
-                            if hasRainbow then
-                                AcquiredCounts[k] = BirdsMaxCounts[k];
-                                AcquiredValues[k] = StatusBuffLimits[k];
-                            else
-                                AcquiredCounts[k] = math_min(math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), BirdsMaxCounts[k]);
-                                AcquiredValues[k] = math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimits[k]);
-                            end
-                        end
+                        StatusBuffLimits[k] = StatusBuffLimit;
+                        BirdsMaxCounts[k] = LvBuffNumToMax;
+                        AcquiredCounts[k] = hasRainbow and LvBuffNumToMax or math_min(math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), LvBuffNumToMax);
+                        AcquiredValues[k] = hasRainbow and StatusBuffLimit or math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimit);
                     end
-                    SpiribirdsHudDataCreated = true;
                 end
+                SpiribirdsHudDataCreated = true;
             end
-            sdk_hook_vtable(PlayerQuestBase_start, PlayerQuestBase_onDestroy_method, nil, TerminateSpiribirdsHud);
         end
+        sdk_hook_vtable(PlayerQuestBase_start, PlayerQuestBase_onDestroy_method, nil, TerminateSpiribirdsHud);
     end
     PlayerQuestBase_start = nil;
 end);
@@ -500,23 +488,12 @@ sdk_hook(updateEquipSkill211_method, function(args)
     end
     return sdk_CALL_ORIGINAL;
 end, function()
-    if PlayerQuestBase_obj then
-        local isMasterPlayer = isMasterPlayer_method:call(PlayerQuestBase_obj);
-        if isMasterPlayer then
-            if firstHook then
-                firstHook = false;
-                if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
-                    skipUpdate = true;
-                    SpiribirdsCall_Timer = TimerString.Disabled;
-                else
-                    local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
-                    if masterPlayerData then
-                        local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-                        if Timer ~= nil then
-                            SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
-                        end
-                    end
-                end
+    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) then
+        if firstHook then
+            firstHook = false;
+            if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
+                skipUpdate = true;
+                SpiribirdsCall_Timer = TimerString.Disabled;
             else
                 local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
                 if masterPlayerData then
@@ -524,6 +501,14 @@ end, function()
                     if Timer ~= nil then
                         SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
                     end
+                end
+            end
+        else
+            local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
+            if masterPlayerData then
+                local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
+                if Timer ~= nil then
+                    SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
                 end
             end
         end
@@ -534,6 +519,7 @@ end);
 
 --==--==--==--==--==--
 
+local HarvestMoonTimer_String = "원월 타이머: %.f초"
 
 local HarvestMoonTimer = nil;
 
@@ -541,18 +527,28 @@ local function TerminateHarvestMoonTimer()
     HarvestMoonTimer = nil;
 end
 
+local LongSwordShell010 = nil;
 sdk_hook(LongSwordShell010_start_method, function(args)
-    local LongSwordShell010 = sdk_to_managed_object(args[2]);
-    if LongSwordShell010 ~= nil and get_IsMaster_method:call(LongSwordShell010) and CircleType_field:get_data(LongSwordShell010) == CircleType_Inside then
-        sdk_hook_vtable(LongSwordShell010, LongSwordShell010_update_method, nil, function()
-            local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+    local obj = sdk_to_managed_object(args[2]);
+    if obj ~= nil and get_IsMaster_method:call(obj) and CircleType_field:get_data(obj) == CircleType_Inside then
+        sdk_hook_vtable(obj, LongSwordShell010_update_method, nil, function()
+            local lifeTimer = lifeTimer_field:get_data(obj);
             if lifeTimer ~= nil then
-                HarvestMoonTimer = string_format("원월 타이머: %.f초", lifeTimer);
+                HarvestMoonTimer = string_format(HarvestMoonTimer_String, lifeTimer);
             end
         end);
-        sdk_hook_vtable(LongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
+        sdk_hook_vtable(obj, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
+        LongSwordShell010 = obj;
     end
     return sdk_CALL_ORIGINAL;
+end, function()
+    if LongSwordShell010 then
+        local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+        if lifeTimer ~= nil then
+            HarvestMoonTImer = string_format(HarvestMoonTimer_String, lifeTimer);
+        end
+    end
+    LongSwordShell010 = nil;
 end);
 
 
