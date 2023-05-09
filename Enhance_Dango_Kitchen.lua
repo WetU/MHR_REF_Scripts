@@ -26,8 +26,6 @@ local imgui_tree_pop = imgui.tree_pop;
 local imgui_end_window = imgui.end_window;
 local imgui_spacing = imgui.spacing;
 
-local pairs = pairs;
-
 local settings = {};
 
 local savedConfig = json_load_file("Enhance_Dango_kitchen.json");
@@ -212,7 +210,7 @@ sdk_hook(updateList_method, function(args)
 		end
 	end
 	return sdk_CALL_ORIGINAL;
-end, function(retval)
+end, function()
 	if settings.ShowAllDango then
 		local FacilityDataManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
 		if FacilityDataManager then
@@ -245,10 +243,9 @@ end, function(retval)
 			end
 		end
 	end
-	return retval;
 end);
 
-sdk_hook(order_method, nil, function(retval)
+sdk_hook(order_method, nil, function()
 	if settings.InfiniteDangoTickets then
 		local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
 		if DataManager then
@@ -258,7 +255,6 @@ sdk_hook(order_method, nil, function(retval)
 			end
 		end
 	end
-	return retval;
 end);
 
 -- Skip Dango Song Main Function
@@ -269,7 +265,7 @@ sdk_hook(play_method, function(args)
 		DemoHandler = sdk_to_managed_object(args[2]);
 		if DemoHandler then
 			local EventId = get_EventId_method:call(DemoHandler);
-			if EventId then
+			if EventId ~= nil then
 				DemoType = (cooking_events[EventId] and 1) or (eating_events[EventId] and 2) or (bbq_events[EventId] and 3) or nil;
 			end
 			if not DemoType then
