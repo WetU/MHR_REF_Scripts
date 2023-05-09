@@ -44,9 +44,9 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 
 local getCurrentMapNo_method = sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo");
 
-local MapNoType_type_def = getCurrentMapNo_method:get_return_type();
-local KAMURA = MapNoType_type_def:get_field("No00"):get_data(nil);
-local ELGADO = MapNoType_type_def:get_field("No01"):get_data(nil);
+local VillageMapNoType_type_def = getCurrentMapNo_method:get_return_type();
+local KAMURA = VillageMapNoType_type_def:get_field("No00"):get_data(nil);
+local ELGADO = VillageMapNoType_type_def:get_field("No01"):get_data(nil);
 
 local TalkAttribute_NONE = sdk_find_type_definition("snow.npc.TalkAttribute"):get_field("TALK_ATTR_NONE"):get_data(nil);
 
@@ -125,9 +125,9 @@ end
 
 sdk_hook(getCurrentMapNo_method, nil, function(retval)
     if settings.enable and npcTalkMessageList ~= nil then
-        local currentMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
-        if currentMapNo ~= nil then
-            local isKamura = currentMapNo == KAMURA;
+        local currentVillageMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
+        if currentVillageMapNo ~= nil then
+            local isKamura = currentVillageMapNo == KAMURA;
             for k, v in pairs(npcTalkMessageList) do
                 if v:get_reference_count() > 0 then
                     if npcList.KAMURA[k] and isKamura then
@@ -159,8 +159,8 @@ end
 re_on_config_save(SaveSettings);
 
 re_on_draw_ui(function()
-	local changed = false;
 	if imgui_tree_node("No Bullshit") then
+        local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
         if changed then
             if not settings.enable then
