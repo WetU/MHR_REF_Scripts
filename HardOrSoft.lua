@@ -213,7 +213,7 @@ end
 Conversion();
 
 local function IsPlayerDamageType(dmgtype)
-    return dmgtype == DamageAttackerType.PlayerWeapon or dmgtype == DamageAttackerType.Kunai or dmgtype == DamageAttackerType.DetonationGrenade or dmgtype == DamageAttackerType.Kabutowari or false;
+    return dmgtype == DamageAttackerType.PlayerWeapon or dmgtype == DamageAttackerType.DetonationGrenade or dmgtype == DamageAttackerType.Kabutowari or false;
 end
 
 sdk_hook(afterCalcDamage_DamageSide_method, function(args)

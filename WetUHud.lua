@@ -527,26 +527,28 @@ local function TerminateHarvestMoonTimer()
     HarvestMoonTimer = nil;
 end
 
+local function getHarvestMoonTimer(obj)
+    local lifeTimer = lifeTimer_field:get_data(obj);
+    HarvestMoonTImer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+end
+
 local LongSwordShell010 = nil;
 sdk_hook(LongSwordShell010_start_method, function(args)
-    local obj = sdk_to_managed_object(args[2]);
-    if obj ~= nil and get_IsMaster_method:call(obj) and CircleType_field:get_data(obj) == CircleType_Inside then
-        sdk_hook_vtable(obj, LongSwordShell010_update_method, nil, function()
-            local lifeTimer = lifeTimer_field:get_data(obj);
-            if lifeTimer ~= nil then
-                HarvestMoonTimer = string_format(HarvestMoonTimer_String, lifeTimer);
-            end
-        end);
-        sdk_hook_vtable(obj, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
-        LongSwordShell010 = obj;
+    LongSwordShell010 = sdk_to_managed_object(args[2]);
+    if LongSwordShell010 ~= nil then
+        if get_IsMaster_method:call(LongSwordShell010) and CircleType_field:get_data(LongSwordShell010) == CircleType_Inside then
+            sdk_hook_vtable(LongSwordShell010, LongSwordShell010_update_method, nil, function()
+                getHarvestMoonTimer(LongSwordShell010);
+            end);
+            sdk_hook_vtable(LongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
+        else
+            LongSwordShell010 = nil;
+        end
     end
     return sdk_CALL_ORIGINAL;
 end, function()
     if LongSwordShell010 then
-        local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
-        if lifeTimer ~= nil then
-            HarvestMoonTImer = string_format(HarvestMoonTimer_String, lifeTimer);
-        end
+        getHarvestMoonTimer(LongSwordShell010);
     end
     LongSwordShell010 = nil;
 end);

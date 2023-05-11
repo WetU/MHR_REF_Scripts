@@ -15,6 +15,7 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
 local re = re;
+local re_on_frame = re.on_frame;
 local re_on_draw_ui = re.on_draw_ui;
 local re_on_config_save = re.on_config_save;
 
@@ -33,7 +34,6 @@ if settings.enable == nil then
 end
 --
 local NpcTalkMessageCtrl_type_def = sdk_find_type_definition("snow.npc.NpcTalkMessageCtrl");
-local constructor_method = NpcTalkMessageCtrl_type_def:get_method(".ctor");
 local start_method = NpcTalkMessageCtrl_type_def:get_method("start");
 local onLoad_method = NpcTalkMessageCtrl_type_def:get_method("onLoad");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId");
@@ -71,21 +71,14 @@ local npcList = {
 --
 local npcTalkMessageList = nil;
 
-local NpcTalkMessageCtrl_ctor = nil;
-sdk_hook(constructor_method, function(args)
-    if settings.enable then
-        NpcTalkMessageCtrl_ctor = sdk_to_managed_object(args[2]);
-    end
-    return sdk_CALL_ORIGINAL;
-end, function()
-    if NpcTalkMessageCtrl_ctor then
-        if not npcTalkMessageList then
-            npcTalkMessageList = {};
+local function hasNpcId(npcid)
+    for village, ids in pairs(npcList) do
+        if ids[npcid] then
+            return true;
         end
-        table_insert(npcTalkMessageList, NpcTalkMessageCtrl_ctor);
     end
-    NpcTalkMessageCtrl_ctor = nil;
-end);
+    return false;
+end
 
 local NpcTalkMessageCtrl = nil;
 local function pre_getTalkTarget(args)
@@ -97,17 +90,14 @@ end
 
 local function post_getTalkTarget()
     if NpcTalkMessageCtrl then
-        if not npcTalkMessageList then
-            npcTalkMessageList = {};
-        end
-
         local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-        if npcId ~= nil then
-            if npcList[npcId] and not npcTalkMessageList[npcId] then
+        if npcId ~= nil and hasNpcId(npcId) then
+            if not npcTalkMessageList then
+                npcTalkMessageList = {};
+            end
+            if not npcTalkMessageList[npcId] then
                 npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
             end
-        else
-            table_insert(npcTalkMessageList, NpcTalkMessageCtrl);
         end
     end
     NpcTalkMessageCtrl = nil;
@@ -129,25 +119,17 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
         if currentVillageMapNo ~= nil then
             local isKamura = currentVillageMapNo == KAMURA;
             for k, v in pairs(npcTalkMessageList) do
-                if v:get_reference_count() > 0 then
+                if v ~= nil and v:get_reference_count() > 0 then
                     if npcList.KAMURA[k] and isKamura then
                         talkAction(v);
+                        v = nil;
                     elseif npcList.ELGADO[k] and not isKamura then
                         talkAction(v);
-                    else
-                        local NpcId = get_NpcId_method:call(v);
-                        if NpcId ~= nil then
-                            if npcList.KAMURA[NpcId] and isKamura then
-                                talkAction(v);
-                            elseif npcList.ELGADO[NpcId] and not isKamura then
-                                talkAction(v);
-                            end
-                        end
+                        v = nil;
                     end
                 end
             end
         end
-        npcTalkMessageList = nil;
     end
     return retval;
 end);
@@ -170,4 +152,19 @@ re_on_draw_ui(function()
         end
 		imgui_tree_pop();
 	end
+end);
+
+re_on_frame(function()
+    if npcTalkMessageList ~= nil then
+        local valid = false;
+        for k, v in pairs(npcTalkMessageList) do
+            if v ~= nil then
+                valid = true;
+                break;
+            end
+        end
+        if not valid then
+            npcTalkMessageList = nil;
+        end
+    end
 end);
