@@ -7,7 +7,6 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local require = require;
 
@@ -41,7 +40,6 @@ function this.init_module()
 
 	sdk_hook(setIsInvisible_method, function(args)
 		this.on_set_is_invisible(sdk_to_managed_object(args[1]));
-		return sdk_CALL_ORIGINAL;
 	end);
 end
 

@@ -7,7 +7,6 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_config_save = re.on_config_save;
@@ -18,11 +17,7 @@ local imgui_tree_node = imgui.tree_node;
 local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
-local settings = {};
-
-local loadedSettings = json_load_file("AutoLikes.json");
-settings = loadedSettings or {enable = true};
-
+local settings = json_load_file("AutoLikes.json") or {enable = true};
 if settings.enable == nil then
 	settings.enable = true;
 end
@@ -42,14 +37,11 @@ local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqu
 -- Main Function
 local GoodRelationshipHud = nil;
 
-local function getGoodRelationshipHud(args)
+sdk_hook(doOpen_method, function(args)
 	if settings.enable then
 		GoodRelationshipHud = sdk_to_managed_object(args[2]);
 	end
-	return sdk_CALL_ORIGINAL;
-end
-
-local function SwitchGoodPlayer()
+end, function()
 	if GoodRelationshipHud then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos then
@@ -76,9 +68,7 @@ local function SwitchGoodPlayer()
 		GoodRelationshipHud:set_field("WaitTime", 0.0);
 	end
 	GoodRelationshipHud = nil;
-end
-
-sdk_hook(doOpen_method, getGoodRelationshipHud, SwitchGoodPlayer);
+end);
 ---- re Callbacks ----
 local function save_config()
 	json_dump_file("AutoLikes.json", settings);
@@ -91,6 +81,9 @@ re_on_draw_ui(function()
 	if imgui_tree_node("Auto Likes") then
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
 		if changed then
+			if not settings.enable then
+				GoodRelationshipHud = nil;
+			end
 			save_config();
 		end
 		imgui_tree_pop();

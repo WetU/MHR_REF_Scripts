@@ -10,7 +10,6 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local get_CurrentStatus_method = sdk_find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 local StatusType_Quest = get_CurrentStatus_method:get_return_type():get_field("Quest"):get_data(nil);
@@ -23,10 +22,9 @@ local reqOnlineWarning_method = sdk_find_type_definition("snow.SnowSessionManage
 local setOpenNetworkErrorWindowSelection_method = sdk_find_type_definition("snow.gui.GuiManager"):get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)");
 
 function this.on_req_online_warning()
-	if not config.current_config.hide_online_warning.enabled then
-		return sdk_CALL_ORIGINAL;
+	if config.current_config.hide_online_warning.enabled then
+		return sdk_SKIP_ORIGINAL;
 	end
-	return sdk_SKIP_ORIGINAL;
 end
 
 function this.on_set_open_network_error_window_selection()
@@ -64,7 +62,6 @@ function this.on_set_open_network_error_window_selection()
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end
 
 function this.init_module()

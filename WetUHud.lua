@@ -5,7 +5,6 @@ local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 local sdk_hook_vtable = sdk.hook_vtable;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_frame = re.on_frame;
@@ -304,7 +303,6 @@ sdk_hook(UpdateTargetCameraParamData_method, function(args)
             TerminateMonsterHud();
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);
 
 local QuestManager = nil;
@@ -314,7 +312,6 @@ sdk_hook(questActivate_method, function(args)
     end
     TerminateMonsterHud();
     QuestManager = sdk_to_managed_object(args[2]);
-    return sdk_CALL_ORIGINAL;
 end, function()
     if QuestManager and getStatus_method:call(QuestManager) == QuestStatus_None and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
@@ -385,7 +382,6 @@ end
 local PlayerQuestBase_start = nil;
 sdk_hook(PlayerQuestBase_start_method, function(args)
     PlayerQuestBase_start = sdk_to_managed_object(args[2]);
-    return sdk_CALL_ORIGINAL;
 end, function()
     if PlayerQuestBase_start and isMasterPlayer_method:call(PlayerQuestBase_start) then
         local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
@@ -424,7 +420,6 @@ sdk_hook(subLvBuffFromEnemy_method, function(args)
         PlayerQuestBase_subLvBuffFromEnemy = sdk_to_managed_object(args[2]);
         subBuffType = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     end
-    return sdk_CALL_ORIGINAL;
 end, function(retval)
     if PlayerQuestBase_subLvBuffFromEnemy then
         local isMasterPlayer = isMasterPlayer_method:call(PlayerQuestBase_subLvBuffFromEnemy);
@@ -446,7 +441,6 @@ end, function(retval)
     end
     PlayerQuestBase_subLvBuffFromEnemy = nil;
     subBuffType = nil;
-    return retval;
 end);
 
 local addBuffType = nil;
@@ -458,7 +452,6 @@ sdk_hook(addLvBuffCnt_method, function(args)
             PlayerManager_obj = sdk_to_managed_object(args[2]);
         end
     end
-    return sdk_CALL_ORIGINAL;
 end, function()
     if addBuffType == LvBuff.Rainbow then
         hasRainbow = true;
@@ -486,7 +479,6 @@ sdk_hook(updateEquipSkill211_method, function(args)
     if firstHook or not skipUpdate then
         PlayerQuestBase_obj = sdk_to_managed_object(args[2]);
     end
-    return sdk_CALL_ORIGINAL;
 end, function()
     if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) then
         if firstHook then
@@ -545,7 +537,6 @@ sdk_hook(LongSwordShell010_start_method, function(args)
             LongSwordShell010 = nil;
         end
     end
-    return sdk_CALL_ORIGINAL;
 end, function()
     if LongSwordShell010 then
         getHarvestMoonTimer(LongSwordShell010);
@@ -563,7 +554,6 @@ sdk_hook(onChangedGameStatus_method, function(args)
     if GameStatus ~= nil and GameStatus ~= GameStatusType_Village then
         doTerminate = true;
     end
-    return sdk_CALL_ORIGINAL;
 end, function()
     if doTerminate then
         TerminateMonsterHud();

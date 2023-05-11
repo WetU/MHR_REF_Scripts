@@ -54,10 +54,7 @@ local function FindIndex(table, value)
 end
 
 ------------- Config Management --------------
-local config = {};
-
-local loadedConfig = json_load_file("AutoSupply.json");
-config = loadedConfig or {
+local config = json_load_file("AutoSupply.json") or {
     Enabled = true,
     EnableNotification = true,
     EnableCohoot = true,
@@ -68,7 +65,6 @@ config = loadedConfig or {
     CohootMaxStock = 5,
     Language = "ko-KR"
 };
-
 if config.Enabled == nil then
     config.Enabled = true;
 end
@@ -670,8 +666,7 @@ sdk_hook(applyEquipMySet_method, function(args)
     if config.Enabled then
         EquipDataManager = sdk_to_managed_object(args[2]);
     end
-    return sdk_CALL_ORIGINAL;
-end, function(retval)
+end, function()
     if EquipDataManager then
         Restock(EquipDataManager, nil);
     else
@@ -680,7 +675,6 @@ end, function(retval)
         end
     end
     EquipDataManager = nil;
-    return retval;
 end);
 
 sdk_hook(GuiCampFsmManager_start_method, nil, function()

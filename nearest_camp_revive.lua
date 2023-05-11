@@ -9,11 +9,10 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
-local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local sdk_to_float = sdk.to_float;
 local sdk_to_int64 = sdk.to_int64;
+local sdk_hook = sdk.hook;
+local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;
@@ -24,11 +23,7 @@ local imgui_tree_node = imgui.tree_node;
 local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
-local settings = {};
-
-local loadedSettings = json_load_file("Nearest_camp_revive.json");
-settings = loadedSettings or {enable = true};
-
+local settings = json_load_file("Nearest_camp_revive.json") or {enable = true};
 if settings.enable == nil then
     settings.enable = true
 end
@@ -236,7 +231,6 @@ sdk_hook(startToPlayPlayerDieMusic_method, function()
             findNearestCamp(camps, nekoTakuList[mapNo]);
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(createNekotaku_method, function(args)
@@ -252,7 +246,6 @@ sdk_hook(createNekotaku_method, function(args)
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(setPlWarpInfo_Nekotaku_method, function(args)
@@ -264,5 +257,4 @@ sdk_hook(setPlWarpInfo_Nekotaku_method, function(args)
             return sdk_SKIP_ORIGINAL;
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);

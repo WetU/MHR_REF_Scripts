@@ -7,9 +7,8 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 local sdk_create_instance = sdk.create_instance;
+local sdk_hook = sdk.hook;
 
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;
@@ -26,10 +25,7 @@ local imgui_tree_pop = imgui.tree_pop;
 local imgui_end_window = imgui.end_window;
 local imgui_spacing = imgui.spacing;
 
-local settings = {};
-
-local savedConfig = json_load_file("Enhance_Dango_kitchen.json");
-settings = savedConfig or {
+local settings = json_load_file("Enhance_Dango_kitchen.json") or {
 	skipDangoSong = true,
 	skipEating = true,
 	skipMotley = true,
@@ -40,7 +36,6 @@ settings = savedConfig or {
 	EnableSkewerLv = false,
 	skewerLvs = {4, 3, 1}
 };
-
 if settings.skipDangoSong == nil then
 	settings.skipDangoSong = true;
 end
@@ -157,14 +152,12 @@ sdk_hook(get_SkillActiveRate_method, function(args)
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
-end, function(retval)
+end, function()
 	if SavedDangoChance ~= nil then
 		Param:set_field("_SkillActiveRate", SavedDangoChance);
 	end
 	Param = nil;
 	SavedDangoChance = nil;
-	return retval;
 end);
 
 sdk_hook(setDangoDetailWindow_method, function(args)
@@ -181,7 +174,6 @@ sdk_hook(setDangoDetailWindow_method, function(args)
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(updateList_method, function(args)
@@ -209,7 +201,6 @@ sdk_hook(updateList_method, function(args)
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end, function()
 	if settings.ShowAllDango then
 		local FacilityDataManager = sdk_get_managed_singleton("snow.data.FacilityDataManager");
@@ -273,7 +264,6 @@ sdk_hook(play_method, function(args)
 			end
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end, function()
 	if DemoHandler and DemoType then
 		if get_LoadState_method:call(DemoHandler) == LOADSTATE_ACTIVE and get_Playing_method:call(DemoHandler) then

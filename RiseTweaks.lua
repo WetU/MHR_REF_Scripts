@@ -19,11 +19,7 @@ local imgui_tree_pop = imgui.tree_pop;
 local imgui_slider_float = imgui.slider_float;
 
 local fps_option = {30.0, 60.0, 90.0, 120.0, 144.0, 165.0, 240.0, 600.0};
-local config = {};
-
-local config_file = json_load_file("RiseTweaks/config.json");
-config = config_file or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2]};
-
+local config = json_load_file("RiseTweaks/config.json") or {enableFPS = true, autoFPS = true, desiredFPS = fps_option[2]};
 if config.enableFPS == nil then
 	config.enableFPS = true;
 end
@@ -43,7 +39,7 @@ local getFrameRateOption_method = StmOptionDataContainer_field:get_type():get_me
 local playEventCommon_method = sdk_find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon");
 local set_MaxFps_method = sdk_find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)");
 
-local function fps_handler(retval)
+local function fps_handler()
 	if config.enableFPS then
 		if config.autoFPS then
 			local StmOptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
@@ -59,7 +55,6 @@ local function fps_handler(retval)
 			set_MaxFps_method:call(Application, config.desiredFPS);
 		end
 	end
-	return retval;
 end
 
 sdk_hook(writeGraphicOptionOnIniFile_method, nil, fps_handler); -- allows title screen fps changes to appear immediately, if there's a better method to hook, let me know

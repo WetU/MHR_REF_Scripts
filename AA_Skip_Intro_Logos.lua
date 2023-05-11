@@ -5,7 +5,6 @@ local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
 local sdk_hook_vtable = sdk.hook_vtable;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 --
 local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
 local play_method = Movie_type_def:get_method("play");
@@ -63,7 +62,6 @@ sdk_hook(capcomLogoFadeIn_update_method, nil, ClearFade);
 local currentAction = nil;
 local function PreHook_GetActionObject(args)
 	currentAction = sdk_to_managed_object(args[3]);
-	return sdk_CALL_ORIGINAL;
 end
 
 local function PostHook_notifyActionEnd()
@@ -103,7 +101,6 @@ sdk_hook(play_method, function(args)
 	if isLoading() then
 		currentMovie = sdk_to_managed_object(args[2]);
 	end
-	return sdk_CALL_ORIGINAL;
 end, function()
 	if currentMovie then
 		local DurationTime = get_DurationTime_method:call(currentMovie);
@@ -116,9 +113,8 @@ end);
 
 -- Fake title skip input for HEALTH/Capcom
 local SkipTrg = sdk_to_ptr(1);
-sdk_hook(getTitleDispSkipTrg_method, nil, function(retval)
+sdk_hook(getTitleDispSkipTrg_method, nil, function()
 	if isLoading() then
 		return SkipTrg;
 	end
-	return retval;
 end);

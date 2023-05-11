@@ -13,7 +13,6 @@ local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -32,7 +31,7 @@ local math_floor = math.floor;
 local pairs = pairs;
 local tonumber = tonumber;
 
-local config = {};
+local config = nil;
 
 local function Reset()
     config = {
@@ -237,7 +236,6 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);
 
 sdk_hook(excute_method, function(args)
@@ -298,7 +296,6 @@ sdk_hook(excute_method, function(args)
             end
         end
     end
-    return sdk_CALL_ORIGINAL;
 end);
 
 local nextArg = nil;
@@ -306,8 +303,7 @@ sdk_hook(getHitUIColorType_method, function(args)
     if config.Enable then
         nextArg = sdk_to_managed_object(args[2]);
     end
-    return sdk_CALL_ORIGINAL;
-end, function(retval)
+end, function()
     if nextArg then
         local calcParam = CalcParam_field:get_data(nextArg);
         nextArg = nil;
@@ -375,7 +371,6 @@ end, function(retval)
         end
     end
     nextArg = nil;
-    return retval;
 end);
 
 re_on_draw_ui(function()

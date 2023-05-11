@@ -3,7 +3,6 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local json = json;
 local json_dump_file = json.dump_file;
@@ -24,11 +23,7 @@ local table_insert = table.insert;
 
 local pairs = pairs;
 --
-local settings = {};
-
-local loadedSettings = json_load_file("no_bullshit.json");
-settings = loadedSettings or {enable = true};
-
+local settings = json_load_file("no_bullshit.json") or {enable = true};
 if settings.enable == nil then
     settings.enable = true;
 end
@@ -85,7 +80,6 @@ local function pre_getTalkTarget(args)
     if settings.enable then
         NpcTalkMessageCtrl = sdk_to_managed_object(args[2]);
     end
-    return sdk_CALL_ORIGINAL;
 end
 
 local function post_getTalkTarget()
@@ -131,7 +125,6 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
             end
         end
     end
-    return retval;
 end);
 --
 local function SaveSettings()

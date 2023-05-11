@@ -1,17 +1,3 @@
----------------------------Settings----------------------
-local settings = {
-	NoKillCam = {
-		disableKillCam = true,
-	},
-	BTH = {
-		autoSkipCountdown = false,
-		autoSkipPostAnim = true,
-		enableKeyboard = true,
-		kbCDSkipKey = 36,
-		kbAnimSkipKey = 35
-	}
-};
-----------------------------------------------------------
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
@@ -19,7 +5,6 @@ local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
-local sdk_CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
 
 local re = re;
 local re_on_draw_ui = re.on_draw_ui;
@@ -43,8 +28,37 @@ local json_dump_file = json.dump_file;
 local require = require;
 local pairs = pairs;
 
-local loadedSettings = json_load_file("NoKillCam+BTH.json");
-settings = loadedSettings or settings;
+local settings = json_load_file("NoKillCam+BTH.json") or 
+{
+	NoKillCam = {
+		disableKillCam = true,
+	},
+	BTH = {
+		autoSkipCountdown = false,
+		autoSkipPostAnim = true,
+		enableKeyboard = true,
+		kbCDSkipKey = 36,
+		kbAnimSkipKey = 35
+	}
+};
+if settings.NoKillCam.disableKillCam == nil then
+	settings.NoKillCam.disableKillCam = true;
+end
+if settings.BTH.autoSkipCountdown == nil then
+	settings.BTH.autoSkipCountdown = false;
+end
+if settings.BTH.autoSkipPostAnim == nil then
+	settings.BTH.autoSkipPostAnim = true;
+end
+if settings.BTH.enableKeyboard == nil then
+	settings.BTH.enableKeyboard = true;
+end
+if settings.BTH.kbCDSkipKey == nil then
+	settings.BTH.kbCDSkipKey = 36;
+end
+if settings.BTH.kbAnimSkipKey == nil then
+	settings.BTH.kbAnimSkipKey = 35;
+end
 
 local function SaveSettings()
 	json_dump_file("NoKillCam+BTH.json", settings);
@@ -110,13 +124,12 @@ QuestManager.CaptureStatus
 
 -- No Kill Cam
 sdk_hook(RequestActive_method, function(args)
-	if settings.NoKillCam.disableKillCam and sdk_to_int64(args[3]) & 0xFFFFFFFF == 3 then --type 3 == 'demo' camera type
+	if settings.NoKillCam.disableKillCam and (sdk_to_int64(args[3]) & 0xFFFFFFFF) == 3 then --type 3 == 'demo' camera type
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
 		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
 			return sdk_SKIP_ORIGINAL;
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end);
 
 -- BTH
@@ -125,7 +138,6 @@ sdk_hook(updateQuestEndFlow_method, function(args)
 	if settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim then
 		QuestManager_obj = sdk_to_managed_object(args[2]);
 	end
-	return sdk_CALL_ORIGINAL;
 end, function()
 	if QuestManager_obj and getQuestReturnTimerSec_method:call(QuestManager_obj) > 1.0 then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
@@ -170,7 +182,6 @@ sdk_hook(changeAllMarkerEnable_method, function(args)
 			return sdk_SKIP_ORIGINAL;
 		end
 	end
-	return sdk_CALL_ORIGINAL;
 end);
 
 -------------------------UI GARBAGE----------------------------------

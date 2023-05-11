@@ -21,11 +21,7 @@ local imgui_tree_pop = imgui.tree_pop;
 
 local pairs = pairs;
 
-local settings = {};
-
-local loadedSettings = json_load_file("Fix_Marionette_Camera.json");
-settings = loadedSettings or {enable = true};
-
+local settings = json_load_file("Fix_Marionette_Camera.json") or {enable = true};
 if settings.enable == nil then
 	settings.enable = true;
 end
@@ -57,7 +53,6 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 			end
 		end
 	end
-	return retval;
 end);
 ---- re Callbacks ----
 local function save_config()
