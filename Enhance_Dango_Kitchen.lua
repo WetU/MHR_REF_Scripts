@@ -42,11 +42,7 @@ if settings.TicketByDefault == nil then
 	settings.TicketByDefault = true;
 end
 -- VIP Dango Ticket Cache
-local kitchen_field = sdk_find_type_definition("snow.data.FacilityDataManager"):get_field("_Kitchen");
-
-local mealFunc_field = kitchen_field:get_type():get_field("_MealFunc");
-
-local mealFunc_type_def = mealFunc_field:get_type();
+local mealFunc_type_def = sdk_find_type_definition("snow.facility.kitchen.MealFunc");
 local updateList_method = mealFunc_type_def:get_method("updateList(System.Boolean)");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
