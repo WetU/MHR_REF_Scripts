@@ -135,7 +135,7 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                 for _, v in pairs(npcTalkMessageList) do
                     if sdk_is_managed_object(v) then
                         local npcId = get_NpcId_method:call(v);
-                        if hasNpcId(npcId) then
+                        if npcId ~= nil and hasNpcId(npcId) then
                             talkAction(v);
                             v = nil;
                         end
@@ -143,6 +143,7 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                         v = nil;
                     end
                 end
+                ctorActivated = false;
             else
                 for k, v in pairs(npcTalkMessageList) do
                     if v ~= nil then
