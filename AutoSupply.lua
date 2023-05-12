@@ -6,6 +6,7 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 
 local re = re;
@@ -112,53 +113,57 @@ re_on_config_save(save_config);
 local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local DataManager_type_def = sdk_find_type_definition("snow.data.DataManager");
-local getVillagePoint_method = DataManager_type_def:get_method("getVillagePoint");
-local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet");
+local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
 
-local VillagePoint_type_def = getVillagePoint_method:get_return_type();
-local get_Point_method = VillagePoint_type_def:get_method("get_Point");
-local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)");
+local VillagePoint_type_def = sdk_find_type_definition("snow.data.VillagePoint");
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static, retval
+local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
 local ItemMySet_type_def = getItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
-local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
+local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)"); -- retval
 
 local PlItemPouchMySetData_type_def = getData_method:get_return_type();
-local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name");
-local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
-local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
+local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name"); -- retval
+local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem"); -- retval
+local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex"); -- retval
 
-local GetValueOrDefault_method = get_PaletteSetIndex_method:get_return_type():get_method("GetValueOrDefault");
+local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type();
+local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue"); -- retval
+local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value"); -- retval
+local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault"); -- retval
 
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
-local applyEquipMySet_method = EquipDataManager_type_def:get_method("applyEquipMySet(snow.equip.PlEquipMySetData)");
+local applyEquipMySet_method = EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"); -- retval
 local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
-local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
+local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");  -- retval
 
 local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
-local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
-local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing");
-local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
-local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
+local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name"); -- retval
+local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing"); -- retval
+local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack"); -- retval
+local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData"); -- retval
 
-local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
+local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType"); -- retval
 
-local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem");
+local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static, retval
 
 local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
-local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
+local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)"); -- retval
 
-local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
+local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
 
-local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name");
+local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
 
 local GuiCampFsmManager_start_method = sdk_find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start");
 
+local SycleTypes_Quest = sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
+
 local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
-local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
+local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
 local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
@@ -167,44 +172,44 @@ local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
-local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData");
+local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData"); -- retval
 
 local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
 
-local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
+local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local get_TradeFunc_method = sdk_find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
+local get_TradeFunc_method = sdk_find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc"); -- retval
 
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
-local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
-local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData");
+local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList"); -- retval
+local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData(snow.facility.tradeCenter.NegotiationTypes)"); -- retval
 
 local TradeOrderList_type_def = get_TradeOrderList_method:get_return_type();
-local TradeOrderList_get_Count_method = TradeOrderList_type_def:get_method("get_Count");
-local TradeOrderList_get_Item_method = TradeOrderList_type_def:get_method("get_Item(System.Int32)");
+local TradeOrderList_get_Count_method = TradeOrderList_type_def:get_method("get_Count"); -- retval
+local TradeOrderList_get_Item_method = TradeOrderList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local NegotiationData_type_def = getNegotiationData_method:get_return_type();
-local get_Cost_method = NegotiationData_type_def:get_method("get_Cost");
-local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count");
+local get_Cost_method = NegotiationData_type_def:get_method("get_Cost"); -- retval
+local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count"); -- retval
 
 local TradeOrder_type_def = sdk_find_type_definition("snow.facility.tradeCenter.TradeOrderData");
 local initialize_method = TradeOrder_type_def:get_method("initialize");
-local get_InventoryList_method = TradeOrder_type_def:get_method("get_InventoryList");
-local get_NegotiationCount_method = TradeOrder_type_def:get_method("get_NegotiationCount");
+local get_InventoryList_method = TradeOrder_type_def:get_method("get_InventoryList"); -- retval
+local get_NegotiationCount_method = TradeOrder_type_def:get_method("get_NegotiationCount"); -- retval
 local setNegotiationCount_method = TradeOrder_type_def:get_method("setNegotiationCount(System.UInt32)");
-local get_NegotiationType_method = TradeOrder_type_def:get_method("get_NegotiationType");
+local get_NegotiationType_method = TradeOrder_type_def:get_method("get_NegotiationType"); -- retval
 
 local InventoryList_type_def = get_InventoryList_method:get_return_type();
-local InventoryList_get_Count_method = InventoryList_type_def:get_method("get_Count");
-local InventoryList_get_Item_method = InventoryList_type_def:get_method("get_Item(System.Int32)");
+local InventoryList_get_Count_method = InventoryList_type_def:get_method("get_Count"); -- retval
+local InventoryList_get_Item_method = InventoryList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local Inventory_type_def = InventoryList_get_Item_method:get_return_type();
-local isEmpty_method = Inventory_type_def:get_method("isEmpty");
-local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
+local isEmpty_method = Inventory_type_def:get_method("isEmpty"); -- retval
+local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count"); -- retval
 local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)");
 
 local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
@@ -220,17 +225,6 @@ local function SendMessage(text)
 	end
 end
 
-local function GetItemLoadout(loadoutIndex)
-    local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
-    if DataManager then
-        local ItemMySet = getItemMySet_method:call(DataManager);
-        if ItemMySet then
-            return getData_method:call(ItemMySet, loadoutIndex);
-        end
-    end
-    return nil;
-end
-
 local function ApplyItemLoadout(loadoutIndex)
     local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
     if DataManager then
@@ -243,7 +237,7 @@ local function ApplyItemLoadout(loadoutIndex)
 end
 
 local function GetItemLoadoutName(loadoutIndex)
-	local ItemLoadout = GetItemLoadout(loadoutIndex);
+	local ItemLoadout = getData_method:call(getItemMySet_method:call(nil), loadoutIndex);
 	if ItemLoadout then
 		return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
 	end
@@ -517,7 +511,7 @@ end
 ------------------------
 local function Restock(equipDataManager, loadoutIndex)
     local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
-    local loadout = GetItemLoadout(itemLoadoutIndex);
+    local loadout = getData_method:call(getItemMySet_method:call(nil), itemLoadoutIndex);
     local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
     local msg = "";
     if isEnoughItem_method:call(loadout) then
@@ -527,26 +521,23 @@ local function Restock(equipDataManager, loadoutIndex)
             or FromDefault(itemLoadoutName, loadoutMismatch);
 
         local paletteIndex = get_PaletteSetIndex_method:call(loadout);
-        if not paletteIndex then
+        if paletteIndex == nil then
             msg = msg .. "\n" .. PaletteNilError();
         else
-            local SystemDataManager = sdk_get_managed_singleton("snow.data.SystemDataManager");
-            if SystemDataManager then
-                local radialSetIndex = GetValueOrDefault_method:call(paletteIndex);
-                if radialSetIndex then
-                    local ShortcutManager = getCustomShortcutSystem_method:call(SystemDataManager);
-                    if ShortcutManager then
-                        local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
-                        if paletteList then
-                            local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
-                            if palette then
-                                msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
-                            end
-                        else
-                            msg = msg .. "\n" .. PaletteListEmpty();
+            local radialSetIndex = get_HasValue_method:call(paletteIndex) and get_Value_method:call(paletteIndex) or GetValueOrDefault_method:call(paletteIndex);
+            if radialSetIndex ~= nil then
+                local ShortcutManager = getCustomShortcutSystem_method:call(nil);
+                if ShortcutManager then
+                    local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+                    if paletteList then
+                        local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
+                        if palette ~= nil then
+                            msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
                         end
-                        setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
+                    else
+                        msg = msg .. "\n" .. PaletteListEmpty();
                     end
+                    setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                 end
             end
         end
@@ -628,12 +619,9 @@ local function autoArgosy()
                                 local negotiationData = getNegotiationData_method:call(tradeFunc, get_NegotiationType_method:call(tradeOrder));
                                 if negotiationData then
                                     local negotiationCost = get_Cost_method:call(negotiationData);
-                                    if negotiationCost ~= nil then
-                                        local villagePoint = getVillagePoint_method:call(DataManager);
-                                        if villagePoint and get_Point_method:call(villagePoint) >= negotiationCost then
-                                            setNegotiationCount_method:call(tradeOrder, negotiationCount + NegotiationData_get_Count_method:call(negotiationData));
-                                            subPoint_method:call(villagePoint, negotiationCost);
-                                        end
+                                    if negotiationCost ~= nil and get_Point_method:call(nil) >= negotiationCost then
+                                        setNegotiationCount_method:call(tradeOrder, negotiationCount + NegotiationData_get_Count_method:call(negotiationData));
+                                        subPoint_method:call(nil, negotiationCost);
                                     end
                                 end
                             end
@@ -662,19 +650,30 @@ local function autoArgosy()
 end
 
 local EquipDataManager = nil;
+local setIdx = nil;
 sdk_hook(applyEquipMySet_method, function(args)
     if config.Enabled then
         EquipDataManager = sdk_to_managed_object(args[2]);
+        setIdx = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     end
-end, function()
+end, function(retval)
     if EquipDataManager then
-        Restock(EquipDataManager, nil);
+        if setIdx ~= nil then
+            Restock(EquipDataManager, setIdx);
+        else
+            Restock(EquipDataManager, nil);
+        end
     else
-        if config.Enabled then
-            Restock(nil, nil);
+        if setIdx ~= nil then
+            Restock(nil, setIdx);
+        else
+            if config.Enabled then
+                Restock(nil, nil);
+            end
         end
     end
     EquipDataManager = nil;
+    return retval;
 end);
 
 sdk_hook(GuiCampFsmManager_start_method, nil, function()

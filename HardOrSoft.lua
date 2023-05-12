@@ -303,7 +303,7 @@ sdk_hook(getHitUIColorType_method, function(args)
     if config.Enable then
         nextArg = sdk_to_managed_object(args[2]);
     end
-end, function()
+end, function(retval)
     if nextArg then
         local calcParam = CalcParam_field:get_data(nextArg);
         nextArg = nil;
@@ -371,6 +371,7 @@ end, function()
         end
     end
     nextArg = nil;
+    return retval;
 end);
 
 re_on_draw_ui(function()

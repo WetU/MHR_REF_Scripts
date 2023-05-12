@@ -22,6 +22,7 @@ local table = table;
 local table_insert = table.insert;
 
 local pairs = pairs;
+local pcall = pcall;
 --
 local settings = json_load_file("no_bullshit.json") or {enable = true};
 if settings.enable == nil then
@@ -101,10 +102,12 @@ sdk_hook(start_method, pre_getTalkTarget, post_getTalkTarget);
 sdk_hook(onLoad_method, pre_getTalkTarget, post_getTalkTarget);
 
 local function talkAction(npcTalkMessageCtrl)
-    resetTalkDispName_method:call(npcTalkMessageCtrl);
-    executeTalkAction_method:call(npcTalkMessageCtrl);
-    set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
-    set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
+    pcall(function()
+        resetTalkDispName_method:call(npcTalkMessageCtrl);
+        executeTalkAction_method:call(npcTalkMessageCtrl);
+        set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
+        set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
+    end);
 end
 
 sdk_hook(getCurrentMapNo_method, nil, function(retval)

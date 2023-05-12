@@ -441,6 +441,7 @@ end, function(retval)
     end
     PlayerQuestBase_subLvBuffFromEnemy = nil;
     subBuffType = nil;
+    return retval;
 end);
 
 local addBuffType = nil;

@@ -23,15 +23,15 @@ if settings.enable == nil then
 end
 -- Cache
 local GoodRelationship_type_def = sdk_find_type_definition("snow.gui.GuiHud_GoodRelationship");
-local doOpen_method = GoodRelationship_type_def:get_method("doOpen");
-local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)");
+local doOpen_method = GoodRelationship_type_def:get_method("doOpen"); -- virtual
+local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)"); -- retval
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
-local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count");
+local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- retval
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
-local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
+local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
 -- Main Function

@@ -53,6 +53,7 @@ sdk_hook(UpdateCameraReset_method, nil, function(retval)
 			end
 		end
 	end
+	return retval;
 end);
 ---- re Callbacks ----
 local function save_config()

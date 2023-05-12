@@ -2,18 +2,19 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_call_native_func = sdk.call_native_func;
 local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
 local sdk_hook_vtable = sdk.hook_vtable;
 --
 local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
-local play_method = Movie_type_def:get_method("play");
-local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
-local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
+local play_method = Movie_type_def:get_method("play"); -- native
+local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime"); -- native, retval
+local seek_method = Movie_type_def:get_method("seek(System.UInt64)"); -- native
 
-local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
+local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd"); -- native
 local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
+local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 -- hook method --
 local healthCautionFadeIn_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)");
 local otherLogoFadeIn_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)");
@@ -25,7 +26,7 @@ local reLogoFadeIn_update_method = sdk_find_type_definition("snow.gui.fsm.title.
 local autoSaveCaution_Action_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_AutoSaveCaution_Action"):get_method("start(via.behaviortree.ActionArg)");
 local pressAnyButton_Action_start_method = sdk_find_type_definition("snow.gui.fsm.title.GuiTitleFsm_PressAnyButton_Action"):get_method("start(via.behaviortree.ActionArg)");
 
-local getTitleDispSkipTrg_method = sdk_find_type_definition("snow.gui.StmGuiInput"):get_method("getTitleDispSkipTrg");
+local getTitleDispSkipTrg_method = sdk_find_type_definition("snow.gui.StmGuiInput"):get_method("getTitleDispSkipTrg"); -- static, retval
 -- static --
 local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
 local LOADING_STATES =	{
@@ -66,7 +67,7 @@ end
 
 local function PostHook_notifyActionEnd()
 	if currentAction then
-		notifyActionEnd_method:call(currentAction);
+		sdk_call_native_func(currentAction, currentAction:get_type_definition(), "notifyActionEnd");
 	end
 	currentAction = nil;
 end
@@ -103,9 +104,10 @@ sdk_hook(play_method, function(args)
 	end
 end, function()
 	if currentMovie then
-		local DurationTime = get_DurationTime_method:call(currentMovie);
+		local currentMovie_type_def = currentMovie:get_type_definition();
+		local DurationTime = sdk_call_native_func(currentMovie, currentMovie_type_def, "get_DurationTime");
 		if DurationTime ~= nil then
-			seek_method:call(currentMovie, DurationTime);
+			sdk_call_native_func(currentMovie, currentMovie_type_def, "seek(System.UInt64)", DurationTime);
 		end
 	end
 	currentMovie = nil;
@@ -113,8 +115,9 @@ end);
 
 -- Fake title skip input for HEALTH/Capcom
 local SkipTrg = sdk_to_ptr(1);
-sdk_hook(getTitleDispSkipTrg_method, nil, function()
+sdk_hook(getTitleDispSkipTrg_method, nil, function(retval)
 	if isLoading() then
 		return SkipTrg;
 	end
+	return retval;
 end);
