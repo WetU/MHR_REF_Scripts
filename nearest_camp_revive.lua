@@ -6,6 +6,7 @@ local Vector3f = Vector3f;
 local Vector3f_new = Vector3f.new;
 
 local sdk = sdk;
+local sdk_call_native_func = sdk.call_native_func;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
@@ -55,32 +56,33 @@ local nekoTakuList = {
     }
 };
 --
-local get_CurrentMapNo_method = sdk_find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo");
+local get_CurrentMapNo_method = sdk_find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = sdk_find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 local startToPlayPlayerDieMusic_method = sdk_find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic");
 
-local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
-local get_GameObject_method = findMasterPlayer_method:get_return_type():get_method("get_GameObject");
-local get_Transform_method = get_GameObject_method:get_return_type():get_method("get_Transform");
-local get_Position_method = get_Transform_method:get_return_type():get_method("get_Position");
+local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
+
+local PlayerBase_type_def = findMasterPlayer_method:get_return_type();
+
+local GameObject_type_def = sdk_find_type_definition("via.GameObject");
+
+local Transform_type_def = sdk_find_type_definition("via.Transform");
 
 local stagePointManager_type_def = sdk_find_type_definition("snow.stage.StagePointManager");
-local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList");
+local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
 local tentPositionList_field = stagePointManager_type_def:get_field("_TentPositionList");
 
 local fastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
-local fastTravelPointList_get_Count_method = fastTravelPointList_type_def:get_method("get_Count");
-local fastTravelPointList_get_Item_method = fastTravelPointList_type_def:get_method("get_Item(System.Int32)");
+local fastTravelPointList_get_Count_method = fastTravelPointList_type_def:get_method("get_Count"); -- retval
+local fastTravelPointList_get_Item_method = fastTravelPointList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local get_Points_method = fastTravelPointList_get_Item_method:get_return_type():get_method("get_Points");
+local get_Points_method = fastTravelPointList_get_Item_method:get_return_type():get_method("get_Points"); -- retval
 
-local Points_type_def = get_Points_method:get_return_type();
-local Points_get_Count_method = Points_type_def:get_method("get_Count");
-local Points_get_Item_method = Points_type_def:get_method("get_Item(System.Int32)");
+local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
 
 local tentPositionList_type_def = tentPositionList_field:get_type();
-local tentPositionList_get_Count_method = tentPositionList_type_def:get_method("get_Count");
-local tentPositionList_get_Item_method = tentPositionList_type_def:get_method("get_Item(System.Int32)");
+local tentPositionList_get_Count_method = tentPositionList_type_def:get_method("get_Count"); -- retval
+local tentPositionList_get_Item_method = tentPositionList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local stageManager_type_def = sdk_find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
@@ -109,11 +111,11 @@ local function getCurrentPosition()
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
-            local GameObject = get_GameObject_method:call(MasterPlayer);
+            local GameObject = sdk_call_native_func(MasterPlayer, PlayerBase_type_def, "get_GameObject");
             if GameObject then
-                local Transform = get_Transform_method:call(GameObject);
+                local Transform = sdk_call_native_func(GameObject, GameObject_type_def, "get_Transform");
                 if Transform then
-                    local Position = get_Position_method:call(Transform);
+                    local Position = sdk_call_native_func(Transform, Transform_type_def, "get_Position");
                     if Position then
                         return Position;
                     end
@@ -146,12 +148,9 @@ local function getFastTravelPt(index)
                 if FastTravelPoint then
                     local Points = get_Points_method:call(FastTravelPoint);
                     if Points then
-                        local Points_count = Points_get_Count_method:call(Points);
-                        if Points_count > 0 then
-                            local Point = Points_get_Item_method:call(Points, 0);
-                            if Point then
-                                return Point;
-                            end
+                        local Point = Points_get_Item_method:call(Points, 0);
+                        if Point then
+                            return Point;
                         end
                     end
                 end

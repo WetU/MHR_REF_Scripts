@@ -26,8 +26,8 @@ if settings.enable == nil then
 	settings.enable = true;
 end
 -- Cache
-local UpdateCameraReset_method = sdk_find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)");
-local get_MarionetteCameraType_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_MarionetteCameraType");
+local UpdateCameraReset_method = sdk_find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"); -- virtual, retval
+local get_MarionetteCameraType_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_MarionetteCameraType"); -- retval
 
 local ResetState_None = UpdateCameraReset_method:get_return_type():get_field("None"):get_data(nil);
 

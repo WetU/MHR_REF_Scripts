@@ -11,6 +11,7 @@ local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
+local sdk_call_native_func = sdk.call_native_func;
 local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
 
@@ -87,40 +88,44 @@ end
 
 re_on_config_save(SaveConfig);
 
-local get_UpTimeSecond_method = sdk_find_type_definition("via.Application"):get_method("get_UpTimeSecond");
+local get_UpTimeSecond_method = sdk_find_type_definition("via.Application"):get_method("get_UpTimeSecond"); -- static, native
 
-local afterCalcDamage_DamageSide_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("afterCalcDamage_DamageSide(snow.hit.DamageFlowInfoBase, snow.DamageReceiver.HitInfo)");
-local getHitUIColorType_method = sdk_find_type_definition("snow.enemy.EnemyUtility"):get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)");
+local afterCalcDamage_DamageSide_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("afterCalcDamage_DamageSide(snow.hit.DamageFlowInfoBase, snow.DamageReceiver.HitInfo)"); -- virtual
+local getHitUIColorType_method = sdk_find_type_definition("snow.enemy.EnemyUtility"):get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)"); -- static, retval
 
 local GuiDamageDisp_NumDisp_type_def = sdk_find_type_definition("snow.gui.GuiDamageDisp.NumDisp");
 local excute_method = GuiDamageDisp_NumDisp_type_def:get_method("execute");
-local isExecute_method = GuiDamageDisp_NumDisp_type_def:get_method("isExecute");
+local isExecute_method = GuiDamageDisp_NumDisp_type_def:get_method("isExecute"); -- retval
 local DispType_field = GuiDamageDisp_NumDisp_type_def:get_field("DispType");
 local DamageText_field = GuiDamageDisp_NumDisp_type_def:get_field("_DamageText");
 
 local DamageText_type_def = DamageText_field:get_type();
-local get_Message_method = DamageText_type_def:get_method("get_Message");
-local set_Message_method = DamageText_type_def:get_method("set_Message(System.String)");
-local set_FontSlot_method = DamageText_type_def:get_method("set_FontSlot(via.gui.FontSlot)");
 
 local AfterCalcInfo_DamageSide_type_def = sdk_find_type_definition("snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide");
-local get_AttackerID_method = AfterCalcInfo_DamageSide_type_def:get_method("get_AttackerID");
-local get_DamageAttackerType_method = AfterCalcInfo_DamageSide_type_def:get_method("get_DamageAttackerType");
-local get_TotalDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_TotalDamage");
-local get_PhysicalDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_PhysicalDamage");
-local get_ElementDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_ElementDamage");
-local get_CriticalResult_method = AfterCalcInfo_DamageSide_type_def:get_method("get_CriticalResult");
+local get_AttackerID_method = AfterCalcInfo_DamageSide_type_def:get_method("get_AttackerID"); -- retval
+local get_DamageAttackerType_method = AfterCalcInfo_DamageSide_type_def:get_method("get_DamageAttackerType"); -- retval
+local get_TotalDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_TotalDamage"); -- retval
+local get_PhysicalDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_PhysicalDamage"); -- retval
+local get_ElementDamage_method = AfterCalcInfo_DamageSide_type_def:get_method("get_ElementDamage"); -- retval
+local get_CriticalResult_method = AfterCalcInfo_DamageSide_type_def:get_method("get_CriticalResult"); -- retval
 local CalcParam_field = AfterCalcInfo_DamageSide_type_def:get_field("_CalcParam");
 
 local CalcParam_type_def = CalcParam_field:get_type();
-local get_OwnerType_method = CalcParam_type_def:get_method("get_OwnerType");
-local get_CalcType_method = CalcParam_type_def:get_method("get_CalcType");
-local get_ElementMeatAdjustRate_method = CalcParam_type_def:get_method("get_ElementMeatAdjustRate");
-local get_PhysicalMeatAdjustRate_method = CalcParam_type_def:get_method("get_PhysicalMeatAdjustRate");
+local get_OwnerType_method = CalcParam_type_def:get_method("get_OwnerType"); -- retval
+local get_CalcType_method = CalcParam_type_def:get_method("get_CalcType"); -- retval
+local get_ElementMeatAdjustRate_method = CalcParam_type_def:get_method("get_ElementMeatAdjustRate"); -- retval
+local get_PhysicalMeatAdjustRate_method = CalcParam_type_def:get_method("get_PhysicalMeatAdjustRate"); -- retval
 
-local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
+local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
-local getPlayerIndex_method = findMasterPlayer_method:get_return_type():get_method("getPlayerIndex");
+local getPlayerIndex_method = findMasterPlayer_method:get_return_type():get_method("getPlayerIndex"); -- retval
+
+local CriticalType_type_def = get_CriticalResult_method:get_return_type();
+local CriticalType = {
+    ["None"] = CriticalType_type_def:get_field("None"):get_data(nil),
+    ["Critical"] = CriticalType_type_def:get_field("Critical"):get_data(nil),
+    ["NegativeCritical"] = CriticalType_type_def:get_field("NegativeCritical"):get_data(nil)
+};
 
 local DamageAttackerType = {
     PlayerWeapon = 0,
@@ -223,7 +228,7 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
             if MasterPlayer then
                 local masterIdx = getPlayerIndex_method:call(MasterPlayer);
                 local dmgInfo = sdk_to_managed_object(args[3]);
-                if masterIdx ~= nil and dmgInfo and get_AttackerID_method(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
+                if masterIdx ~= nil and dmgInfo and get_AttackerID_method:call(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
                     table_insert(preDmg, {
                         ["dmg"] = get_TotalDamage_method:call(dmgInfo),
                         ["physical"] = get_PhysicalDamage_method:call(dmgInfo),
@@ -245,9 +250,9 @@ sdk_hook(excute_method, function(args)
             local text = DamageText_field:get_data(tmp);
             local font = (config.FontType == 5 and 7) or (config.FontType == 6 and 11) or config.FontType;
             if text and font then
-                set_FontSlot_method:call(text, font);
+                sdk_call_native_func(text, DamageText_type_def, "set_FontSlot(via.gui.FontSlot)", font);
                 tmp:set_field("waitFrame", config.DisplayTime);
-                local dmg = tonumber(get_Message_method:call(text));
+                local dmg = tonumber(sdk_call_native_func(text, DamageText_type_def, "get_Message"));
                 if dmg then
                     for _, v in pairs(preDmg) do
                         if v.find < 2 then
@@ -255,9 +260,9 @@ sdk_hook(excute_method, function(args)
                                 v.find = v.find + 1;
                                 local msg = dmg;
                                 if config.CriticalDisplay then
-                                    if v.critical == 1 then
+                                    if v.critical == CriticalType.Critical then
                                         msg = msg .. "!";
-                                    elseif v.critical == 2 then
+                                    elseif v.critical == CriticalType.NegativeCritical then
                                         msg = msg .. "?";
                                     end
                                 end
@@ -287,7 +292,7 @@ sdk_hook(excute_method, function(args)
                                     end
                                 end
                                 if msg ~= dmg then
-                                    set_Message_method:call(text, msg);
+                                    sdk_call_native_func(text, DamageText_type_def, "set_Message(System.String)", msg);
                                 end
                             end
                         end
@@ -305,9 +310,8 @@ sdk_hook(getHitUIColorType_method, function(args)
     end
 end, function(retval)
     if nextArg then
-        local calcParam = CalcParam_field:get_data(nextArg);
-        nextArg = nil;
         elementExploit = 0;
+        local calcParam = CalcParam_field:get_data(nextArg);
         if calcParam then
             local ownerType = get_OwnerType_method:call(calcParam);
             local calcType = get_CalcType_method:call(calcParam);
@@ -362,7 +366,7 @@ end, function(retval)
                 return temp.Neither;
             end
 
-            elementExploit = 0
+            elementExploit = 0;
 
             --IgnoreMeat
             if calcType == DamageCalcType.IgnoreMeat then

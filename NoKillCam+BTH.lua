@@ -80,19 +80,19 @@ local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
 
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
-local RequestActive_method = sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive");
+local RequestActive_method = sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive(snow.CameraManager.CameraType)");
+
+local CameraType_DemoCamera = sdk_find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
 local updateQuestEndFlow_method = QuestManager_type_def:get_method("updateQuestEndFlow");
-local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec");
-local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum");
+local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
+local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 
-local hardKeyboard_field = sdk_find_type_definition("snow.GameKeyboard"):get_field("hardKeyboard");
-
-local hardwareKeyboard_type_def = hardKeyboard_field:get_type();
-local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)");
-local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)");
+local hardwareKeyboard_type_def = sdk_find_type_definition("snow.GameKeyboard.HardwareKeyboard");
+local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
+local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)"); -- static, retval
 -- Remove Town Interaction Delay cache
-local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
+local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 
 local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
@@ -124,7 +124,7 @@ QuestManager.CaptureStatus
 
 -- No Kill Cam
 sdk_hook(RequestActive_method, function(args)
-	if settings.NoKillCam.disableKillCam and (sdk_to_int64(args[3]) & 0xFFFFFFFF) == 3 then --type 3 == 'demo' camera type
+	if settings.NoKillCam.disableKillCam and (sdk_to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
 		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
 			return sdk_SKIP_ORIGINAL;
@@ -142,31 +142,11 @@ end, function()
 	if QuestManager_obj and getQuestReturnTimerSec_method:call(QuestManager_obj) > 1.0 then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 then
-			local requestCDSkip = settings.BTH.autoSkipCountdown;
-			if not requestCDSkip and settings.BTH.enableKeyboard then
-				local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-				if GameKeyboard_singleton then
-					local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
-					if hwKB and getTrg_method:call(hwKB, settings.BTH.kbCDSkipKey) then
-						requestCDSkip = true;
-					end
-				end
-			end
-			if requestCDSkip then
+			if settings.BTH.autoSkipCountdown or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
 		elseif endFlow == EndFlow.CameraDemo then
-			local requestAnimSkip = settings.BTH.autoSkipPostAnim;
-			if not requestAnimSkip and settings.BTH.enableKeyboard then
-				local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-				if GameKeyboard_singleton then
-					local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
-					if hwKB and getTrg_method:call(hwKB, settings.BTH.kbAnimSkipKey) then
-						requestAnimSkip = true;
-					end
-				end
-			end
-			if requestAnimSkip then
+			if settings.BTH.autoSkipPostAnim or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
 		end
@@ -225,32 +205,24 @@ re_on_draw_ui(function()
 					imgui_tree_pop();
 				end
 
-				if setCDSkipKey or setAnimSkipKey then
-					local GameKeyboard_singleton = sdk_get_managed_singleton("snow.GameKeyboard");
-					if GameKeyboard_singleton then
-						local hwKB = hardKeyboard_field:get_data(GameKeyboard_singleton);
-						if hwKB then
-							if setCDSkipKey then
-								settings.BTH.kbCDSkipKey = 0;
-								for k, _ in pairs(KeyboardKeys) do
-									if getDown_method:call(hwKB, k) then
-										settings.BTH.kbCDSkipKey = k;
-										SaveSettings();
-										setCDSkipKey = false;
-										break;
-									end
-								end
-							elseif setAnimSkipKey then
-								settings.BTH.kbAnimSkipKey = 0;
-								for k, _ in pairs(KeyboardKeys) do
-									if getDown_method:call(hwKB, k) then
-										settings.BTH.kbAnimSkipKey = k;
-										SaveSettings();
-										setAnimSkipKey = false;
-										break;
-									end
-								end
-							end
+				if setCDSkipKey then
+					settings.BTH.kbCDSkipKey = 0;
+					for k, _ in pairs(KeyboardKeys) do
+						if getDown_method:call(nil, k) then
+							settings.BTH.kbCDSkipKey = k;
+							SaveSettings();
+							setCDSkipKey = false;
+							break;
+						end
+					end
+				elseif setAnimSkipKey then
+					settings.BTH.kbAnimSkipKey = 0;
+					for k, _ in pairs(KeyboardKeys) do
+						if getDown_method:call(nil, k) then
+							settings.BTH.kbAnimSkipKey = k;
+							SaveSettings();
+							setAnimSkipKey = false;
+							break;
 						end
 					end
 				end

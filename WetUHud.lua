@@ -54,60 +54,60 @@ local KOREAN_GLYPH_RANGES = {
 };
 local font = imgui_load_font("NotoSansKR-Bold.otf", 22, KOREAN_GLYPH_RANGES);
 ------
-local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)");
-local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)");
-local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)");
+local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)"); -- static, native, retval
+local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
+local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)"); -- static, retval
 
 local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
-local getStatus_method = QuestManager_type_def:get_method("getStatus");
-local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum");
-local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList");
+local getStatus_method = QuestManager_type_def:get_method("getStatus"); -- retval
+local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
+local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
 local questActivate_method = QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)");
 local questCancel_method = QuestManager_type_def:get_method("questCancel");
 local onChangedGameStatus_method = QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
 
 local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
-local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count");
-local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)");
+local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
+local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 --
-local get_RefTargetCameraManager_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_RefTargetCameraManager");
+local get_RefTargetCameraManager_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_RefTargetCameraManager"); -- retval
 
-local GetTargetCameraType_method = get_RefTargetCameraManager_method:get_return_type():get_method("GetTargetCameraType");
+local GetTargetCameraType_method = get_RefTargetCameraManager_method:get_return_type():get_method("GetTargetCameraType"); -- retval
 
 local TargetCameraType_Marionette = GetTargetCameraType_method:get_return_type():get_field("Marionette"):get_data(nil);
 
-local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)");
+local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"); -- virtual
 
-local get_EnemyType_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("get_EnemyType");
+local get_EnemyType_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("get_EnemyType"); -- retval
 --
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
-local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList");
+local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList"); -- retval
 local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
 
 local MonsterList_type_def = get_refMonsterList_method:get_return_type();
-local getMonsterPartName_method = MonsterList_type_def:get_method("getMonsterPartName(snow.data.monsterList.PartType)");
+local getMonsterPartName_method = MonsterList_type_def:get_method("getMonsterPartName(snow.data.monsterList.PartType)"); -- static, retval
 local MonsterBossData_field = MonsterList_type_def:get_field("_MonsterBossData");
 
-local getEnemyMeatData_method = monsterListParam_field:get_type():get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)");
+local getEnemyMeatData_method = monsterListParam_field:get_type():get_method("getEnemyMeatData(snow.enemy.EnemyDef.EmTypes)"); -- retval
 
-local getMeatValue_method = getEnemyMeatData_method:get_return_type():get_method("getMeatValue(snow.enemy.EnemyDef.Meat, System.UInt32, snow.enemy.EnemyDef.MeatAttr)");
+local getMeatValue_method = getEnemyMeatData_method:get_return_type():get_method("getMeatValue(snow.enemy.EnemyDef.Meat, System.UInt32, snow.enemy.EnemyDef.MeatAttr)"); -- retval
 
 local DataList_field = MonsterBossData_field:get_type():get_field("_DataList");
 
 local DataList_type_def = DataList_field:get_type();
-local DataList_get_Count_method = DataList_type_def:get_method("get_Count");
-local DataList_get_Item_method = DataList_type_def:get_method("get_Item(System.Int32)");
+local DataList_get_Count_method = DataList_type_def:get_method("get_Count"); -- retval
+local DataList_get_Item_method = DataList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local BossMonsterData_type_def = DataList_get_Item_method:get_return_type();
-local getPartTableDataNum_method = BossMonsterData_type_def:get_method("getPartTableDataNum");
+local getPartTableDataNum_method = BossMonsterData_type_def:get_method("getPartTableDataNum"); -- retval
 local EmType_field = BossMonsterData_type_def:get_field("_EmType");
 local PartTableData_field = BossMonsterData_type_def:get_field("_PartTableData");
 
-local PartTableData_get_Item_method = PartTableData_field:get_type():get_method("get_Item(System.Int32)");
+local PartTableData_get_Item_method = PartTableData_field:get_type():get_method("get_Item(System.Int32)"); -- retval
 
 local PartData_type_def = PartTableData_get_Item_method:get_return_type();
 local Part_field = PartData_type_def:get_field("_Part");
@@ -131,27 +131,27 @@ local MeatAttr = {
 };
 --
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
-local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
-local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)");
-local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("getEquippingLvBuffcageData");
+local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
+local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
+local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("getEquippingLvBuffcageData"); -- retval
 
-local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
+local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
 
 local PlayerManager_type_def = sdk_find_type_definition("snow.player.PlayerManager");
 local addLvBuffCnt_method = PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)");
-local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
+local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
 
 local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQuestBase");
-local PlayerQuestBase_start_method = PlayerQuestBase_type_def:get_method("start");
-local PlayerQuestBase_onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
-local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)");
+local PlayerQuestBase_start_method = PlayerQuestBase_type_def:get_method("start"); -- virtual
+local PlayerQuestBase_onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy"); -- virtual
+local subLvBuffFromEnemy_method = PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"); -- retval
 local updateEquipSkill211_method = PlayerQuestBase_type_def:get_method("updateEquipSkill211");
-local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
+local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local PlayerBase_type_def = sdk_find_type_definition("snow.player.PlayerBase");
-local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer");
-local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
+local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
+local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData"); -- retval
 
 local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
 
@@ -173,10 +173,10 @@ local BuffTypes = {
 };
 --
 local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShell010");
-local LongSwordShell010_start_method = LongSwordShell010_type_def:get_method("start");
-local LongSwordShell010_update_method = LongSwordShell010_type_def:get_method("update");
-local LongSwordShell010_onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
-local get_IsMaster_method = LongSwordShell010_type_def:get_method("get_IsMaster");
+local LongSwordShell010_start_method = LongSwordShell010_type_def:get_method("start"); -- virtual
+local LongSwordShell010_update_method = LongSwordShell010_type_def:get_method("update"); -- virtual
+local LongSwordShell010_onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy"); -- virtual
+local get_IsMaster_method = LongSwordShell010_type_def:get_method("get_IsMaster"); -- retval
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
@@ -219,53 +219,56 @@ local function CreateDataList()
                                             local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
                                             local partTableData = PartTableData_field:get_data(monster);
                                             if meatData and partTableData then
-                                                local MonsterDataTable = {
-                                                    Name = GetMonsterName_method:call(nil, monsterType),
-                                                    PartData = {}
-                                                };
+                                                local MessageManager = sdk_get_managed_singleton("snow.gui.MessageManager");
+                                                if MessageManager then
+                                                    local MonsterDataTable = {
+                                                        Name = GetMonsterName_method:call(MessageManager, monsterType),
+                                                        PartData = {}
+                                                    };
 
-                                                for i = 0, partTableData_count - 1, 1 do
-                                                    local part = PartTableData_get_Item_method:call(partTableData, i);
-                                                    if part then
-                                                        local partType = Part_field:get_data(part);
-                                                        local meatType = EmPart_field:get_data(part);
-                                                        if partType and meatType then
-                                                            local partGuid = getMonsterPartName_method:call(MonsterList, partType);
-                                                            if partGuid then
-                                                                local PartDataTable = {
-                                                                    PartType    = partType,
-                                                                    PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
-                                                                    MeatType    = meatType,
-                                                                    MeatValues  = {},
-                                                                    HighestMeat = ""
-                                                                };
+                                                    for i = 0, partTableData_count - 1, 1 do
+                                                        local part = PartTableData_get_Item_method:call(partTableData, i);
+                                                        if part then
+                                                            local partType = Part_field:get_data(part);
+                                                            local meatType = EmPart_field:get_data(part);
+                                                            if partType and meatType then
+                                                                local partGuid = getMonsterPartName_method:call(nil, partType);
+                                                                if partGuid then
+                                                                    local PartDataTable = {
+                                                                        PartType    = partType,
+                                                                        PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
+                                                                        MeatType    = meatType,
+                                                                        MeatValues  = {},
+                                                                        HighestMeat = ""
+                                                                    };
 
-                                                                for _, attrType in pairs(MeatAttr) do
-                                                                    for k, v in pairs(attrType) do
-                                                                        PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
+                                                                    for _, attrType in pairs(MeatAttr) do
+                                                                        for k, v in pairs(attrType) do
+                                                                            PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
+                                                                        end
                                                                     end
-                                                                end
 
-                                                                local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
-                                                                local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
+                                                                    local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
+                                                                    local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
 
-                                                                for k, v in pairs(PartDataTable.MeatValues) do
-                                                                    local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
-                                                                    if v == compareValue then
-                                                                        PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
+                                                                    for k, v in pairs(PartDataTable.MeatValues) do
+                                                                        local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
+                                                                        if v == compareValue then
+                                                                            PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
+                                                                        end
                                                                     end
-                                                                end
 
-                                                                table_insert(MonsterDataTable.PartData, PartDataTable);
+                                                                    table_insert(MonsterDataTable.PartData, PartDataTable);
+                                                                end
                                                             end
                                                         end
                                                     end
-                                                end
 
-                                                if not MonsterListData then
-                                                    MonsterListData = {};
+                                                    if not MonsterListData then
+                                                        MonsterListData = {};
+                                                    end
+                                                    MonsterListData[monsterType] = MonsterDataTable;
                                                 end
-                                                MonsterListData[monsterType] = MonsterDataTable;
                                             end
                                         end
                                     end
@@ -421,21 +424,18 @@ sdk_hook(subLvBuffFromEnemy_method, function(args)
         subBuffType = sdk_to_int64(args[3]) & 0xFFFFFFFF;
     end
 end, function(retval)
-    if PlayerQuestBase_subLvBuffFromEnemy then
-        local isMasterPlayer = isMasterPlayer_method:call(PlayerQuestBase_subLvBuffFromEnemy);
-        if isMasterPlayer and (sdk_to_int64(retval) & 1) == 1 and subBuffType ~= nil then
-            if subBuffType == LvBuff.Rainbow then
-                hasRainbow = false;
-                for k, v in pairs(LvBuff) do
-                    AcquiredCounts[k] = 0;
-                    AcquiredValues[k] = 0;
-                end
-            else
-                local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
-                local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
-                if EquipDataManager and PlayerManager then
-                    getCountsAndValues(PlayerManager, EquipDataManager, subBuffType);
-                end
+    if PlayerQuestBase_subLvBuffFromEnemy and isMasterPlayer_method:call(PlayerQuestBase_subLvBuffFromEnemy) and (sdk_to_int64(retval) & 1) == 1 and subBuffType ~= nil then
+        if subBuffType == LvBuff.Rainbow then
+            hasRainbow = false;
+            for k, v in pairs(LvBuff) do
+                AcquiredCounts[k] = 0;
+                AcquiredValues[k] = 0;
+            end
+        else
+            local EquipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+            local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+            if EquipDataManager and PlayerManager then
+                getCountsAndValues(PlayerManager, EquipDataManager, subBuffType);
             end
         end
     end

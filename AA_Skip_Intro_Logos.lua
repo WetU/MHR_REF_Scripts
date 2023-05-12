@@ -9,10 +9,9 @@ local sdk_hook_vtable = sdk.hook_vtable;
 --
 local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
 local play_method = Movie_type_def:get_method("play"); -- native
-local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime"); -- native, retval
-local seek_method = Movie_type_def:get_method("seek(System.UInt64)"); -- native
 
-local notifyActionEnd_method = sdk_find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd"); -- native
+local ActionArg_type_def = sdk_find_type_definition("via.behaviortree.ActionArg");
+
 local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 -- hook method --
@@ -67,7 +66,7 @@ end
 
 local function PostHook_notifyActionEnd()
 	if currentAction then
-		sdk_call_native_func(currentAction, currentAction:get_type_definition(), "notifyActionEnd");
+		sdk_call_native_func(currentAction, ActionArg_type_def, "notifyActionEnd");
 	end
 	currentAction = nil;
 end
@@ -104,10 +103,9 @@ sdk_hook(play_method, function(args)
 	end
 end, function()
 	if currentMovie then
-		local currentMovie_type_def = currentMovie:get_type_definition();
-		local DurationTime = sdk_call_native_func(currentMovie, currentMovie_type_def, "get_DurationTime");
+		local DurationTime = sdk_call_native_func(currentMovie, Movie_type_def, "get_DurationTime");
 		if DurationTime ~= nil then
-			sdk_call_native_func(currentMovie, currentMovie_type_def, "seek(System.UInt64)", DurationTime);
+			sdk_call_native_func(currentMovie, Movie_type_def, "seek(System.UInt64)", DurationTime);
 		end
 	end
 	currentMovie = nil;
