@@ -23,7 +23,6 @@ local table = table;
 local table_insert = table.insert;
 
 local pairs = pairs;
-local pcall = pcall;
 --
 local settings = json_load_file("no_bullshit.json") or {enable = true};
 if settings.enable == nil then
@@ -79,19 +78,20 @@ local function hasNpcId(npcid)
     return false;
 end
 
+local ctorObj = nil;
 sdk_hook(constructor_method, function(args)
     if settings.enable then
-        ctorActivated = true
-        local obj = sdk_to_managed_object(args[2]);
-        if obj ~= nil then
-            if not npcTalkMessageList then
-                npcTalkMessageList = {};
-            end
-            if sdk_is_managed_object(obj) then
-                table.insert(npcTalkMessageList, obj);
-            end
-        end
+        ctorObj = sdk_to_managed_object(args[2]);
     end
+end, function()
+    if ctorObj then
+        ctorActivated = true;
+        if not npcTalkMessageList then
+            npcTalkMessageList = {};
+        end
+        table_insert(npcTalkMessageList, ctorObj);
+    end
+    ctorObj = nil;
 end);
 
 local NpcTalkMessageCtrl = nil;
@@ -104,7 +104,7 @@ end
 local function post_getTalkTarget()
     if NpcTalkMessageCtrl then
         local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-        if npcId ~= nil and hasNpcId(npcId) then
+        if npcId ~= nil and hasNpcId(npcId) and sdk_is_managed_object(npcTalkMessageCtrl) then
             if not npcTalkMessageList then
                 npcTalkMessageList = {};
             end
@@ -133,11 +133,13 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
             local isKamura = currentVillageMapNo == KAMURA;
             if ctorActivated then
                 for _, v in pairs(npcTalkMessageList) do
-                    if sdk_is_managed_object(v) then
-                        local npcId = get_NpcId_method:call(v);
+                    if v ~= nil and sdk_is_managed_object(v) then
+                        local npcId = v:call("get_NpcId");
                         if npcId ~= nil and hasNpcId(npcId) then
-                            talkAction(v);
-                            v = nil;
+                            if (npcList.KAMURA[npcId] and isKamura) or (npcList.ELGADO[npcId] and not isKamura) then
+                                talkAction(v);
+                                v = nil;
+                            end
                         end
                     else
                         v = nil;
@@ -146,14 +148,9 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                 ctorActivated = false;
             else
                 for k, v in pairs(npcTalkMessageList) do
-                    if v ~= nil then
-                        if npcList.KAMURA[k] and isKamura then
-                            talkAction(v);
-                            v = nil;
-                        elseif npcList.ELGADO[k] and not isKamura then
-                            talkAction(v);
-                            v = nil;
-                        end
+                    if v ~= nil and ((npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and not isKamura)) then
+                        talkAction(v);
+                        v = nil;
                     end
                 end
             end

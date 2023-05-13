@@ -673,6 +673,7 @@ end, function(retval)
         end
     end
     EquipDataManager = nil;
+    setIdx = nil;
     return retval;
 end);
 

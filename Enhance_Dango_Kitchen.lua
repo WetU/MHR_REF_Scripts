@@ -82,13 +82,16 @@ local bbq_events = {
 };
 
 -- VIP Dango Ticket Main Function
+local MealFunc = nil;
 sdk_hook(updateList_method, function(args)
 	if settings.TicketByDefault then
-		local mealFunc = sdk_to_managed_object(args[2]);
-		if mealFunc then
-			setMealTicketFlag_method:call(mealFunc, true);
-		end
+		MealFunc = sdk_to_managed_object(args[2]);
 	end
+end, function()
+	if MealFunc then
+		setMealTicketFlag_method:call(MealFunc, true);
+	end
+	MealFunc = nil;
 end);
 
 -- Skip Dango Song Main Function

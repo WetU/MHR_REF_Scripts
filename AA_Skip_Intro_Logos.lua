@@ -49,11 +49,14 @@ local function ClearFade()
 	end
 end
 
+local healthCautionFadeIn = nil
 sdk_hook(healthCautionFadeIn_start_method, function(args)
-	local healthCautionFadeIn = sdk_to_managed_object(args[2]);
-	if healthCautionFadeIn ~= nil then
+	healthCautionFadeIn = sdk_to_managed_object(args[2]);
+end, function()
+	if healthCautionFadeIn then
 		sdk_hook_vtable(healthCautionFadeIn, healthCautionFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
 	end
+	healthCautionFadeIn = nil;
 end);
 sdk_hook(cautionFadeIn_update_method, nil, ClearFade);
 sdk_hook(capcomLogoFadeIn_update_method, nil, ClearFade);
@@ -79,11 +82,14 @@ local function ClearFadeWithAction()
 	ClearFade();
 end
 
+local otherLogoFadeIn = nil;
 sdk_hook(otherLogoFadeIn_start_method, function(args)
-	local otherLogoFadeIn = sdk_to_managed_object(args[2]);
-	if otherLogoFadeIn ~= nil then
+	otherLogoFadeIn = sdk_to_managed_object(args[2]);
+end, function()
+	if otherLogoFadeIn then
 		sdk_hook_vtable(otherLogoFadeIn, otherLogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, ClearFadeWithAction);
 	end
+	otherLogoFadeIn = nil;
 end);
 sdk_hook(reLogoFadeIn_update_method, PreHook_GetActionObject, ClearFadeWithAction);
 

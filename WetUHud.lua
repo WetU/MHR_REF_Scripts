@@ -74,12 +74,6 @@ local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get
 
 local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
 --
-local get_RefTargetCameraManager_method = sdk_find_type_definition("snow.CameraManager"):get_method("get_RefTargetCameraManager"); -- retval
-
-local GetTargetCameraType_method = get_RefTargetCameraManager_method:get_return_type():get_method("GetTargetCameraType"); -- retval
-
-local TargetCameraType_Marionette = GetTargetCameraType_method:get_return_type():get_field("Marionette"):get_data(nil);
-
 local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"); -- virtual
 
 local get_EnemyType_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("get_EnemyType"); -- retval
@@ -151,6 +145,7 @@ local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnab
 
 local PlayerBase_type_def = sdk_find_type_definition("snow.player.PlayerBase");
 local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
+local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex");
 local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData"); -- retval
 
 local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
@@ -172,15 +167,20 @@ local BuffTypes = {
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
 --
-local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShell010");
-local LongSwordShell010_start_method = LongSwordShell010_type_def:get_method("start"); -- virtual
+local LongSwordShellManager_type_def = sdk_find_type_definition("snow.shell.LongSwordShellManager");
+local createLongSwordShell010_method = LongSwordShellManager_type_def:get_method("createLongSwordShell010(snow.shell.LongSwordShellManager.LongSwordShell010_ID, via.vec3, via.Quaternion, snow.player.PlayerQuestBase, snow.shell.PlayerShellBase.RandomConvertArg, snow.shell.LongSwordShell010.CircleType)");
+local getMaseterLongSwordShell010s_method = LongSwordShellManager_type_def:get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"); -- retval
+
+local MasterLongSwordShell010s_type_def = getMaseterLongSwordShell010s_method:get_return_type();
+local MasterLongSwordShell010s_get_Count_method = MasterLongSwordShell010s_type_def:get_method("get_Count"); -- retval
+local MasterLongSwordShell010s_get_Item_method = MasterLongSwordShell010s_type_def:get_method("get_Item(System.Int32)"); -- retval
+
+local LongSwordShell010_type_def = MasterLongSwordShell010s_get_Item_method:get_return_type();
 local LongSwordShell010_update_method = LongSwordShell010_type_def:get_method("update"); -- virtual
 local LongSwordShell010_onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy"); -- virtual
-local get_IsMaster_method = LongSwordShell010_type_def:get_method("get_IsMaster"); -- retval
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
-local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
-local CircleType_Inside = CircleType_field:get_type():get_field("Inside"):get_data(nil);
+local CircleType_Inside = sdk_find_type_definition("snow.shell.LongSwordShell010.CircleType"):get_field("Inside"):get_data(nil);
 --
 local via_Language_Korean = sdk_find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
 
@@ -219,56 +219,53 @@ local function CreateDataList()
                                             local meatData = getEnemyMeatData_method:call(monsterListParam, monsterType);
                                             local partTableData = PartTableData_field:get_data(monster);
                                             if meatData and partTableData then
-                                                local MessageManager = sdk_get_managed_singleton("snow.gui.MessageManager");
-                                                if MessageManager then
-                                                    local MonsterDataTable = {
-                                                        Name = GetMonsterName_method:call(MessageManager, monsterType),
-                                                        PartData = {}
-                                                    };
+                                                local MonsterDataTable = {
+                                                    Name = GetMonsterName_method:call(nil, monsterType),
+                                                    PartData = {}
+                                                };
 
-                                                    for i = 0, partTableData_count - 1, 1 do
-                                                        local part = PartTableData_get_Item_method:call(partTableData, i);
-                                                        if part then
-                                                            local partType = Part_field:get_data(part);
-                                                            local meatType = EmPart_field:get_data(part);
-                                                            if partType and meatType then
-                                                                local partGuid = getMonsterPartName_method:call(nil, partType);
-                                                                if partGuid then
-                                                                    local PartDataTable = {
-                                                                        PartType    = partType,
-                                                                        PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
-                                                                        MeatType    = meatType,
-                                                                        MeatValues  = {},
-                                                                        HighestMeat = ""
-                                                                    };
+                                                for i = 0, partTableData_count - 1, 1 do
+                                                    local part = PartTableData_get_Item_method:call(partTableData, i);
+                                                    if part then
+                                                        local partType = Part_field:get_data(part);
+                                                        local meatType = EmPart_field:get_data(part);
+                                                        if partType and meatType then
+                                                            local partGuid = getMonsterPartName_method:call(nil, partType);
+                                                            if partGuid then
+                                                                local PartDataTable = {
+                                                                    PartType    = partType,
+                                                                    PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
+                                                                    MeatType    = meatType,
+                                                                    MeatValues  = {},
+                                                                    HighestMeat = ""
+                                                                };
 
-                                                                    for _, attrType in pairs(MeatAttr) do
-                                                                        for k, v in pairs(attrType) do
-                                                                            PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
-                                                                        end
+                                                                for _, attrType in pairs(MeatAttr) do
+                                                                    for k, v in pairs(attrType) do
+                                                                        PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
                                                                     end
-
-                                                                    local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
-                                                                    local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
-
-                                                                    for k, v in pairs(PartDataTable.MeatValues) do
-                                                                        local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
-                                                                        if v == compareValue then
-                                                                            PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
-                                                                        end
-                                                                    end
-
-                                                                    table_insert(MonsterDataTable.PartData, PartDataTable);
                                                                 end
+
+                                                                local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
+                                                                local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
+
+                                                                for k, v in pairs(PartDataTable.MeatValues) do
+                                                                    local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
+                                                                    if v == compareValue then
+                                                                        PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
+                                                                    end
+                                                                end
+
+                                                                table_insert(MonsterDataTable.PartData, PartDataTable);
                                                             end
                                                         end
                                                     end
-
-                                                    if not MonsterListData then
-                                                        MonsterListData = {};
-                                                    end
-                                                    MonsterListData[monsterType] = MonsterDataTable;
                                                 end
+
+                                                if not MonsterListData then
+                                                    MonsterListData = {};
+                                                end
+                                                MonsterListData[monsterType] = MonsterDataTable;
                                             end
                                         end
                                     end
@@ -522,27 +519,42 @@ end
 
 local function getHarvestMoonTimer(obj)
     local lifeTimer = lifeTimer_field:get_data(obj);
-    HarvestMoonTImer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+    HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
 end
 
-local LongSwordShell010 = nil;
-sdk_hook(LongSwordShell010_start_method, function(args)
-    LongSwordShell010 = sdk_to_managed_object(args[2]);
-    if LongSwordShell010 ~= nil then
-        if get_IsMaster_method:call(LongSwordShell010) and CircleType_field:get_data(LongSwordShell010) == CircleType_Inside then
-            sdk_hook_vtable(LongSwordShell010, LongSwordShell010_update_method, nil, function()
-                getHarvestMoonTimer(LongSwordShell010);
-            end);
-            sdk_hook_vtable(LongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
-        else
-            LongSwordShell010 = nil;
+local ownerPlayerQuestBase = nil;
+local LongSwordShellManager = nil;
+sdk_hook(createLongSwordShell010_method, function(args)
+    local owner = sdk_to_managed_object(args[6]);
+    if isMasterPlayer_method:call(owner) then
+        local circleType = sdk_to_int64(args[8]) & 0xFFFFFFFF;
+        if circleType == CircleType_Inside then
+            ownerPlayerQuestBase = owner;
+            LongSwordShellManager = sdk_to_managed_object(args[2]);
         end
     end
 end, function()
-    if LongSwordShell010 then
-        getHarvestMoonTimer(LongSwordShell010);
+    if ownerPlayerQuestBase and LongSwordShellManager then
+        local masterPlayerIdx = getPlayerIndex_method:call(ownerPlayerQuestBase);
+        if masterPlayerIdx then
+            local MasterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, masterPlayerIdx);
+            if MasterLongSwordShell010s then
+                local count = MasterLongSwordShell010s_get_Count_method:call(MasterLongSwordShell010s);
+                if count > 0 then
+                    local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
+                    if MasterLongSwordShell010 then
+                        getHarvestMoonTimer(MasterLongSwordShell010);
+                        sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
+                            getHarvestMoonTimer(MasterLongSwordShell010);
+                        end);
+                        sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
+                    end
+                end
+            end
+        end
     end
-    LongSwordShell010 = nil;
+    ownerPlayerQuestBase = nil;
+    LongSwordShellManager = nil;
 end);
 
 

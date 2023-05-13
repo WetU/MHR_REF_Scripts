@@ -5,7 +5,6 @@ local json_dump_file = json.dump_file;
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
 
 local re = re;
@@ -65,23 +64,31 @@ local FrameRate = {
 local playEventCommon_method = sdk_find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)");
 local set_MaxFps_method = sdk_find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static, native
 --
+local function getAutoFps()
+	local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
+	if OptionManager then
+		local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
+		if OptionDataContainer then
+			local FrameRateOption = getFrameRateOption_method:call(OptionDataContainer);
+			if FrameRateOption then
+				config.desiredFPS = FrameRate[FrameRateOption];
+			end
+		end
+	end
+end
+
+local firstHook = true;
 sdk_hook(play_method, nil, function()
-	if config.enableFPS then
+	if config.enableFPS and firstHook then
 		local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager then
 			local GameStartStateType = get_GameStartState_method:call(GuiGameStartFsmManager);
 			if GameStartStateType ~= nil and GameStartState[GameStartStateType] then
+				if firstHook then
+					firstHook = false;
+				end
 				if config.autoFPS then
-					local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
-					if OptionManager then
-						local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
-						if OptionDataContainer then
-							local FrameRateOption = getFrameRateOption_method:call(OptionDataContainer);
-							if FrameRateOption then
-								config.desiredFPS = FrameRate[FrameRateOption];
-							end
-						end
-					end
+					getAutoFps();
 				end
 				set_MaxFps_method:call(nil, config.desiredFPS);
 			end
@@ -92,16 +99,7 @@ end);
 sdk_hook(playEventCommon_method, nil, function()
 	if config.enableFPS then
 		if config.autoFPS then
-			local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
-			if OptionManager then
-				local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
-				if OptionDataContainer then
-					local FrameRateOption = getFrameRateOption_method:call(OptionDataContainer);
-					if FrameRateOption then
-						config.desiredFPS = FrameRate[FrameRateOption];
-					end
-				end
-			end
+			getAutoFps();
 		end
 		set_MaxFps_method:call(nil, config.desiredFPS);
 	end
@@ -127,16 +125,7 @@ re_on_draw_ui(function()
 			if changed then
 				if config.enableFPS then
 					if config.autoFPS then
-						local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
-						if OptionManager then
-							local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
-							if OptionDataContainer then
-								local FrameRateOption = getFrameRateOption_method:call(OptionDataContainer);
-								if FrameRateOption then
-									config.desiredFPS = FrameRate[FrameRateOption];
-								end
-							end
-						end
+						getAutoFps();
 					end
 					set_MaxFps_method:call(nil, config.desiredFPS);
 				end
