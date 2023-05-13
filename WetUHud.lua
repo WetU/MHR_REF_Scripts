@@ -526,29 +526,23 @@ local ownerPlayerQuestBase = nil;
 local LongSwordShellManager = nil;
 sdk_hook(createLongSwordShell010_method, function(args)
     local owner = sdk_to_managed_object(args[6]);
-    if isMasterPlayer_method:call(owner) then
-        local circleType = sdk_to_int64(args[8]) & 0xFFFFFFFF;
-        if circleType == CircleType_Inside then
-            ownerPlayerQuestBase = owner;
-            LongSwordShellManager = sdk_to_managed_object(args[2]);
-        end
+    if isMasterPlayer_method:call(owner) and (sdk_to_int64(args[8]) & 0xFFFFFFFF) == CircleType_Inside then
+        ownerPlayerQuestBase = owner;
+        LongSwordShellManager = sdk_to_managed_object(args[2]);
     end
 end, function()
     if ownerPlayerQuestBase and LongSwordShellManager then
         local masterPlayerIdx = getPlayerIndex_method:call(ownerPlayerQuestBase);
         if masterPlayerIdx then
             local MasterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, masterPlayerIdx);
-            if MasterLongSwordShell010s then
-                local count = MasterLongSwordShell010s_get_Count_method:call(MasterLongSwordShell010s);
-                if count > 0 then
-                    local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
-                    if MasterLongSwordShell010 then
+            if MasterLongSwordShell010s and MasterLongSwordShell010s_get_Count_method:call(MasterLongSwordShell010s) > 0 then
+                local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
+                if MasterLongSwordShell010 then
+                    getHarvestMoonTimer(MasterLongSwordShell010);
+                    sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
                         getHarvestMoonTimer(MasterLongSwordShell010);
-                        sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
-                            getHarvestMoonTimer(MasterLongSwordShell010);
-                        end);
-                        sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
-                    end
+                    end);
+                    sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
                 end
             end
         end
