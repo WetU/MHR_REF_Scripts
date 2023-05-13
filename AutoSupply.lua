@@ -41,7 +41,7 @@ local KOREAN_GLYPH_RANGES = {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 };
-local Font = imgui_load_font("NotoSansKR-Bold.otf", 18, KOREAN_GLYPH_RANGES);
+local Font = imgui_load_font("NotoSansKR-Bold.otf", 22, KOREAN_GLYPH_RANGES);
 local Languages = {"en-US", "ko-KR"};
 
 ----------- Helper Functions ----------------

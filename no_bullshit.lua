@@ -78,6 +78,35 @@ local function hasNpcId(npcid)
     return false;
 end
 
+local function talkAction(npcTalkMessageCtrl)
+    resetTalkDispName_method:call(npcTalkMessageCtrl);
+    executeTalkAction_method:call(npcTalkMessageCtrl);
+    set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
+    set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
+end
+
+local NpcTalkMessageCtrl = nil;
+local function pre_getTalkTarget(args)
+    if settings.enable and not ctorActivated then
+        NpcTalkMessageCtrl = sdk_to_managed_object(args[2]);
+    end
+end
+
+local function post_getTalkTarget()
+    if NpcTalkMessageCtrl then
+        local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
+        if npcId ~= nil and hasNpcId(npcId) then
+            if not npcTalkMessageList then
+                npcTalkMessageList = {};
+            end
+            if not npcTalkMessageList[npcId] then
+                npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
+            end
+        end
+    end
+    NpcTalkMessageCtrl = nil;
+end
+
 local ctorObj = nil;
 sdk_hook(constructor_method, function(args)
     if settings.enable then
@@ -93,39 +122,8 @@ end, function()
     end
     ctorObj = nil;
 end);
-
-local NpcTalkMessageCtrl = nil;
-local function pre_getTalkTarget(args)
-    if settings.enable and not ctorActivated then
-        NpcTalkMessageCtrl = sdk_to_managed_object(args[2]);
-    end
-end
-
-local function post_getTalkTarget()
-    if NpcTalkMessageCtrl then
-        local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-        if npcId ~= nil and hasNpcId(npcId) and sdk_is_managed_object(npcTalkMessageCtrl) then
-            if not npcTalkMessageList then
-                npcTalkMessageList = {};
-            end
-            if not npcTalkMessageList[npcId] then
-                npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
-            end
-        end
-    end
-    NpcTalkMessageCtrl = nil;
-end
-
 sdk_hook(start_method, pre_getTalkTarget, post_getTalkTarget);
 sdk_hook(onLoad_method, pre_getTalkTarget, post_getTalkTarget);
-
-local function talkAction(npcTalkMessageCtrl)
-    resetTalkDispName_method:call(npcTalkMessageCtrl);
-    executeTalkAction_method:call(npcTalkMessageCtrl);
-    set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
-    set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
-end
-
 sdk_hook(getCurrentMapNo_method, nil, function(retval)
     if settings.enable and npcTalkMessageList ~= nil then
         local currentVillageMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
@@ -140,6 +138,8 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                                 talkAction(v);
                                 v = nil;
                             end
+                        else
+                            v = nil;
                         end
                     else
                         v = nil;
@@ -148,8 +148,12 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                 ctorActivated = false;
             else
                 for k, v in pairs(npcTalkMessageList) do
-                    if v ~= nil and ((npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and not isKamura)) then
-                        talkAction(v);
+                    if v ~= nil and v:get_reference_count() > 0 then
+                        if (npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and not isKamura) then
+                            talkAction(v);
+                            v = nil;
+                        end
+                    else
                         v = nil;
                     end
                 end
@@ -190,6 +194,7 @@ re_on_frame(function()
         end
         if not valid then
             npcTalkMessageList = nil;
+            ctorActivated = false;
         end
     end
 end);

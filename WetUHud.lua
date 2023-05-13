@@ -488,18 +488,14 @@ end, function()
                 local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
                 if masterPlayerData then
                     local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-                    if Timer ~= nil then
-                        SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
-                    end
+                    SpiribirdsCall_Timer = Timer ~= nil and string_format(TimerString.Enabled, 60.0 - (Timer / 60.0)) or nil;
                 end
             end
         else
             local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase_obj);
             if masterPlayerData then
                 local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-                if Timer ~= nil then
-                    SpiribirdsCall_Timer = string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
-                end
+                SpiribirdsCall_Timer = Timer ~= nil and string_format(TimerString.Enabled, 60.0 - (Timer / 60.0)) or nil;
             end
         end
     end
@@ -522,32 +518,29 @@ local function getHarvestMoonTimer(obj)
     HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
 end
 
-local ownerPlayerQuestBase = nil;
+local MasterPlayerIndex = nil;
 local LongSwordShellManager = nil;
 sdk_hook(createLongSwordShell010_method, function(args)
     local owner = sdk_to_managed_object(args[6]);
     if isMasterPlayer_method:call(owner) and (sdk_to_int64(args[8]) & 0xFFFFFFFF) == CircleType_Inside then
-        ownerPlayerQuestBase = owner;
+        MasterPlayerIndex = getPlayerIndex_method:call(owner);
         LongSwordShellManager = sdk_to_managed_object(args[2]);
     end
 end, function()
-    if ownerPlayerQuestBase and LongSwordShellManager then
-        local masterPlayerIdx = getPlayerIndex_method:call(ownerPlayerQuestBase);
-        if masterPlayerIdx then
-            local MasterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, masterPlayerIdx);
-            if MasterLongSwordShell010s and MasterLongSwordShell010s_get_Count_method:call(MasterLongSwordShell010s) > 0 then
-                local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
-                if MasterLongSwordShell010 then
+    if MasterPlayerIndex ~= nil and LongSwordShellManager then
+        local MasterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
+        if MasterLongSwordShell010s and MasterLongSwordShell010s_get_Count_method:call(MasterLongSwordShell010s) > 0 then
+            local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
+            if MasterLongSwordShell010 then
+                getHarvestMoonTimer(MasterLongSwordShell010);
+                sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
                     getHarvestMoonTimer(MasterLongSwordShell010);
-                    sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
-                        getHarvestMoonTimer(MasterLongSwordShell010);
-                    end);
-                    sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
-                end
+                end);
+                sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
             end
         end
     end
-    ownerPlayerQuestBase = nil;
+    MasterPlayerIndex = nil;
     LongSwordShellManager = nil;
 end);
 
