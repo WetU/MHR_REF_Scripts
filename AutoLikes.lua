@@ -21,6 +21,8 @@ local settings = json_load_file("AutoLikes.json") or {enable = true};
 if settings.enable == nil then
 	settings.enable = true;
 end
+
+
 -- Cache
 local GoodRelationship_type_def = sdk_find_type_definition("snow.gui.GuiHud_GoodRelationship");
 local doOpen_method = GoodRelationship_type_def:get_method("doOpen"); -- virtual
@@ -34,9 +36,10 @@ local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.In
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
+
+
 -- Main Function
 local GoodRelationshipHud = nil;
-
 sdk_hook(doOpen_method, function(args)
 	if settings.enable then
 		GoodRelationshipHud = sdk_to_managed_object(args[2]);
@@ -69,6 +72,8 @@ end, function()
 	end
 	GoodRelationshipHud = nil;
 end);
+
+
 ---- re Callbacks ----
 local function save_config()
 	json_dump_file("AutoLikes.json", settings);

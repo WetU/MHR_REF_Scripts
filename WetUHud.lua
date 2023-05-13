@@ -58,7 +58,7 @@ local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_metho
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
 local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)"); -- static, retval
 
-local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
+local GameStatusType_Quest = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Quest"):get_data(nil);
 --
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local getStatus_method = QuestManager_type_def:get_method("getStatus"); -- retval
@@ -76,7 +76,9 @@ local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):ge
 --
 local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"); -- virtual
 
-local get_EnemyType_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("get_EnemyType"); -- retval
+local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
+local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType"); -- retval
+local questEnemyDie_method = EnemyCharacterBase_type_def:get_method("questEnemyDie(snow.quest.EmEndType)");
 --
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList"); -- retval
@@ -296,13 +298,33 @@ sdk_hook(UpdateTargetCameraParamData_method, function(args)
         TerminateMonsterHud();
     else
         local EnemyType = get_EnemyType_method:call(TargetEnemy);
-        if EnemyType then
+        if EnemyType ~= nil then
             currentQuestMonsterTypes = {EnemyType};
             MonsterHudDataCreated = true;
         else
             TerminateMonsterHud();
         end
     end
+end);
+
+local EnemyCharacterBase = nil;
+sdk_hook(questEnemyDie_method, function(args)
+    if MonsterHudDataCreated then
+        EnemyCharacterBase = sdk_to_managed_object(args[2]);
+    end
+end, function()
+    if EnemyCharacterBase and currentQuestMonsterTypes ~= nil then
+        local EnemyType = get_EnemyType_method:call(EnemyCharacterBase);
+        if EnemyType ~= nil and isBoss_method:call(nil, EnemyType) then
+            for _, v in pairs(currentQuestMonsterTypes) do
+                if EnemyType == v then
+                    TerminateMonsterHud();
+                    break;
+                end
+            end
+        end
+    end
+    EnemyCharacterBase = nil;
 end);
 
 local QuestManager = nil;
@@ -335,6 +357,18 @@ end, function()
 end);
 
 sdk_hook(questCancel_method, nil, TerminateMonsterHud);
+
+local doTerminate = true;
+sdk_hook(onChangedGameStatus_method, function(args)
+    if (sdk_to_int64(args[3]) & 0xFFFFFFFF) == GameStatusType_Quest then
+        doTerminate = false;
+    end
+end, function()
+    if doTerminate then
+        TerminateMonsterHud();
+    end
+    doTerminate = true;
+end);
 
 
 --==--==--==--==--==--
@@ -542,23 +576,6 @@ end, function()
     end
     MasterPlayerIndex = nil;
     LongSwordShellManager = nil;
-end);
-
-
---==--==--==--==--==--
-
-
-local doTerminate = false;
-sdk_hook(onChangedGameStatus_method, function(args)
-    local GameStatus = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-    if GameStatus ~= nil and GameStatus ~= GameStatusType_Village then
-        doTerminate = true;
-    end
-end, function()
-    if doTerminate then
-        TerminateMonsterHud();
-    end
-    doTerminate = false;
 end);
 
 
