@@ -58,7 +58,7 @@ local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_metho
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
 local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)"); -- static, retval
 
-local GameStatusType_Quest = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Quest"):get_data(nil);
+local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
 local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
 local getStatus_method = QuestManager_type_def:get_method("getStatus"); -- retval
@@ -298,7 +298,7 @@ sdk_hook(UpdateTargetCameraParamData_method, function(args)
         TerminateMonsterHud();
     else
         local EnemyType = get_EnemyType_method:call(TargetEnemy);
-        if EnemyType ~= nil then
+        if EnemyType ~= nil and font then
             currentQuestMonsterTypes = {EnemyType};
             MonsterHudDataCreated = true;
         else
@@ -347,8 +347,10 @@ end, function()
                             currentQuestMonsterTypes = {};
                         end
                         table_insert(currentQuestMonsterTypes, QuestTargetEmType);
-                        MonsterHudDataCreated = true;
                     end
+                end
+                if (currentQuestMonsterTypes and #currentQuestMonsterTypes > 0) and font then
+                    MonsterHudDataCreated = true;
                 end
             end
         end
@@ -358,16 +360,16 @@ end);
 
 sdk_hook(questCancel_method, nil, TerminateMonsterHud);
 
-local doTerminate = true;
+local doTerminate = nil;
 sdk_hook(onChangedGameStatus_method, function(args)
-    if (sdk_to_int64(args[3]) & 0xFFFFFFFF) == GameStatusType_Quest then
-        doTerminate = false;
+    if (sdk_to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
+        doTerminate = true;
     end
 end, function()
     if doTerminate then
         TerminateMonsterHud();
     end
-    doTerminate = true;
+    doTerminate = nil;
 end);
 
 
@@ -423,7 +425,7 @@ end, function()
         if EquipDataManager and PlayerManager then
             hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
             local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
-            if EquippingLvBuffcageData then
+            if EquippingLvBuffcageData and font then
                 StatusBuffLimits = {};
                 BirdsMaxCounts = {};
                 AcquiredCounts = {};
@@ -512,7 +514,7 @@ sdk_hook(updateEquipSkill211_method, function(args)
         PlayerQuestBase_obj = sdk_to_managed_object(args[2]);
     end
 end, function()
-    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) then
+    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) and font then
         if firstHook then
             firstHook = false;
             if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
@@ -548,8 +550,10 @@ local function TerminateHarvestMoonTimer()
 end
 
 local function getHarvestMoonTimer(obj)
-    local lifeTimer = lifeTimer_field:get_data(obj);
-    HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+    if font then
+        local lifeTimer = lifeTimer_field:get_data(obj);
+        HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+    end
 end
 
 local MasterPlayerIndex = nil;
@@ -629,55 +633,46 @@ end
 re_on_frame(function()
     if MonsterHudDataCreated then
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
-        if curQuestTargetMonsterNum > 0 then
-            if font then
-                imgui_push_font(font);
-            end
-            if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
-                for i = 1, curQuestTargetMonsterNum, 1 do
-                    local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
-                    if imgui_begin_table("부위", 10, 1 << 21, 25) then
-                        imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
+        imgui_push_font(font);
+        if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
+            for i = 1, curQuestTargetMonsterNum, 1 do
+                local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
+                if imgui_begin_table("부위", 10, 1 << 21, 25) then
+                    imgui_table_setup_column(curMonsterData.Name, 1 << 3, 150);
 
-                        for i = 1, #LocalizedMeatAttr, 1 do
-                            imgui_table_setup_column(LocalizedMeatAttr[i], 1 << 3, 25);
-                        end
-                        
-                        imgui_table_headers_row();
-
-                        for _, part in pairs(curMonsterData.PartData) do
-                            imgui_table_next_row();
-                            imgui_table_next_column();
-                            imgui_text(part.PartName);
-
-                            testAttribute("Slash", part.MeatValues.Slash, part.HighestMeat);
-                            testAttribute("Strike", part.MeatValues.Strike, part.HighestMeat);
-                            testAttribute("Shell", part.MeatValues.Shell, part.HighestMeat);
-                            testAttribute("Fire", part.MeatValues.Fire, part.HighestMeat);
-                            testAttribute("Water", part.MeatValues.Water, part.HighestMeat);
-                            testAttribute("Ice", part.MeatValues.Ice, part.HighestMeat);
-                            testAttribute("Elect", part.MeatValues.Elect, part.HighestMeat);
-                            testAttribute("Dragon", part.MeatValues.Dragon, part.HighestMeat);
-                        end
-                        imgui_end_table();
+                    for i = 1, #LocalizedMeatAttr, 1 do
+                        imgui_table_setup_column(LocalizedMeatAttr[i], 1 << 3, 25);
                     end
+                    
+                    imgui_table_headers_row();
 
-                    if i < curQuestTargetMonsterNum then
-                        imgui_spacing();
+                    for _, part in pairs(curMonsterData.PartData) do
+                        imgui_table_next_row();
+                        imgui_table_next_column();
+                        imgui_text(part.PartName);
+
+                        testAttribute("Slash", part.MeatValues.Slash, part.HighestMeat);
+                        testAttribute("Strike", part.MeatValues.Strike, part.HighestMeat);
+                        testAttribute("Shell", part.MeatValues.Shell, part.HighestMeat);
+                        testAttribute("Fire", part.MeatValues.Fire, part.HighestMeat);
+                        testAttribute("Water", part.MeatValues.Water, part.HighestMeat);
+                        testAttribute("Ice", part.MeatValues.Ice, part.HighestMeat);
+                        testAttribute("Elect", part.MeatValues.Elect, part.HighestMeat);
+                        testAttribute("Dragon", part.MeatValues.Dragon, part.HighestMeat);
                     end
+                    imgui_end_table();
                 end
-                imgui_end_window();
+                if i < curQuestTargetMonsterNum then
+                    imgui_spacing();
+                end
             end
-            if font then
-                imgui_pop_font();
-            end
+            imgui_end_window();
         end
+        imgui_pop_font();
     end
 
     if SpiribirdsHudDataCreated or SpiribirdsCall_Timer then
-        if font then
-            imgui_push_font(font);
-        end
+        imgui_push_font(font);
         if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
             if SpiribirdsHudDataCreated then
                 if imgui_begin_table("종류", 3, 1 << 21, 25) then
@@ -700,21 +695,15 @@ re_on_frame(function()
             end
             imgui_end_window();
         end
-        if font then
-            imgui_pop_font();
-        end
+        imgui_pop_font();
     end
 
     if HarvestMoonTimer then
-        if font then
-            imgui_push_font(font);
-        end
+        imgui_push_font(font);
         if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
             imgui_text(HarvestMoonTimer);
             imgui_end_window();
         end
-        if font then
-            imgui_pop_font();
-        end
+        imgui_pop_font();
     end
 end);
