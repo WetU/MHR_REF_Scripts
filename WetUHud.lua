@@ -60,26 +60,6 @@ local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method
 
 local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
-local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
-local getStatus_method = QuestManager_type_def:get_method("getStatus"); -- retval
-local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
-local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
-local questActivate_method = QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)");
-local questCancel_method = QuestManager_type_def:get_method("questCancel");
-local onChangedGameStatus_method = QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
-
-local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
-local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
-local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)"); -- retval
-
-local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
---
-local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"); -- virtual
-
-local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
-local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType"); -- retval
-local questEnemyDie_method = EnemyCharacterBase_type_def:get_method("questEnemyDie(snow.quest.EmEndType)");
---
 local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList"); -- retval
 local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
@@ -126,6 +106,28 @@ local MeatAttr = {
     }
 };
 --
+local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
+local getStatus_method = QuestManager_type_def:get_method("getStatus"); -- retval
+local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
+local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
+local questActivate_method = QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)");
+local questCancel_method = QuestManager_type_def:get_method("questCancel");
+local questEnemyDie_method = QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)");
+local onChangedGameStatus_method = QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)");
+
+local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
+local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
+local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)"); -- retval
+
+local QuestStatus_None = getStatus_method:get_return_type():get_field("None"):get_data(nil);
+--
+local UpdateTargetCameraParamData_method = sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"); -- virtual
+
+local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
+local checkDie_method = EnemyCharacterBase_type_def:get_method("checkDie"); -- retval
+local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType"); -- retval
+local get_UniqueId_method = EnemyCharacterBase_type_def:get_method("get_UniqueId"); -- retval
+--
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
 local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
 local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
@@ -147,7 +149,7 @@ local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnab
 
 local PlayerBase_type_def = sdk_find_type_definition("snow.player.PlayerBase");
 local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
-local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex");
+local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex"); -- retval
 local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData"); -- retval
 
 local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
@@ -191,11 +193,11 @@ local via_Language_Korean = sdk_find_type_definition("via.Language"):get_field("
 
 
 local MonsterListData = nil;
-local DataListCreated = false;
 local creating = false;
 
+local currentTargetUniqueId = nil;
+
 local currentQuestMonsterTypes = nil;
-local MonsterHudDataCreated = false;
 
 local function CreateDataList()
     creating = true;
@@ -274,7 +276,6 @@ local function CreateDataList()
                                 end
                             end
                         end
-                        DataListCreated = true;
                     end
                 end
             end
@@ -284,23 +285,24 @@ local function CreateDataList()
 end
 
 local function TerminateMonsterHud()
-    MonsterHudDataCreated = false;
     currentQuestMonsterTypes = nil;
+    currentTargetUniqueId = nil;
 end
 
+local TargetEnemyCharacterBase = nil;
 sdk_hook(UpdateTargetCameraParamData_method, function(args)
-    if not creating and not DataListCreated then
+    if not creating and not MonsterListData then
         CreateDataList();
     end
-
-    local TargetEnemy = sdk_to_managed_object(args[3]);
-    if not TargetEnemy then
+    TargetEnemyCharacterBase = sdk_to_managed_object(args[3]);
+end, function()
+    if not TargetEnemyCharacterBase or checkDie_method:call(TargetEnemyCharacterBase) then
         TerminateMonsterHud();
     else
-        local EnemyType = get_EnemyType_method:call(TargetEnemy);
-        if EnemyType ~= nil and font then
+        local EnemyType = get_EnemyType_method:call(TargetEnemyCharacterBase);
+        if EnemyType ~= nil then
+            currentTargetUniqueId = get_UniqueId_method:call(TargetEnemyCharacterBase);
             currentQuestMonsterTypes = {EnemyType};
-            MonsterHudDataCreated = true;
         else
             TerminateMonsterHud();
         end
@@ -309,27 +311,19 @@ end);
 
 local EnemyCharacterBase = nil;
 sdk_hook(questEnemyDie_method, function(args)
-    if MonsterHudDataCreated then
-        EnemyCharacterBase = sdk_to_managed_object(args[2]);
+    if currentQuestMonsterTypes ~= nil and currentTargetUniqueId ~= nil then
+        EnemyCharacterBase = sdk_to_managed_object(args[3]);
     end
 end, function()
-    if EnemyCharacterBase and currentQuestMonsterTypes ~= nil then
-        local EnemyType = get_EnemyType_method:call(EnemyCharacterBase);
-        if EnemyType ~= nil and isBoss_method:call(nil, EnemyType) then
-            for _, v in pairs(currentQuestMonsterTypes) do
-                if EnemyType == v then
-                    TerminateMonsterHud();
-                    break;
-                end
-            end
-        end
+    if EnemyCharacterBase and get_EnemyType_method:call(EnemyCharacterBase) == currentQuestMonsterTypes[1] and get_UniqueId_method:call(EnemyCharacterBase) == currentTargetUniqueId then
+        TerminateMonsterHud();
     end
     EnemyCharacterBase = nil;
 end);
 
 local QuestManager = nil;
 sdk_hook(questActivate_method, function(args)
-    if not creating and not DataListCreated then
+    if not creating and not MonsterListData then
         CreateDataList();
     end
     TerminateMonsterHud();
@@ -348,9 +342,6 @@ end, function()
                         end
                         table_insert(currentQuestMonsterTypes, QuestTargetEmType);
                     end
-                end
-                if (currentQuestMonsterTypes and #currentQuestMonsterTypes > 0) and font then
-                    MonsterHudDataCreated = true;
                 end
             end
         end
@@ -425,7 +416,7 @@ end, function()
         if EquipDataManager and PlayerManager then
             hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
             local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
-            if EquippingLvBuffcageData and font then
+            if EquippingLvBuffcageData then
                 StatusBuffLimits = {};
                 BirdsMaxCounts = {};
                 AcquiredCounts = {};
@@ -514,7 +505,7 @@ sdk_hook(updateEquipSkill211_method, function(args)
         PlayerQuestBase_obj = sdk_to_managed_object(args[2]);
     end
 end, function()
-    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) and font then
+    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) then
         if firstHook then
             firstHook = false;
             if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
@@ -550,10 +541,8 @@ local function TerminateHarvestMoonTimer()
 end
 
 local function getHarvestMoonTimer(obj)
-    if font then
-        local lifeTimer = lifeTimer_field:get_data(obj);
-        HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
-    end
+    local lifeTimer = lifeTimer_field:get_data(obj);
+    HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
 end
 
 local MasterPlayerIndex = nil;
@@ -631,7 +620,7 @@ local function buildBirdTypeToTable(type)
 end
 
 re_on_frame(function()
-    if MonsterHudDataCreated then
+    if currentQuestMonsterTypes then
         local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         imgui_push_font(font);
         if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
