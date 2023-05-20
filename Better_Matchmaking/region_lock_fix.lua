@@ -1,3 +1,5 @@
+local require = require;
+
 local this = {};
 
 local utils;
@@ -8,12 +10,6 @@ local sdk_call_native_func = sdk.call_native_func;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
-
-local require = require;
-
-local region_lock_fix = {};
-local table_helpers;
-local config;
 
 local session_steam_type_def = sdk_find_type_definition("via.network.SessionSteam");
 local setIsInvisible_method = session_steam_type_def:get_method("setIsInvisible(System.Boolean)"); -- native
