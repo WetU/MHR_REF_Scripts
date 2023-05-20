@@ -1,3 +1,6 @@
+local tostring = tostring;
+local require = require;
+
 local this = {};
 
 local utils;
@@ -17,9 +20,6 @@ local imgui_combo = imgui.combo;
 
 local Vector2f = Vector2f;
 local Vector2f_new = Vector2f.new;
-
-local tostring = tostring;
-local require = require;
 
 this.is_opened = false;
 this.status = "OK";
@@ -45,8 +45,7 @@ function this.draw()
 		return;
 	end
 
-	local status_string = tostring(this.status);
-	imgui_text("Status: " .. status_string);
+	imgui_text("Status: " .. tostring(this.status));
 
 	local config_changed = false;
 	local changed = false;

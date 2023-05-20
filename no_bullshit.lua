@@ -1,3 +1,8 @@
+local pairs = pairs;
+
+local table = table;
+local table_insert = table.insert;
+
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_to_managed_object = sdk.to_managed_object;
@@ -6,8 +11,6 @@ local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 
 local json = json;
-local json_dump_file = json.dump_file;
-local json_load_file = json.load_file;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -15,33 +18,20 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
 local re = re;
-local re_on_frame = re.on_frame;
-local re_on_draw_ui = re.on_draw_ui;
-local re_on_config_save = re.on_config_save;
-
-local table = table;
-local table_insert = table.insert;
-
-local pairs = pairs;
 --
-local settings = json_load_file("no_bullshit.json") or {enable = true};
+local settings = json.load_file("no_bullshit.json") or {enable = true};
 if settings.enable == nil then
     settings.enable = true;
 end
 --
 local NpcTalkMessageCtrl_type_def = sdk_find_type_definition("snow.npc.NpcTalkMessageCtrl");
-local constructor_method = NpcTalkMessageCtrl_type_def:get_method(".ctor");
-local start_method = NpcTalkMessageCtrl_type_def:get_method("start"); -- virtual
-local onLoad_method = NpcTalkMessageCtrl_type_def:get_method("onLoad"); -- virtual
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId"); -- retval
 local resetTalkDispName_method = NpcTalkMessageCtrl_type_def:get_method("resetTalkDispName");
 local executeTalkAction_method = NpcTalkMessageCtrl_type_def:get_method("executeTalkAction");
 local set_DetermineSpeechBalloonMessage_method = NpcTalkMessageCtrl_type_def:get_method("set_DetermineSpeechBalloonMessage(System.String)");
 local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set_SpeechBalloonAttr(snow.npc.TalkAttribute)");
 
-local getCurrentMapNo_method = sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"); -- retval
-
-local VillageMapNoType_type_def = getCurrentMapNo_method:get_return_type();
+local VillageMapNoType_type_def = sdk_find_type_definition("snow.VillageMapManager.MapNoType");
 local KAMURA = VillageMapNoType_type_def:get_field("No00"):get_data(nil);
 local ELGADO = VillageMapNoType_type_def:get_field("No01"):get_data(nil);
 
@@ -108,7 +98,7 @@ local function post_getTalkTarget()
 end
 
 local ctorObj = nil;
-sdk_hook(constructor_method, function(args)
+sdk_hook(NpcTalkMessageCtrl_type_def:get_method(".ctor"), function(args)
     if settings.enable then
         ctorObj = sdk_to_managed_object(args[2]);
     end
@@ -122,9 +112,9 @@ end, function()
     end
     ctorObj = nil;
 end);
-sdk_hook(start_method, pre_getTalkTarget, post_getTalkTarget);
-sdk_hook(onLoad_method, pre_getTalkTarget, post_getTalkTarget);
-sdk_hook(getCurrentMapNo_method, nil, function(retval)
+sdk_hook(NpcTalkMessageCtrl_type_def:get_method("start"), pre_getTalkTarget, post_getTalkTarget);
+sdk_hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), pre_getTalkTarget, post_getTalkTarget);
+sdk_hook(sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"), nil, function(retval)
     if settings.enable and npcTalkMessageList ~= nil then
         local currentVillageMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
         if currentVillageMapNo ~= nil then
@@ -159,12 +149,12 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
 end);
 --
 local function SaveSettings()
-    json_dump_file("no_bullshit.json", settings);
+    json.dump_file("no_bullshit.json", settings);
 end
 
-re_on_config_save(SaveSettings);
+re.on_config_save(SaveSettings);
 
-re_on_draw_ui(function()
+re.on_draw_ui(function()
 	if imgui_tree_node("No Bullshit") then
         local changed = false;
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
@@ -178,7 +168,7 @@ re_on_draw_ui(function()
 	end
 end);
 
-re_on_frame(function()
+re.on_frame(function()
     if npcTalkMessageList ~= nil then
         local valid = false;
         for k, v in pairs(npcTalkMessageList) do

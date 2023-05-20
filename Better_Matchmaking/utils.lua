@@ -1,14 +1,9 @@
-local this = {};
-
 local type = type;
 local tostring = tostring;
 local pairs = pairs;
 local ipairs = ipairs;
 local setmetatable = setmetatable;
 local assert = assert;
-
-local Vector2f = Vector2f;
-local Vector2f_new = Vector2f.new;
 
 local math = math;
 local math_floor = math.floor;
@@ -26,10 +21,10 @@ local table = table;
 local table_insert = table.insert;
 local table_concat = table.concat;
 
-local table_tostring;
-local deep_copy;
-local merge;
-local is_empty;
+local this = {};
+
+local Vector2f = Vector2f;
+local Vector2f_new = Vector2f.new;
 
 this.table = {};
 this.number = {};
@@ -44,7 +39,7 @@ function this.table.tostring(table_)
 		return tostring(table_);
 	end
 
-	if is_empty(table_) then
+	if this.table.is_empty(table_) then
 		return "{}"; 
 	end
 
@@ -128,7 +123,7 @@ function this.table.tostring(table_)
 end
 
 function this.table.tostringln(table_)
-	return "\n" .. table_tostring(table_);
+	return "\n" .. this.table.tostring(table_);
 end
 
 function this.table.is_empty(table_)
@@ -146,9 +141,9 @@ function this.table.deep_copy(original, copies)
 			copy = {};
 			copies[original] = copy;
 			for original_key, original_value in next, original, nil do
-				copy[deep_copy(original_key, copies)] = deep_copy(original_value,copies);
+				copy[this.table.deep_copy(original_key, copies)] = this.table.deep_copy(original_value,copies);
 			end
-			setmetatable(copy, deep_copy(getmetatable(original), copies));
+			setmetatable(copy, this.table.deep_copy(getmetatable(original), copies));
 		end
 	else -- number, string, boolean, etc
 		copy = original;
@@ -178,7 +173,7 @@ function this.table.merge(...)
 		assert(type(table_) == "table", string_format("Expected a table as function parameter %d", key));
 	end
 
-	local result = deep_copy(tables_to_merge[1]);
+	local result = this.table.deep_copy(tables_to_merge[1]);
 
 	for i = 2, #tables_to_merge do
 		local from = tables_to_merge[i];
@@ -186,7 +181,7 @@ function this.table.merge(...)
 			if type(value) == "table" then
 				result[key] = result[key] or {};
 				assert(type(result[key]) == "table", string_format("Expected a table: '%s'", key));
-				result[key] = merge(result[key], value);
+				result[key] = this.table.merge(result[key], value);
 			else
 				result[key] = value;
 			end
@@ -248,13 +243,5 @@ function this.math.random(min, max)
 
 	return min + (max - min) * math_random();
 end
-
-function this.init_module()
-end
-
-table_tostring = this.table.tostring;
-deep_copy = this.table.deep_copy;
-merge = this.table.merge;
-is_empty = this.table.is_empty;
 
 return this;

@@ -1,6 +1,9 @@
+local pairs = pairs;
+
+local string = string;
+local string_format = string.format;
+
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -10,8 +13,6 @@ local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
 
 local re = re;
-local re_on_config_save = re.on_config_save;
-local re_on_draw_ui = re.on_draw_ui;
 
 local imgui = imgui;
 local imgui_load_font = imgui.load_font;
@@ -23,12 +24,8 @@ local imgui_checkbox = imgui.checkbox;
 local imgui_combo = imgui.combo;
 local imgui_slider_int = imgui.slider_int;
 
-local pairs = pairs;
-
-local string = string;
-local string_format = string.format;
 ----------- Font ---------------------------
-local KOREAN_GLYPH_RANGES = {
+local Font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
     0x2000, 0x206F, -- General Punctuation
     0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
@@ -40,13 +37,12 @@ local KOREAN_GLYPH_RANGES = {
     0xAC00, 0xD7A3, -- Hangul Syllables
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
-};
-local Font = imgui_load_font("NotoSansKR-Bold.otf", 22, KOREAN_GLYPH_RANGES);
+});
 local Languages = {"en-US", "ko-KR"};
 
 ----------- Helper Functions ----------------
 local function FindIndex(table, value)
-    for i = 1, #table do
+    for i = 1, #table, 1 do
         if table[i] == value then
             return i;
         end
@@ -55,7 +51,7 @@ local function FindIndex(table, value)
 end
 
 ------------- Config Management --------------
-local config = json_load_file("AutoSupply.json") or {
+local config = json.load_file("AutoSupply.json") or {
     Enabled = true,
     EnableNotification = true,
     EnableCohoot = true,
@@ -105,10 +101,10 @@ if config.Language == nil or FindIndex(Languages, config.Language) == nil then
 end
 
 local function save_config()
-    json_dump_file("AutoSupply.json", config);
+    json.dump_file("AutoSupply.json", config);
 end
 
-re_on_config_save(save_config);
+re.on_config_save(save_config);
 
 local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
@@ -135,7 +131,6 @@ local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value"); -- re
 local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault"); -- retval
 
 local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
-local applyEquipMySet_method = EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"); -- retval
 local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");  -- retval
@@ -157,8 +152,6 @@ local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPa
 local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
 
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
-
-local GuiCampFsmManager_start_method = sdk_find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start");
 
 local SycleTypes_Quest = sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 
@@ -213,8 +206,6 @@ local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count"); -
 local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)");
 
 local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
-
-local onVillageStart_method = sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart");
 --
 local function SendMessage(text)
     if config.EnableNotification then
@@ -651,7 +642,7 @@ end
 
 local EquipDataManager = nil;
 local setIdx = nil;
-sdk_hook(applyEquipMySet_method, function(args)
+sdk_hook(EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
     if config.Enabled then
         EquipDataManager = sdk_to_managed_object(args[2]);
         setIdx = sdk_to_int64(args[3]) & 0xFFFFFFFF;
@@ -677,28 +668,26 @@ end, function(retval)
     return retval;
 end);
 
-sdk_hook(GuiCampFsmManager_start_method, nil, function()
+sdk_hook(sdk_find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, function()
     if config.Enabled then
         Restock(nil, nil);
     end
 end);
 
-sdk_hook(onVillageStart_method, nil, function()
-    if config.Enabled then
-        Restock(nil, nil);
+sdk_hook(sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
+    if config.EnableArgosy then
+        autoArgosy();
     end
     if config.EnableCohoot then
         Supply();
     end
-    if config.EnableArgosy then
-        autoArgosy();
+    if config.Enabled then
+        Restock(nil, nil);
     end
 end);
 ----------------------------------------------
-re_on_draw_ui(function()
-    if Font then
-        imgui_push_font(Font);
-    end
+re.on_draw_ui(function()
+    imgui_push_font(Font);
     local changed = false;
     if imgui_tree_node("AutoSupply") then
         changed, config.Enabled = imgui_checkbox("Enabled", config.Enabled);
@@ -747,7 +736,5 @@ re_on_draw_ui(function()
         end
         imgui_tree_pop();
     end
-    if Font then
-        imgui_pop_font();
-    end
+    imgui_pop_font();
 end);

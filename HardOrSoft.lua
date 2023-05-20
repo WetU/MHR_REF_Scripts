@@ -1,11 +1,15 @@
+local pairs = pairs;
+local tonumber = tonumber;
+
+local table = table;
+local table_insert = table.insert;
+
+local math = math;
+local math_floor = math.floor;
+
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
 
 local re = re;
-local re_on_config_save = re.on_config_save;
-local re_on_draw_ui = re.on_draw_ui;
-local re_on_frame = re.on_frame;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -22,15 +26,6 @@ local imgui_combo = imgui.combo;
 local imgui_slider_int = imgui.slider_int;
 local imgui_button = imgui.button;
 local imgui_tree_pop = imgui.tree_pop;
-
-local table = table;
-local table_insert = table.insert;
-
-local math = math;
-local math_floor = math.floor;
-
-local pairs = pairs;
-local tonumber = tonumber;
 
 local config = nil;
 
@@ -57,10 +52,10 @@ local function Reset()
 end
 
 local function SaveConfig()
-    json_dump_file("HardOrSoft.json", config);
+    json.dump_file("HardOrSoft.json", config);
 end
 
-local loadConfig = json_load_file("HardOrSoft.json");
+local loadConfig = json.load_file("HardOrSoft.json");
 if loadConfig then
     config = loadConfig;
 else
@@ -69,7 +64,7 @@ else
 end
 
 local temp = nil;
-local preDmg = {};
+local preDmg = nil;
 local elementExploit = 0;
 local lastShowTimer = 0;
 local color = {"Hide", "White", "Orange", "Large Orange", "Gray", "Red", "Large Gray"};
@@ -86,15 +81,11 @@ local function FindIndex (table, value, nullable)
     return nil;
 end
 
-re_on_config_save(SaveConfig);
+re.on_config_save(SaveConfig);
 
 local get_UpTimeSecond_method = sdk_find_type_definition("via.Application"):get_method("get_UpTimeSecond"); -- static, native
 
-local afterCalcDamage_DamageSide_method = sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("afterCalcDamage_DamageSide(snow.hit.DamageFlowInfoBase, snow.DamageReceiver.HitInfo)"); -- virtual
-local getHitUIColorType_method = sdk_find_type_definition("snow.enemy.EnemyUtility"):get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)"); -- static, retval
-
 local GuiDamageDisp_NumDisp_type_def = sdk_find_type_definition("snow.gui.GuiDamageDisp.NumDisp");
-local excute_method = GuiDamageDisp_NumDisp_type_def:get_method("execute");
 local isExecute_method = GuiDamageDisp_NumDisp_type_def:get_method("isExecute"); -- retval
 local DispType_field = GuiDamageDisp_NumDisp_type_def:get_field("DispType");
 local DamageText_field = GuiDamageDisp_NumDisp_type_def:get_field("_DamageText");
@@ -122,7 +113,6 @@ local getPlayerIndex_method = findMasterPlayer_method:get_return_type():get_meth
 
 local CriticalType_type_def = get_CriticalResult_method:get_return_type();
 local CriticalType = {
-    ["None"] = CriticalType_type_def:get_field("None"):get_data(nil),
     ["Critical"] = CriticalType_type_def:get_field("Critical"):get_data(nil),
     ["NegativeCritical"] = CriticalType_type_def:get_field("NegativeCritical"):get_data(nil)
 };
@@ -196,7 +186,8 @@ local ColorType = {
     BigOrange = 2,
     Gray = 3,
     Red = 4,
-    BigGray = 5
+    BigGray = 5,
+    Num = 6
 };
 
 local function Conversion()
@@ -220,7 +211,7 @@ local function IsPlayerDamageType(dmgtype)
     return dmgtype == DamageAttackerType.PlayerWeapon or dmgtype == DamageAttackerType.DetonationGrenade or dmgtype == DamageAttackerType.Kabutowari or false;
 end
 
-sdk_hook(afterCalcDamage_DamageSide_method, function(args)
+sdk_hook(sdk_find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("afterCalcDamage_DamageSide(snow.hit.DamageFlowInfoBase, snow.DamageReceiver.HitInfo)"), function(args)
     if config.Enable then
         local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
         if PlayerManager then
@@ -229,6 +220,9 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
                 local masterIdx = getPlayerIndex_method:call(MasterPlayer);
                 local dmgInfo = sdk_to_managed_object(args[3]);
                 if masterIdx ~= nil and dmgInfo and get_AttackerID_method:call(dmgInfo) == masterIdx and IsPlayerDamageType(get_DamageAttackerType_method:call(dmgInfo)) then
+                    if not preDmg then
+                        preDmg = {};
+                    end
                     table_insert(preDmg, {
                         ["dmg"] = get_TotalDamage_method:call(dmgInfo),
                         ["physical"] = get_PhysicalDamage_method:call(dmgInfo),
@@ -243,7 +237,7 @@ sdk_hook(afterCalcDamage_DamageSide_method, function(args)
     end
 end);
 
-sdk_hook(excute_method, function(args)
+sdk_hook(GuiDamageDisp_NumDisp_type_def:get_method("execute"), function(args)
     if config.Enable then
         local tmp = sdk_to_managed_object(args[2]);
         if tmp and DispType_field:get_data(tmp) ~= ColorType.Gray and isExecute_method:call(tmp) then
@@ -253,7 +247,7 @@ sdk_hook(excute_method, function(args)
                 sdk_call_native_func(text, DamageText_type_def, "set_FontSlot(via.gui.FontSlot)", font);
                 tmp:set_field("waitFrame", config.DisplayTime);
                 local dmg = tonumber(sdk_call_native_func(text, DamageText_type_def, "get_Message"));
-                if dmg then
+                if dmg and preDmg then
                     for _, v in pairs(preDmg) do
                         if v.find < 2 then
                             if v.dmg == dmg then
@@ -304,7 +298,7 @@ sdk_hook(excute_method, function(args)
 end);
 
 local nextArg = nil;
-sdk_hook(getHitUIColorType_method, function(args)
+sdk_hook(sdk_find_type_definition("snow.enemy.EnemyUtility"):get_method("getHitUIColorType(snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)"), function(args)
     if config.Enable then
         nextArg = sdk_to_managed_object(args[2]);
     end
@@ -378,7 +372,7 @@ end, function(retval)
     return retval;
 end);
 
-re_on_draw_ui(function()
+re.on_draw_ui(function()
     if imgui_tree_node("Hard or Soft") then
         local changed = false;
         local new_value = nil;
@@ -490,9 +484,9 @@ re_on_draw_ui(function()
     end
 end);
 
-re_on_frame(function()
-	if #preDmg ~= 0 and (get_UpTimeSecond_method:call(nil) - lastShowTimer >= 1) then
-		preDmg = {};
+re.on_frame(function()
+    if ((get_UpTimeSecond_method:call(nil) - lastShowTimer) >= 1.0) and preDmg then
+        preDmg = nil;
         elementExploit = 0;
 	end
 end);

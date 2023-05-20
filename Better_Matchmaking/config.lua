@@ -1,17 +1,14 @@
+local require = require;
+
 local this = {};
 local version = "2.3.2";
 
 local utils;
 
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
-
-local require = require;
 
 this.current_config = nil;
 this.config_file_name = "Better Matchmaking/config.json";
-
 this.default_config = {};
 
 function this.init()
@@ -48,7 +45,7 @@ function this.init()
 end
 
 function this.load()
-	local loaded_config = json_load_file(this.config_file_name);
+	local loaded_config = json.load_file(this.config_file_name);
 	if loaded_config ~= nil then
 		this.current_config = utils.table.merge(this.default_config, loaded_config);
 	else
@@ -57,7 +54,7 @@ function this.load()
 end
 
 function this.save()
-	json_dump_file(this.config_file_name, this.current_config);
+	json.dump_file(this.config_file_name, this.current_config);
 end
 
 function this.reset()

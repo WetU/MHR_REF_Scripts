@@ -1,7 +1,5 @@
 -- Initialize
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
@@ -10,8 +8,6 @@ local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_hook = sdk.hook;
 
 local re = re;
-local re_on_draw_ui = re.on_draw_ui;
-local re_on_config_save = re.on_config_save;
 
 local imgui = imgui;
 local imgui_button = imgui.button;
@@ -23,7 +19,7 @@ local imgui_tree_pop = imgui.tree_pop;
 local imgui_end_window = imgui.end_window;
 local imgui_spacing = imgui.spacing;
 
-local settings = json_load_file("Enhance_Dango_kitchen.json") or {
+local settings = json.load_file("Enhance_Dango_kitchen.json") or {
 	skipDangoSong = true,
 	skipEating = true,
 	skipMotley = true,
@@ -43,20 +39,16 @@ if settings.TicketByDefault == nil then
 end
 -- VIP Dango Ticket Cache
 local mealFunc_type_def = sdk_find_type_definition("snow.facility.kitchen.MealFunc");
-local updateList_method = mealFunc_type_def:get_method("updateList(System.Boolean)");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
-local requestAutoSaveAll_method = sdk_find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll");
-
-local GuiDangoLog_field = sdk_find_type_definition("snow.gui.GuiManager"):get_field("<refGuiDangoLog>k__BackingField");
-local reqDangoLogStart_method = GuiDangoLog_field:get_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local get_refGuiDangoLog_method = sdk_find_type_definition("snow.gui.GuiManager"):get_method("get_refGuiDangoLog");
+local reqDangoLogStart_method = get_refGuiDangoLog_method:get_return_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = sdk_find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 local set_IsCookDemoSkip_method = kitchenFsm_type_def:get_method("set_IsCookDemoSkip(System.Boolean)");
-local KitchenDangoLogParam_field = kitchenFsm_type_def:get_field("<KitchenDangoLogParam>k__BackingField");
+local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam");
 
 local EventcutHandler_type_def = sdk_find_type_definition("snow.eventcut.EventcutHandler");
-local play_method = EventcutHandler_type_def:get_method("play(System.Boolean)");
 local get_EventId_method = EventcutHandler_type_def:get_method("get_EventId"); -- retval
 local get_LoadState_method = EventcutHandler_type_def:get_method("get_LoadState"); -- retval
 local get_Playing_method = EventcutHandler_type_def:get_method("get_Playing"); -- retval
@@ -83,7 +75,7 @@ local bbq_events = {
 
 -- VIP Dango Ticket Main Function
 local MealFunc = nil;
-sdk_hook(updateList_method, function(args)
+sdk_hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), function(args)
 	if settings.TicketByDefault then
 		MealFunc = sdk_to_managed_object(args[2]);
 	end
@@ -97,7 +89,7 @@ end);
 -- Skip Dango Song Main Function
 local DemoHandler = nil;
 local DemoType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
-sdk_hook(play_method, function(args)
+sdk_hook(EventcutHandler_type_def:get_method("play(System.Boolean)"), function(args)
 	if settings.skipDangoSong or settings.skipEating or settings.skipMotley then
 		DemoHandler = sdk_to_managed_object(args[2]);
 		if DemoHandler then
@@ -128,14 +120,14 @@ end, function()
 	end
 end);
 
-sdk_hook(requestAutoSaveAll_method, nil, function()
+sdk_hook(sdk_find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, function()
 	if DemoType == 2 then
 		DemoType = nil;
 		local GuiManager = sdk_get_managed_singleton("snow.gui.GuiManager");
 		local kitchenFsm = sdk_get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 		if GuiManager and kitchenFsm then
-			local GuiDangoLog = GuiDangoLog_field:get_data(GuiManager);
-			local KitchenDangoLogParam = KitchenDangoLogParam_field:get_data(kitchenFsm);
+			local GuiDangoLog = get_refGuiDangoLog_method:call(GuiManager);
+			local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(kitchenFsm);
 			if GuiDangoLog and KitchenDangoLogParam then
 				reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
 			end
@@ -145,13 +137,13 @@ end);
 
 ---- re Callbacks ----
 local function save_config()
-	json_dump_file("Enhance_Dango_kitchen.json", settings);
+	json.dump_file("Enhance_Dango_kitchen.json", settings);
 end
 
-re_on_config_save(save_config);
+re.on_config_save(save_config);
 
 local isDrawOptionWindow = false;
-re_on_draw_ui(function()
+re.on_draw_ui(function()
 	if imgui_button("[Enhance Dango Kitchen]") then
 		isDrawOptionWindow = true;
 	end

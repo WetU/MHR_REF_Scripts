@@ -1,3 +1,6 @@
+local require = require;
+local pairs = pairs;
+
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
@@ -7,8 +10,6 @@ local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 
 local re = re;
-local re_on_draw_ui = re.on_draw_ui;
-local re_on_config_save = re.on_config_save;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
@@ -22,13 +23,8 @@ local imgui_spacing = imgui.spacing;
 local imgui_end_window = imgui.end_window;
 
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
 
-local require = require;
-local pairs = pairs;
-
-local settings = json_load_file("NoKillCam+BTH.json") or 
+local settings = json.load_file("NoKillCam+BTH.json") or 
 {
 	NoKillCam = {
 		disableKillCam = true,
@@ -61,7 +57,7 @@ if settings.BTH.kbAnimSkipKey == nil then
 end
 
 local function SaveSettings()
-	json_dump_file("NoKillCam+BTH.json", settings);
+	json.dump_file("NoKillCam+BTH.json", settings);
 end
 
 -- Common Cache
@@ -78,11 +74,8 @@ local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
 
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
-local RequestActive_method = sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive(snow.CameraManager.CameraType)");
-
 local CameraType_DemoCamera = sdk_find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
-local updateQuestEndFlow_method = QuestManager_type_def:get_method("updateQuestEndFlow");
 local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
 local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 
@@ -91,7 +84,6 @@ local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.Keybo
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)"); -- static, retval
 -- Remove Town Interaction Delay cache
 local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
-local changeAllMarkerEnable_method = sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 
 local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --[[
@@ -121,7 +113,7 @@ QuestManager.CaptureStatus
 ]]--
 
 -- No Kill Cam
-sdk_hook(RequestActive_method, function(args)
+sdk_hook(sdk_find_type_definition("snow.CameraManager"):get_method("RequestActive(snow.CameraManager.CameraType)"), function(args)
 	if settings.NoKillCam.disableKillCam and (sdk_to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
 		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
@@ -132,7 +124,7 @@ end);
 
 -- BTH
 local QuestManager_obj = nil;
-sdk_hook(updateQuestEndFlow_method, function(args)
+sdk_hook(QuestManager_type_def:get_method("updateQuestEndFlow"), function(args)
 	if settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim then
 		QuestManager_obj = sdk_to_managed_object(args[2]);
 	end
@@ -148,7 +140,7 @@ end, function()
 end);
 
 -- Remove Town Interaction Delay
-sdk_hook(changeAllMarkerEnable_method, function(args)
+sdk_hook(sdk_find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)"), function(args)
 	if (sdk_to_int64(args[3]) & 1) ~= 1 then
 		local QuestManager = sdk_get_managed_singleton("snow.QuestManager");
 		if QuestManager and checkStatus_method:call(QuestManager, QuestStatus_None) then
@@ -163,7 +155,7 @@ local drawSettings = false;
 local setAnimSkipKey = false;
 local setCDSkipKey = false;
 local padBtnPrev = 0;
-re_on_draw_ui(function()
+re.on_draw_ui(function()
 	local changed = false;
     if imgui_tree_node("No Kill-Cam + BTH") then
 		changed, settings.NoKillCam.disableKillCam = imgui_checkbox("Disable KillCam", settings.NoKillCam.disableKillCam);
@@ -234,4 +226,4 @@ re_on_draw_ui(function()
     end
 end);
 
-re_on_config_save(SaveSettings);
+re.on_config_save(SaveSettings);

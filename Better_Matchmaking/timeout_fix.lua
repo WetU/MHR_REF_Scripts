@@ -15,8 +15,6 @@ local ValueType = ValueType;
 local ValueType_new = ValueType.new;
 --
 local session_manager_type_def = sdk_find_type_definition("snow.SnowSessionManager");
-local on_timeout_matchmaking_method = session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)");
-
 local req_matchmaking_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSession(System.UInt32)");
 local req_matchmaking_random_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandom(System.UInt32)");
 local req_matchmaking_hyakuryu_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionHyakuryu(System.UInt32, System.Nullable`1<System.UInt32>, System.Nullable`1<System.UInt32>)");
@@ -29,12 +27,7 @@ local nullable_uint32_constructor_method = nullable_uint32_type_def:get_method("
 local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue"); -- retval
 local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault"); -- retval
 --
-local SessionAttr_type_def = sdk_find_type_definition("snow.network.session.SessionAttr");
-local SessionAttr = {
-	["Lobby"] = SessionAttr_type_def:get_field("Lobby"):get_data(nil),  -- 1
-	["Quest"] = SessionAttr_type_def:get_field("Quest"):get_data(nil),  -- 2
-	["Both"] = SessionAttr_type_def:get_field("Both"):get_data(nil)     -- 3
-};
+local SessionAttr_Quest = sdk_find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
 --
 local quest_types = {
 	invalid = nil,
@@ -82,9 +75,8 @@ local quest_type = quest_types.invalid;
 local skip_next_hook = quest_types.invalid;
 
 local session_manager = nil;
-
 function this.prehook_on_timeout(args)
-	if quest_type ~= quest_types.invalid and (sdk_to_int64(args[3]) & 0xFFFFFFFF) >= SessionAttr.Quest then
+	if quest_type ~= quest_types.invalid and (sdk_to_int64(args[3]) & 0xFFFFFFFF) >= SessionAttr_Quest then
 		session_manager = sdk_to_managed_object(args[2]);
 	end
 end
@@ -93,7 +85,7 @@ function this.init_module()
 	config = require("Better_Matchmaking.config");
 	utils = require("Better_Matchmaking.utils");
 
-	sdk_hook(on_timeout_matchmaking_method, this.prehook_on_timeout, function()
+	sdk_hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), this.prehook_on_timeout, function()
 		if session_manager then
 			if quest_type == quest_types.regular then
 				skip_next_hook = quest_types.regular;

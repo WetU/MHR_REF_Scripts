@@ -1,6 +1,4 @@
 local json = json;
-local json_load_file = json.load_file;
-local json_dump_file = json.dump_file;
 
 local Vector3f = Vector3f;
 local Vector3f_new = Vector3f.new;
@@ -16,15 +14,13 @@ local sdk_hook = sdk.hook;
 local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 
 local re = re;
-local re_on_draw_ui = re.on_draw_ui;
-local re_on_config_save = re.on_config_save;
 
 local imgui = imgui;
 local imgui_tree_node = imgui.tree_node;
 local imgui_checkbox = imgui.checkbox;
 local imgui_tree_pop = imgui.tree_pop;
 
-local settings = json_load_file("Nearest_camp_revive.json") or {enable = true};
+local settings = json.load_file("Nearest_camp_revive.json") or {enable = true};
 if settings.enable == nil then
     settings.enable = true
 end
@@ -58,7 +54,6 @@ local nekoTakuList = {
 --
 local get_CurrentMapNo_method = sdk_find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = sdk_find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
-local startToPlayPlayerDieMusic_method = sdk_find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic");
 
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
@@ -86,7 +81,6 @@ local tentPositionList_get_Item_method = tentPositionList_type_def:get_method("g
 
 local stageManager_type_def = sdk_find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
-local setPlWarpInfo_Nekotaku_method = stageManager_type_def:get_method("setPlWarpInfo_Nekotaku");
 
 local AreaMoveQuest_Die = sdk_find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 --
@@ -193,10 +187,10 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
 end
 
 local function SaveSettings()
-    json_dump_file("Nearest_camp_revive.json", settings);
+    json.dump_file("Nearest_camp_revive.json", settings);
 end
 
-re_on_draw_ui(function()
+re.on_draw_ui(function()
     local changed = false;
 	if imgui_tree_node("Nearest Camp Revive") then
 		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
@@ -207,9 +201,9 @@ re_on_draw_ui(function()
 	end
 end);
 
-re_on_config_save(SaveSettings);
+re.on_config_save(SaveSettings);
 
-sdk_hook(startToPlayPlayerDieMusic_method, function()
+sdk_hook(sdk_find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), function()
     if settings.enable then
         local StagePointManager = sdk_get_managed_singleton("snow.stage.StagePointManager");
         local mapNo = getCurrentMapNo();
@@ -242,7 +236,7 @@ sdk_hook(createNekotaku_method, function(args)
     end
 end);
 
-sdk_hook(setPlWarpInfo_Nekotaku_method, function(args)
+sdk_hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), function(args)
     if skipWarpNeko then
         skipWarpNeko = false;
         local obj = sdk_to_managed_object(args[2]);

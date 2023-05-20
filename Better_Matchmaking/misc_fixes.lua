@@ -14,9 +14,6 @@ local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
 local get_CurrentStatus_method = sdk_find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus"); -- retval
 local StatusType_Quest = get_CurrentStatus_method:get_return_type():get_field("Quest"):get_data(nil);
 
-local reqOnlineWarning_method = sdk_find_type_definition("snow.SnowSessionManager"):get_method("reqOnlineWarning");
-local setOpenNetworkErrorWindowSelection_method = sdk_find_type_definition("snow.gui.GuiManager"):get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)");
-
 function this.on_req_online_warning()
 	if config.current_config.hide_online_warning.enabled then
 		return sdk_SKIP_ORIGINAL;
@@ -44,8 +41,8 @@ function this.init_module()
 	config = require("Better_Matchmaking.config");
 	utils = require("Better_Matchmaking.utils");
 
-	sdk_hook(reqOnlineWarning_method, this.on_req_online_warning);
-	sdk_hook(setOpenNetworkErrorWindowSelection_method, this.on_set_open_network_error_window_selection);
+	sdk_hook(sdk_find_type_definition("snow.SnowSessionManager"):get_method("reqOnlineWarning"), this.on_req_online_warning);
+	sdk_hook(sdk_find_type_definition("snow.gui.GuiManager"):get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), this.on_set_open_network_error_window_selection);
 end
 
 return this;
