@@ -167,8 +167,8 @@ local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__C
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
 local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
-local KAMURA = AreaNoType_type_def:get_field("No02"):get_data(nil);
-local ELGADO = AreaNoType_type_def:get_field("No06"):get_data(nil);
+local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
+local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
 local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
@@ -568,29 +568,29 @@ local function Supply()
                 if VillageAreaManager then
                     local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
                     if tempNum == 1 then
-                        if savedAreaNo == KAMURA then
+                        if savedAreaNo == BUDDY_PLAZA then
                             supply_method:call(ProgressOwlNestManager);
                         else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
                             supply_method:call(ProgressOwlNestManager);
                             set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                         end
                     elseif tempNum == 2 then
-                        if savedAreaNo == ELGADO then
+                        if savedAreaNo == OUTPOST then
                             supply_method:call(ProgressOwlNestManager);
                         else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
                             supply_method:call(ProgressOwlNestManager);
                             set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                         end
                     else
-                        if savedAreaNo == KAMURA or savedAreaNo == ELGADO then
+                        if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then
                             supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == KAMURA and ELGADO or KAMURA);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == BUDDY_PLAZA and OUTPOST or BUDDY_PLAZA);
                         else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, KAMURA);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
                             supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, ELGADO);
+                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
                         end
                         supply_method:call(ProgressOwlNestManager);
                         set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);

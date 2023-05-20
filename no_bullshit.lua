@@ -129,12 +129,13 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
         local currentVillageMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
         if currentVillageMapNo ~= nil then
             local isKamura = currentVillageMapNo == KAMURA;
-            if ctorActivated then
-                for _, v in pairs(npcTalkMessageList) do
-                    if v ~= nil and sdk_is_managed_object(v) then
+            local isElgado = currentVillageMapNo == ELGADO;
+            for k, v in pairs(npcTalkMessageList) do
+                if v ~= nil and sdk_is_managed_object(v) then
+                    if ctorActivated then
                         local npcId = v:call("get_NpcId");
                         if npcId ~= nil and hasNpcId(npcId) then
-                            if (npcList.KAMURA[npcId] and isKamura) or (npcList.ELGADO[npcId] and not isKamura) then
+                            if (npcList.KAMURA[npcId] and isKamura) or (npcList.ELGADO[npcId] and isElgado) then
                                 talkAction(v);
                                 v = nil;
                             end
@@ -142,22 +143,16 @@ sdk_hook(getCurrentMapNo_method, nil, function(retval)
                             v = nil;
                         end
                     else
-                        v = nil;
-                    end
-                end
-                ctorActivated = false;
-            else
-                for k, v in pairs(npcTalkMessageList) do
-                    if v ~= nil and v:get_reference_count() > 0 then
-                        if (npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and not isKamura) then
+                        if (npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and isElgado) then
                             talkAction(v);
                             v = nil;
                         end
-                    else
-                        v = nil;
                     end
+                else
+                    v = nil;
                 end
             end
+            ctorActivated = false;
         end
     end
     return retval;
