@@ -40,19 +40,19 @@ local TalkAttribute_NONE = sdk_find_type_definition("snow.npc.TalkAttribute"):ge
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
     ["KAMURA"] = {
-        [NpcId_type_def:get_field("nid001"):get_data(nil)] = true,  -- Fugen
-        [NpcId_type_def:get_field("nid003"):get_data(nil)] = true,  -- Kagero
-        [NpcId_type_def:get_field("nid004"):get_data(nil)] = true,  -- Yomogi
-        [NpcId_type_def:get_field("nid101"):get_data(nil)] = true,  -- Hojo
-        [NpcId_type_def:get_field("nid306"):get_data(nil)] = true   -- Iori
+        NpcId_type_def:get_field("nid001"):get_data(nil),  -- Fugen
+        NpcId_type_def:get_field("nid003"):get_data(nil),  -- Kagero
+        NpcId_type_def:get_field("nid004"):get_data(nil),  -- Yomogi
+        NpcId_type_def:get_field("nid101"):get_data(nil),  -- Hojo
+        NpcId_type_def:get_field("nid306"):get_data(nil)   -- Iori
     },
     ["ELGADO"] = {
-        [NpcId_type_def:get_field("nid502"):get_data(nil)] = true,  -- Galleus
-        [NpcId_type_def:get_field("nid503"):get_data(nil)] = true,  -- Bahari
-        [NpcId_type_def:get_field("nid606"):get_data(nil)] = true,  -- Nagi
-        [NpcId_type_def:get_field("nid607"):get_data(nil)] = true,  -- Oboro
-        [NpcId_type_def:get_field("nid608"):get_data(nil)] = true,  -- Azuki
-        [NpcId_type_def:get_field("nid715"):get_data(nil)] = true   -- Pingarh
+        NpcId_type_def:get_field("nid502"):get_data(nil),  -- Galleus
+        NpcId_type_def:get_field("nid503"):get_data(nil),  -- Bahari
+        NpcId_type_def:get_field("nid606"):get_data(nil),  -- Nagi
+        NpcId_type_def:get_field("nid607"):get_data(nil),  -- Oboro
+        NpcId_type_def:get_field("nid608"):get_data(nil),  -- Azuki
+        NpcId_type_def:get_field("nid715"):get_data(nil)   -- Pingarh
     }
 };
 --
@@ -61,18 +61,27 @@ local npcTalkMessageList = nil;
 
 local function hasNpcId(npcid)
     for village, ids in pairs(npcList) do
-        if ids[npcid] then
-            return true;
+        for _, id in pairs(ids) do
+            if id == npcid then
+                return true;
+            end
         end
     end
     return false;
+end
+
+local function ctorTalkAction(npcTalkMessageCtrl)
+    npcTalkMessageCtrl:call("resetTalkDispName");
+    npcTalkMessageCtrl:call("executeTalkAction");
+    npcTalkMessageCtrl:call("set_DetermineSpeechBalloonMessage(System.String)", nil);
+    npcTalkMessageCtrl:call("set_SpeechBalloonAttr(snow.npc.TalkAttribute)", TalkAttribute_NONE);
 end
 
 local function talkAction(npcTalkMessageCtrl)
     resetTalkDispName_method:call(npcTalkMessageCtrl);
     executeTalkAction_method:call(npcTalkMessageCtrl);
     set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
-    set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TALK_ATTR_NONE);
+    set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TalkAttribute_NONE);
 end
 
 local NpcTalkMessageCtrl = nil;
@@ -115,7 +124,7 @@ end);
 sdk_hook(NpcTalkMessageCtrl_type_def:get_method("start"), pre_getTalkTarget, post_getTalkTarget);
 sdk_hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), pre_getTalkTarget, post_getTalkTarget);
 sdk_hook(sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"), nil, function(retval)
-    if settings.enable and npcTalkMessageList ~= nil then
+    if settings.enable and npcTalkMessageList then
         local currentVillageMapNo = sdk_to_int64(retval) & 0xFFFFFFFF;
         if currentVillageMapNo ~= nil then
             local isKamura = currentVillageMapNo == KAMURA;
@@ -125,21 +134,47 @@ sdk_hook(sdk_find_type_definition("snow.VillageMapManager"):get_method("getCurre
                     if ctorActivated then
                         local npcId = v:call("get_NpcId");
                         if npcId ~= nil and hasNpcId(npcId) then
-                            if (npcList.KAMURA[npcId] and isKamura) or (npcList.ELGADO[npcId] and isElgado) then
-                                talkAction(v);
-                                v = nil;
+                            if isKamura then
+                                for _, id in pairs(npcList.KAMURA) do
+                                    if id == npcId then
+                                        ctorTalkAction(v);
+                                        npcTalkMessageList[k] = nil;
+                                        break;
+                                    end
+                                end
+                            elseif isElgado then
+                                for _, id in pairs(npcList.ELGADO) do
+                                    if id == npcId then
+                                        ctorTalkAction(v);
+                                        npcTalkMessageList[k] = nil;
+                                        break;
+                                    end
+                                end
                             end
                         else
-                            v = nil;
+                            npcTalkMessageList[k] = nil;
                         end
                     else
-                        if (npcList.KAMURA[k] and isKamura) or (npcList.ELGADO[k] and isElgado) then
-                            talkAction(v);
-                            v = nil;
+                        if isKamura then
+                            for _, id in pairs(npcList.KAMURA) do
+                                if id == k then
+                                    talkAction(v);
+                                    npcTalkMessageList[k] = nil;
+                                    break;
+                                end
+                            end
+                        elseif isElgado then
+                            for _, id in pairs(npcList.ELGADO) do
+                                if id == k then
+                                    talkAction(v);
+                                    npcTalkMessageList[k] = nil;
+                                    break;
+                                end
+                            end
                         end
                     end
                 else
-                    v = nil;
+                    npcTalkMessageList[k] = nil;
                 end
             end
             ctorActivated = false;
@@ -169,7 +204,7 @@ re.on_draw_ui(function()
 end);
 
 re.on_frame(function()
-    if npcTalkMessageList ~= nil then
+    if npcTalkMessageList then
         local valid = false;
         for k, v in pairs(npcTalkMessageList) do
             if v ~= nil then
@@ -177,7 +212,7 @@ re.on_frame(function()
                 break;
             end
         end
-        if not valid then
+        if valid == false then
             npcTalkMessageList = nil;
             ctorActivated = false;
         end

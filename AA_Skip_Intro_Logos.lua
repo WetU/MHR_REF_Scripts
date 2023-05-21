@@ -3,7 +3,6 @@ local sdk_find_type_definition = sdk.find_type_definition;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_call_native_func = sdk.call_native_func;
-local sdk_to_ptr = sdk.to_ptr;
 local sdk_hook = sdk.hook;
 local sdk_hook_vtable = sdk.hook_vtable;
 --
@@ -48,16 +47,16 @@ local function isLoading()
 	local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 	if GuiGameStartFsmManager then
 		local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
-		return GameStartState ~= nil and (GameStartState >= LOADING_STATES.Caution and GameStartState <= LOADING_STATES.Nvidia_Logo) or GameStartState;
+		return GameStartState ~= nil and (GameStartState >= LOADING_STATES.Caution and GameStartState <= LOADING_STATES.Nvidia_Logo) or nil;
 	end
 	return false;
 end
 
-local SkipTrg = sdk_to_ptr(1);
+local SkipTrg = sdk.to_ptr(1);
 --
 local currentMovie = nil;
 local otherLogoFadeIn = nil;
-local healthCautionFadeIn = nil
+local healthCautionFadeIn = nil;
 sdk_hook(Movie_type_def:get_method("play"), function(args)
 	if isLoading() then
 		currentMovie = sdk_to_managed_object(args[2]);
