@@ -1,5 +1,4 @@
 local pairs = pairs;
-local ipairs = ipairs;
 local tostring = tostring;
 
 local table = table;
@@ -19,7 +18,6 @@ local sdk_get_managed_singleton = sdk.get_managed_singleton;
 local sdk_to_managed_object = sdk.to_managed_object;
 local sdk_to_int64 = sdk.to_int64;
 local sdk_hook = sdk.hook;
-local sdk_hook_vtable = sdk.hook_vtable;
 
 local re = re;
 
@@ -55,7 +53,6 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
 ------
 local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)"); -- static, native, retval
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
-local isBoss_method = sdk_find_type_definition("snow.enemy.EnemyDef"):get_method("isBoss(snow.enemy.EnemyDef.EmTypes)"); -- static, retval
 
 local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
@@ -137,14 +134,14 @@ local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
 
 local PlayerManager_type_def = sdk_find_type_definition("snow.player.PlayerManager");
+local findMasterPlayer_method = PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
 
 local PlayerQuestBase_type_def = sdk_find_type_definition("snow.player.PlayerQuestBase");
-local PlayerQuestBase_onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy"); -- virtual
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
-local PlayerBase_type_def = sdk_find_type_definition("snow.player.PlayerBase");
+local PlayerBase_type_def = findMasterPlayer_method:get_return_type();
 local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
 local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex"); -- retval
 local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData"); -- retval
@@ -168,17 +165,17 @@ local BuffTypes = {
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
 --
-local LongSwordShellManager_type_def = sdk_find_type_definition("snow.shell.LongSwordShellManager");
-local getMaseterLongSwordShell010s_method = LongSwordShellManager_type_def:get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"); -- retval
-
-local MasterLongSwordShell010s_get_Item_method = getMaseterLongSwordShell010s_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
-
-local LongSwordShell010_type_def = MasterLongSwordShell010s_get_Item_method:get_return_type();
-local LongSwordShell010_update_method = LongSwordShell010_type_def:get_method("update"); -- virtual
-local LongSwordShell010_onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy"); -- virtual
+local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShell010");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
+local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
-local CircleType_Inside = sdk_find_type_definition("snow.shell.LongSwordShell010.CircleType"):get_field("Inside"):get_data(nil);
+local get_OwnerId_method = sdk_find_type_definition("snow.shell.PlayerShellBase"):get_method("get_OwnerId"); -- retval
+
+local CircleType_type_def = CircleType_field:get_type();
+local HarvestMoonCircleType = {
+    ["Inside"] = CircleType_type_def:get_field("Inside"):get_data(nil),
+    ["Outside"] = CircleType_type_def:get_field("Outside"):get_data(nil)
+};
 --
 local via_Language_Korean = sdk_find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
 
@@ -317,7 +314,7 @@ end, function()
         TerminateMonsterHud();
     else
         local EnemyType = get_EnemyType_method:call(TargetEnemyCharacterBase);
-        if EnemyType ~= nil then
+        if EnemyType ~= nil and MonsterListData[EnemyType] ~= nil then
             currentTargetUniqueId = get_UniqueId_method:call(TargetEnemyCharacterBase);
             currentQuestMonsterTypes = {EnemyType};
         else
@@ -353,7 +350,7 @@ end, function()
             if listCount > 0 then
                 for i = 0, listCount - 1, 1 do
                     local QuestTargetEmType = QuestTargetEmTypeList_get_Item_method:call(QuestTargetEmTypeList, i);
-                    if isBoss_method:call(nil, QuestTargetEmType) then
+                    if QuestTargetEmType ~= nil and MonsterListData[QuestTargetEmType] ~= nil then
                         if not currentQuestMonsterTypes then
                             currentQuestMonsterTypes = {};
                         end
@@ -386,7 +383,7 @@ end);
 
 local TimerString = {
     Disabled = "향응 비활성 지역",
-    Enabled = "향응 타이머: %.2f초"
+    Enabled = "향응 타이머: %.f초"
 };
 
 local StatusBuffLimits = nil;
@@ -452,10 +449,11 @@ end, function()
                 SpiribirdsHudDataCreated = true;
             end
         end
-        sdk_hook_vtable(PlayerQuestBase_start, PlayerQuestBase_onDestroy_method, nil, TerminateSpiribirdsHud);
     end
     PlayerQuestBase_start = nil;
 end);
+
+sdk_hook(PlayerQuestBase_type_def:get_method("onDestroy"), nil, TerminateSpiribirdsHud);
 
 local PlayerQuestBase_subLvBuffFromEnemy = nil;
 local subBuffType = nil;
@@ -549,43 +547,118 @@ end);
 
 --==--==--==--==--==--
 
-local HarvestMoonTimer_String = "원월 타이머: %.f초"
-
-local HarvestMoonTimer = nil;
-
-local function TerminateHarvestMoonTimer()
-    HarvestMoonTimer = nil;
-end
-
-local function getHarvestMoonTimer(obj)
-    local lifeTimer = lifeTimer_field:get_data(obj);
-    HarvestMoonTimer = lifeTimer ~= nil and string_format(HarvestMoonTimer_String, lifeTimer) or nil;
-end
 
 local MasterPlayerIndex = nil;
-local LongSwordShellManager = nil;
-sdk_hook(LongSwordShellManager_type_def:get_method("createLongSwordShell010(snow.shell.LongSwordShellManager.LongSwordShell010_ID, via.vec3, via.Quaternion, snow.player.PlayerQuestBase, snow.shell.PlayerShellBase.RandomConvertArg, snow.shell.LongSwordShell010.CircleType)"), function(args)
-    local owner = sdk_to_managed_object(args[6]);
-    if isMasterPlayer_method:call(owner) and (sdk_to_int64(args[8]) & 0xFFFFFFFF) == CircleType_Inside then
-        MasterPlayerIndex = getPlayerIndex_method:call(owner);
-        LongSwordShellManager = sdk_to_managed_object(args[2]);
-    end
-end, function()
-    if MasterPlayerIndex ~= nil and LongSwordShellManager then
-        local MasterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
-        if MasterLongSwordShell010s then
-            local MasterLongSwordShell010 = MasterLongSwordShell010s_get_Item_method:call(MasterLongSwordShell010s, 0);
-            if MasterLongSwordShell010 then
-                getHarvestMoonTimer(MasterLongSwordShell010);
-                sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_update_method, nil, function()
-                    getHarvestMoonTimer(MasterLongSwordShell010);
-                end);
-                sdk_hook_vtable(MasterLongSwordShell010, LongSwordShell010_onDestroy_method, nil, TerminateHarvestMoonTimer);
-            end
+
+local HarvestMoonTimer_String = {
+    ["Inside"] = "원월 내부 타이머: %.f초",
+    ["Outside"] = "원월 외부 타이머: %.f초"
+};
+
+local HarvestMoonTimer_Inside = nil;
+local HarvestMoonTimer_Outside = nil;
+
+local function getMasterPlayerId()
+    local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+    if PlayerManager then
+        local masterPlayerBase = findMasterPlayer_method:call(PlayerManager);
+        if masterPlayerBase then
+            MasterPlayerIndex = getPlayerIndex_method:call(masterPlayerBase);
         end
     end
-    MasterPlayerIndex = nil;
-    LongSwordShellManager = nil;
+end
+
+local function getHarvestMoonTimer(shellObj)
+    if shellObj and (get_OwnerId_method:call(shellObj) == MasterPlayerIndex) then
+        local lifeTimer = lifeTimer_field:get_data(shellObj);
+        local CircleType = CircleType_field:get_data(shellObj);
+        if CircleType == HarvestMoonCircleType.Inside then
+            HarvestMoonTimer_Inside = lifeTimer ~= nil and string_format(HarvestMoonTimer_String.Inside, lifeTimer) or nil;
+        end
+        if CircleType == HarvestMoonCircleType.Outside then
+            HarvestMoonTimer_Outside = lifeTimer ~= nil and string_format(HarvestMoonTimer_String.Outside, lifeTimer) or nil;
+        end
+    end
+end
+
+local PlayerBase_start = nil;
+sdk_hook(PlayerBase_type_def:get_method("start"), function(args)
+    PlayerBase_start = sdk_to_managed_object(args[2]);
+end, function()
+    if PlayerBase_start and isMasterPlayer_method:call(PlayerBase_start) then
+        MasterPlayerIndex = getPlayerIndex_method:call(PlayerBase_start);
+    end
+    PlayerBase_start = nil;
+end);
+
+local PlayerBase_onDestroy = nil;
+sdk_hook(PlayerBase_type_def:get_method("onDestroy"), function(args)
+    PlayerBase_onDestroy = sdk_to_managed_object(args[2]);
+    if PlayerBase_onDestroy and isMasterPlayer_method:call(PlayerBase_onDestroy) == false then
+        PlayerBase_onDestroy = nil;
+    end
+end, function()
+    if PlayerBase_onDestroy then
+        MasterPlayerIndex = nil;
+    end
+    PlayerBase_onDestroy = nil;
+end);
+
+local newPlayerIndex = nil;
+sdk_hook(PlayerBase_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex)"), function(args)
+    local playerBase = sdk_to_managed_object(args[2]);
+    if playerBase and isMasterPlayer_method:call(playerBase) then
+        newPlayerIndex = sdk_to_int64(args[3]) & 0xFF;
+    end
+end, function()
+    if newPlayerIndex ~= nil then
+        MasterPlayerIndex = newPlayerIndex;
+    end
+    newPlayerIndex = nil;
+end);
+
+local LongSwordShell010_start = nil;
+sdk_hook(LongSwordShell010_type_def:get_method("start"), function(args)
+    LongSwordShell010_start = sdk_to_managed_object(args[2]);
+    if MasterPlayerIndex == nil then
+        getMasterPlayerId();
+    end
+end, function()
+    getHarvestMoonTimer(LongSwordShell010_start)
+    LongSwordShell010_start = nil;
+end);
+
+local LongSwordShell010_update = nil;
+sdk_hook(LongSwordShell010_type_def:get_method("update"), function(args)
+    LongSwordShell010_update = sdk_to_managed_object(args[2]);
+    if MasterPlayerIndex == nil then
+        getMasterPlayerId();
+    end
+end, function()
+    getHarvestMoonTimer(LongSwordShell010_update)
+    LongSwordShell010_update = nil;
+end);
+
+local LongSwordShell010_onDestroy = nil;
+sdk_hook(LongSwordShell010_type_def:get_method("onDestroy"), function(args)
+    LongSwordShell010_onDestroy = sdk_to_managed_object(args[2]);
+    if MasterPlayerIndex == nil then
+        getMasterPlayerId();
+    end
+    if LongSwordShell010_onDestroy and (get_OwnerId_method:call(LongSwordShell010_onDestroy) ~= MasterPlayerIndex) then
+        LongSwordShell010_onDestroy = nil;
+    end
+end, function()
+    if LongSwordShell010_onDestroy then
+        local CircleType = CircleType_field:get_data(LongSwordShell010_onDestroy);
+        if CircleType == HarvestMoonCircleType.Inside then
+            HarvestMoonTimer_Inside = nil;
+        end
+        if CircleType == HarvestMoonCircleType.Outside then
+            HarvestMoonTimer_Outside = nil;
+        end
+    end
+    LongSwordShell010_onDestroy = nil;
 end);
 
 
@@ -610,10 +683,10 @@ local LocalizedConditionType = {
     "수면",
     "폭파",
     "기력 감소",
-    "불 피해",
-    "물 피해",
-    "번개 피해",
-    "얼음 피해"
+    "불",
+    "물",
+    "번개",
+    "얼음"
 };
 
 local LocalizedBirdTypes = {
@@ -631,9 +704,8 @@ local BirdTypeToColor = {
 };
 
 local function testAttribute(attribute, value, highest)
-    local color = string_find(highest, attribute) and 4278190335 or 4294901760;
     imgui_table_next_column();
-    imgui_text_colored(value, color);
+    imgui_text_colored(" " .. tostring(value), string_find(highest, attribute) and 4278190335 or 4294901760);
 end
 
 local function buildBirdTypeToTable(type)
@@ -648,16 +720,20 @@ end
 
 re.on_frame(function()
     if currentQuestMonsterTypes then
-        local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
         imgui_push_font(font);
         if imgui_begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
+            local curQuestTargetMonsterNum = #currentQuestMonsterTypes;
             for i = 1, curQuestTargetMonsterNum, 1 do
                 local curMonsterData = MonsterListData[currentQuestMonsterTypes[i]];
                 if imgui_begin_table("속성", 9, 2097152) then
                     imgui_table_setup_column(curMonsterData.Name, 8, 20.0);
 
                     for j = 1, #LocalizedMeatAttr, 1 do
-                        imgui_table_setup_column(LocalizedMeatAttr[j], 8, 3.0);
+                        if (j >= 3 and j <= 5) or j == 8 then
+                            imgui_table_setup_column(" " .. LocalizedMeatAttr[j], 8, 3.0);
+                        else
+                            imgui_table_setup_column(LocalizedMeatAttr[j], 8, 3.0);
+                        end
                     end
                     
                     imgui_table_headers_row();
@@ -680,8 +756,13 @@ re.on_frame(function()
                 end
                 if imgui_begin_table("상태 이상", 10, 2097152) then
                     for k = 1, 10, 1 do
-                        local size = k < 6 and 3.0 or 5.0;
-                        imgui_table_setup_column(LocalizedConditionType[k], 8, size);
+                        if k == 1 or k == 7 or k == 8 then
+                            imgui_table_setup_column("   " .. LocalizedConditionType[k], 8, k == 6 and 5.0 or 3.0);
+                        elseif (k >= 2 and k <= 5) or k == 9 or k == 10 then
+                            imgui_table_setup_column(" " .. LocalizedConditionType[k], 8, k == 6 and 5.0 or 3.0);
+                        else
+                            imgui_table_setup_column(LocalizedConditionType[k], 8, k == 6 and 5.0 or 3.0);
+                        end
                     end
 
                     imgui_table_headers_row();
@@ -689,9 +770,12 @@ re.on_frame(function()
 
                     for m = 1, 10, 1 do
                         local value = curMonsterData.ConditionData[m];
-                        local color = value == curMonsterData.ConditionData.HighestCondition and 4278190335 or 4294901760;
                         imgui_table_next_column();
-                        imgui_text_colored(value, color);
+                        if m == 6 then
+                            imgui_text_colored("       " .. tostring(value), value == curMonsterData.ConditionData.HighestCondition and 4278190335 or 4294901760);
+                        else
+                            imgui_text_colored("    " .. tostring(value), value == curMonsterData.ConditionData.HighestCondition and 4278190335 or 4294901760);
+                        end
                     end
                     imgui_end_table();
                 end
@@ -731,10 +815,17 @@ re.on_frame(function()
         imgui_pop_font();
     end
 
-    if HarvestMoonTimer then
+    if HarvestMoonTimer_Inside or HarvestMoonTimer_Outside then
         imgui_push_font(font);
         if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
-            imgui_text(HarvestMoonTimer);
+            if HarvestMoonTimer_Inside then
+                imgui_text(HarvestMoonTimer_Inside);
+                if HarvestMoonTimer_Outside then
+                    imgui_text(HarvestMoonTimer_Outside);
+                end
+            else
+                imgui_text(HarvestMoonTimer_Outside);
+            end
             imgui_end_window();
         end
         imgui_pop_font();
