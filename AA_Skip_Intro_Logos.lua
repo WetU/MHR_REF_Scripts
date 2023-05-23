@@ -6,8 +6,6 @@ local sdk_call_native_func = sdk.call_native_func;
 local sdk_hook = sdk.hook;
 local sdk_hook_vtable = sdk.hook_vtable;
 --
-local ActionArg_type_def = sdk_find_type_definition("via.behaviortree.ActionArg");
-local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
 local set_FadeMode_method = sdk_find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 -- static --
@@ -33,7 +31,7 @@ end
 
 local function PostHook_notifyActionEnd()
 	if currentAction then
-		sdk_call_native_func(currentAction, ActionArg_type_def, "notifyActionEnd");
+		sdk_call_native_func(currentAction, currentAction:get_type_definition(), "notifyActionEnd");
 	end
 	currentAction = nil;
 end
@@ -57,15 +55,18 @@ local SkipTrg = sdk.to_ptr(1);
 local currentMovie = nil;
 local otherLogoFadeIn = nil;
 local healthCautionFadeIn = nil;
-sdk_hook(Movie_type_def:get_method("play"), function(args)
+sdk_hook(sdk_find_type_definition("via.movie.Movie"):get_method("play"), function(args)
 	if isLoading() then
 		currentMovie = sdk_to_managed_object(args[2]);
 	end
 end, function()
 	if currentMovie then
-		local DurationTime = sdk_call_native_func(currentMovie, Movie_type_def, "get_DurationTime");
-		if DurationTime ~= nil then
-			sdk_call_native_func(currentMovie, Movie_type_def, "seek(System.UInt64)", DurationTime);
+		local currentMovie_type_def = currentMovie:get_type_definition();
+		if currentMovie_type_def then
+			local DurationTime = sdk_call_native_func(currentMovie, currentMovie_type_def, "get_DurationTime");
+			if DurationTime ~= nil then
+				sdk_call_native_func(currentMovie, currentMovie_type_def, "seek(System.UInt64)", DurationTime);
+			end
 		end
 	end
 	currentMovie = nil;
@@ -91,7 +92,14 @@ end, function()
 	end
 	healthCautionFadeIn = nil;
 end);
-sdk_hook(sdk_find_type_definition("snow.gui.StmGuiInput"):get_method("getTitlePressAnyButton"), nil, function(retval)
+local StmGuiInput_type_def = sdk_find_type_definition("snow.gui.StmGuiInput");
+sdk_hook(StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, function(retval)
+	if isLoading() then
+		return SkipTrg;
+	end
+	return retval;
+end);
+sdk_hook(StmGuiInput_type_def:get_method("getTitleDispSkipTrg()"), nil, function(retval)
 	if isLoading() then
 		return SkipTrg;
 	end

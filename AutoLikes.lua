@@ -1,9 +1,6 @@
 -- Initialize
 local json = json;
-
 local sdk = sdk;
-local sdk_to_managed_object = sdk.to_managed_object;
-
 local re = re;
 
 local imgui = imgui;
@@ -35,7 +32,7 @@ local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqu
 local GoodRelationshipHud = nil;
 sdk.hook(doOpen_method, function(args)
 	if settings.enable then
-		GoodRelationshipHud = sdk_to_managed_object(args[2]);
+		GoodRelationshipHud = sdk.to_managed_object(args[2]);
 	end
 end, function()
 	if GoodRelationshipHud then
