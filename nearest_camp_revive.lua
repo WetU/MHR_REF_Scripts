@@ -57,7 +57,7 @@ local createNekotaku_method = sdk_find_type_definition("snow.NekotakuManager"):g
 
 local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
-local PlayerBase_type_def = findMasterPlayer_method:get_return_type();
+local get_GameObject_method = findMasterPlayer_method:get_return_type():get_method("get_GameObject");
 
 local GameObject_type_def = sdk_find_type_definition("via.GameObject");
 
@@ -105,7 +105,7 @@ local function getCurrentPosition()
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
-            local GameObject = sdk_call_native_func(MasterPlayer, PlayerBase_type_def, "get_GameObject");
+            local GameObject = get_GameObject_method:call(MasterPlayer);
             if GameObject then
                 local Transform = sdk_call_native_func(GameObject, GameObject_type_def, "get_Transform");
                 if Transform then

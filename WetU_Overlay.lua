@@ -51,7 +51,6 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
     0
 });
 ------
-local GetPartName_method = sdk_find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)"); -- static, native, retval
 local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
 
 local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
@@ -229,7 +228,7 @@ local function CreateDataList()
                                                     if partGuid then
                                                         local PartDataTable = {
                                                             PartType    = partType,
-                                                            PartName    = GetPartName_method:call(nil, partGuid, via_Language_Korean),
+                                                            PartName    = sdk.call_native_func(sdk.get_native_singleton("via.gui.message"), sdk_find_type_definition("via.gui.message"), "get(System.Guid, via.Language)", partGuid, via_Language_Korean);
                                                             MeatType    = meatType,
                                                             MeatValues  = {},
                                                             HighestMeat = ""

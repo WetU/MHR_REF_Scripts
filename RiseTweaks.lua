@@ -2,7 +2,9 @@ local json = json;
 
 local sdk = sdk;
 local sdk_find_type_definition = sdk.find_type_definition;
+local sdk_get_native_singleton = sdk.get_native_singleton;
 local sdk_get_managed_singleton = sdk.get_managed_singleton;
+local sdk_call_native_func = sdk.call_native_func;
 local sdk_hook = sdk.hook;
 
 local re = re;
@@ -24,8 +26,6 @@ if config.desiredFPS == nil then
 	config.desiredFPS = 60.0;
 end
 --
-local Movie_type_def = sdk_find_type_definition("via.movie.Movie");
-
 local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 
 local StmOptionDataContainer_field = sdk_find_type_definition("snow.StmOptionManager"):get_field("_StmOptionDataContainer");
@@ -43,8 +43,6 @@ local FrameRate = {
 	[FrameRateOption_type_def:get_field("FPS_240"):get_data(nil)] = 240.0,
 	[FrameRateOption_type_def:get_field("FPS_Unlimited"):get_data(nil)] = 600.0
 };
-
-local set_MaxFps_method = sdk_find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static, native
 --
 local function getAutoFps()
 	local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
@@ -60,7 +58,7 @@ local function getAutoFps()
 end
 
 local firstHook = true;
-sdk_hook(Movie_type_def:get_method("play"), nil, function()
+sdk_hook(sdk_find_type_definition("via.movie.Movie"):get_method("play"), nil, function()
 	if config.enableFPS and firstHook then
 		firstHook = false;
 		local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
@@ -70,7 +68,7 @@ sdk_hook(Movie_type_def:get_method("play"), nil, function()
 				if config.autoFPS then
 					getAutoFps();
 				end
-				set_MaxFps_method:call(nil, config.desiredFPS);
+				sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
 			end
 		end
 	end
@@ -81,7 +79,7 @@ sdk_hook(sdk_find_type_definition("snow.eventcut.UniqueEventManager"):get_method
 		if config.autoFPS then
 			getAutoFps();
 		end
-		set_MaxFps_method:call(nil, config.desiredFPS);
+		sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
 	end
 end);
 
@@ -107,7 +105,7 @@ re.on_draw_ui(function()
 					if config.autoFPS then
 						getAutoFps();
 					end
-					set_MaxFps_method:call(nil, config.desiredFPS);
+					sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
 				end
 				save_config();
 			end
