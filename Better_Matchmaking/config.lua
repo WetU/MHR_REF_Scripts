@@ -1,15 +1,15 @@
 local require = require;
 
-local this = {};
+local this = {
+	current_config = nil,
+	config_file_name = "Better Matchmaking/config.json",
+	default_config = {}
+};
 local version = "2.3.2";
 
 local utils;
 
 local json = json;
-
-this.current_config = nil;
-this.config_file_name = "Better Matchmaking/config.json";
-this.default_config = {};
 
 function this.init()
 	this.default_config = {

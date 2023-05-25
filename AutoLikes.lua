@@ -1,17 +1,5 @@
 -- Initialize
-local json = json;
 local sdk = sdk;
-local re = re;
-
-local imgui = imgui;
-local imgui_tree_node = imgui.tree_node;
-local imgui_checkbox = imgui.checkbox;
-local imgui_tree_pop = imgui.tree_pop;
-
-local settings = json.load_file("AutoLikes.json") or {enable = true};
-if settings.enable == nil then
-	settings.enable = true;
-end
 
 -- Cache
 local GoodRelationship_type_def = sdk.find_type_definition("snow.gui.GuiHud_GoodRelationship");
@@ -20,13 +8,14 @@ local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
 
+local gauge_set_Item_method = gaugeAngleMax_field:get_type():get_method("set_Item(System.Int32, System.Single)");
+
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
 local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- retval
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
 
 local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqueHunterId");
-
 
 -- Main Function
 local GoodRelationshipHud = nil;
@@ -59,30 +48,12 @@ end, function()
 				end
 			end
 		end
-		GoodRelationshipHud:set_field("_gaugeAngleY", gaugeAngleMax_field:get_data(GoodRelationshipHud));
+		local gaugeAngleMax = gaugeAngleMax_field:get_data(GoodRelationshipHud);
+		if gaugeAngleMax then
+			gauge_set_Item_method:call(gaugeAngleMax, 1, 0.0);
+			GoodRelationshipHud:set_field("_gaugeAngleMax", gaugeAngleMax);
+		end
 		GoodRelationshipHud:set_field("WaitTime", 0.0);
 	end
 	GoodRelationshipHud = nil;
-end);
-
-
----- re Callbacks ----
-local function save_config()
-	json.dump_file("AutoLikes.json", settings);
-end
-
-re.on_config_save(save_config);
-
-re.on_draw_ui(function()
-	local changed = false;
-	if imgui_tree_node("Auto Likes") then
-		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
-		if changed then
-			if not settings.enable then
-				GoodRelationshipHud = nil;
-			end
-			save_config();
-		end
-		imgui_tree_pop();
-	end
 end);
