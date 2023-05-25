@@ -23,7 +23,7 @@ local imgui_table_headers_row = imgui.table_headers_row;
 local imgui_table_next_row = imgui.table_next_row;
 local imgui_end_table = imgui.end_table;
 local imgui_spacing = imgui.spacing;
---
+
 local font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
     0x2000, 0x206F, -- General Punctuation
@@ -37,7 +37,7 @@ local font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 });
---
+
 local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
@@ -169,42 +169,50 @@ re.on_frame(function()
         imgui_pop_font();
     end
 
-    if SpiribirdsStatus.SpiribirdsHudDataCreated or SpiribirdsStatus.SpiribirdsCall_Timer then
+    if SpiribirdsStatus.SpiribirdsHudDataCreated then
         imgui_push_font(font);
         if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
-            if SpiribirdsStatus.SpiribirdsHudDataCreated then
-                if imgui_begin_table("종류", 3, 2097152) then
-                    imgui_table_setup_column("유형", 8, 25.0);
-                    imgui_table_setup_column("횟수", 8, 20.0);
-                    imgui_table_setup_column("수치", 8, 25.0);
-                    imgui_table_headers_row();
-                    buildBirdTypeToTable("Atk");
-                    buildBirdTypeToTable("Def");
-                    buildBirdTypeToTable("Vital");
-                    buildBirdTypeToTable("Stamina");
-                    imgui_end_table();
-                end
-                if SpiribirdsStatus.SpiribirdsCall_Timer then
-                    imgui_spacing();
-                    imgui_text(SpiribirdsStatus.SpiribirdsCall_Timer);
-                end
-            else
+            if imgui_begin_table("종류", 3, 2097152) then
+                imgui_table_setup_column("유형", 8, 25.0);
+                imgui_table_setup_column("횟수", 8, 20.0);
+                imgui_table_setup_column("수치", 8, 25.0);
+                imgui_table_headers_row();
+                buildBirdTypeToTable("Atk");
+                buildBirdTypeToTable("Def");
+                buildBirdTypeToTable("Vital");
+                buildBirdTypeToTable("Stamina");
+                imgui_end_table();
+            end
+            if SpiribirdsStatus.SpiribirdsCall_Timer then
+                imgui_spacing();
                 imgui_text(SpiribirdsStatus.SpiribirdsCall_Timer);
             end
             imgui_end_window();
         end
         imgui_pop_font();
+    elseif SpiribirdsStatus.SpiribirdsCall_Timer then
+        imgui_push_font(font);
+        if imgui_begin_window("인혼조", nil, 4096 + 64 + 512) then
+            imgui_text(SpiribirdsStatus.SpiribirdsCall_Timer);
+            imgui_end_window();
+        end
+        imgui_pop_font();
     end
 
-    if HarvestMoonTimer.HarvestMoonTimer_Inside or HarvestMoonTimer.HarvestMoonTimer_Outside then
+    if HarvestMoonTimer.HarvestMoonTimer_Inside then
         imgui_push_font(font);
         if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
-            if HarvestMoonTimer.HarvestMoonTimer_Inside then
-                imgui_text(HarvestMoonTimer.HarvestMoonTimer_Inside);
-            end
+            imgui_text(HarvestMoonTimer.HarvestMoonTimer_Inside);
             if HarvestMoonTimer.HarvestMoonTimer_Outside then
                 imgui_text(HarvestMoonTimer.HarvestMoonTimer_Outside);
             end
+            imgui_end_window();
+        end
+        imgui_pop_font();
+    elseif HarvestMoonTimer.HarvestMoonTimer_Outside then
+        imgui_push_font(font);
+        if imgui_begin_window("원월", nil, 4096 + 64 + 512) then
+            imgui_text(HarvestMoonTimer.HarvestMoonTimer_Outside);
             imgui_end_window();
         end
         imgui_pop_font();
