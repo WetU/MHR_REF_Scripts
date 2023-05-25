@@ -1,7 +1,6 @@
 local sdk = sdk;
 
-local PlayerManager_type_def = sdk.find_type_definition("snow.player.PlayerManager");
-local findMasterPlayer_method = PlayerManager_type_def:get_method("findMasterPlayer");
+local findMasterPlayer_method = sdk.find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer");
 local getPlayerIndex_method = findMasterPlayer_method:get_return_type():get_method("getPlayerIndex");
 
 local this = {
