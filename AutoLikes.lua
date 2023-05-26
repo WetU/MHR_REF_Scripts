@@ -20,9 +20,7 @@ local uniqueHunterId_field = get_Item_method:get_return_type():get_field("_uniqu
 -- Main Function
 local GoodRelationshipHud = nil;
 sdk.hook(doOpen_method, function(args)
-	if settings.enable then
-		GoodRelationshipHud = sdk.to_managed_object(args[2]);
-	end
+	GoodRelationshipHud = sdk.to_managed_object(args[2]);
 end, function()
 	if GoodRelationshipHud then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);

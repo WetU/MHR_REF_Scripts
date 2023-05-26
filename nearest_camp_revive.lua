@@ -59,7 +59,7 @@ local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerMana
 
 local get_GameObject_method = findMasterPlayer_method:get_return_type():get_method("get_GameObject");
 
-local GameObject_type_def = sdk_find_type_definition("via.GameObject");
+local GameObject_type_def = get_GameObject_method:get_return_type();
 
 local Transform_type_def = sdk_find_type_definition("via.Transform");
 

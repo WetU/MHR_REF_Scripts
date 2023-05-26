@@ -198,6 +198,14 @@ end, function()
     PlayerManager_obj = nil;
 end);
 
+sdk_hook(PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, function()
+    if this.SpiribirdsHudDataCreated then
+        hasRainbow = false;
+        this.AcquiredValues = nil;
+        this.AcquiredCounts = nil;
+    end
+end);
+
 local PlayerQuestBase_obj = nil;
 sdk_hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), function(args)
     if firstHook or not skipUpdate then
@@ -221,16 +229,26 @@ end, function()
 end);
 
 local newPlayerIndex = nil;
-sdk_hook(PlayerBase_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex)"), function(args)
-    local playerBase = sdk_to_managed_object(args[2]);
-    if playerBase and isMasterPlayer_method:call(playerBase) then
-        newPlayerIndex = sdk_to_int64(args[3]) & 0xFF;
-    end
-end, function()
+sdk_hook(PlayerManager_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex, snow.player.PlayerIndex)"), function(args)
+    newPlayerIndex = sdk_to_int64(args[4]) & 0xFF;
+end, function(retval)
     if newPlayerIndex ~= nil then
-        Constants.MasterPlayerIndex = newPlayerIndex;
+        local playerBase = sdk_to_managed_object(retval);
+        if playerBase and isMasterPlayer_method:call(playerBase) then
+            Constants.MasterPlayerIndex = newPlayerIndex;
+        end
     end
     newPlayerIndex = nil;
+end);
+
+local newMasterPlayerIndex = nil;
+sdk_hook(PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
+    newMasterPlayerIndex = sdk_to_int64(args[3]) & 0xFF;
+end, function()
+    if newMasterPlayerIndex ~= nil then
+        Constants.MasterPlayerIndex = newMasterPlayerIndex;
+    end
+    newMasterPlayerIndex = nil;
 end);
 
 sdk_hook(PlayerQuestBase_type_def:get_method("onDestroy"), nil, function()

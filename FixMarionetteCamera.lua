@@ -16,7 +16,7 @@ local NotResetTypes = {
 -- Main Function
 local NoReset = sdk.to_ptr(ResetState_None);
 sdk.hook(sdk_find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"), nil, function(retval)
-	if settings.enable and (sdk_to_int64(retval) & 0xFFFFFFFF) ~= ResetState_None then
+	if (sdk_to_int64(retval) & 0xFFFFFFFF) ~= ResetState_None then
 		local CameraManager = sdk_get_managed_singleton("snow.CameraManager");
 		if CameraManager then
 			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);

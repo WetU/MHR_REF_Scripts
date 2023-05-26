@@ -71,7 +71,6 @@ local EndFlow = {
 };
 -- No Kill Cam Cache
 local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
-
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
 local CameraType_DemoCamera = sdk_find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
