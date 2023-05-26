@@ -201,8 +201,8 @@ end);
 sdk_hook(PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, function()
     if this.SpiribirdsHudDataCreated then
         hasRainbow = false;
-        this.AcquiredValues = nil;
-        this.AcquiredCounts = nil;
+        this.AcquiredValues = 0;
+        this.AcquiredCounts = 0;
     end
 end);
 
@@ -239,16 +239,11 @@ end, function(retval)
         end
     end
     newPlayerIndex = nil;
+    return retval;
 end);
 
-local newMasterPlayerIndex = nil;
 sdk_hook(PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
-    newMasterPlayerIndex = sdk_to_int64(args[3]) & 0xFF;
-end, function()
-    if newMasterPlayerIndex ~= nil then
-        Constants.MasterPlayerIndex = newMasterPlayerIndex;
-    end
-    newMasterPlayerIndex = nil;
+    Constants.MasterPlayerIndex = sdk_to_int64(args[3]) & 0xFF;
 end);
 
 sdk_hook(PlayerQuestBase_type_def:get_method("onDestroy"), nil, function()
