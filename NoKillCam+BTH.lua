@@ -41,8 +41,7 @@ local function SaveSettings()
 	Constants.JSON.dump_file("NoKillCam+BTH.json", settings);
 end
 -- Common Cache
-local QuestManager_type_def = Constants.SDK.find_type_definition("snow.QuestManager");
-local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
+local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
 
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
@@ -50,13 +49,13 @@ local EndFlow = {
 	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil)
 };
 -- No Kill Cam Cache
-local EndCaptureFlag_field = QuestManager_type_def:get_field("_EndCaptureFlag");
+local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
 local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
-local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
-local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
+local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
+local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
@@ -88,7 +87,7 @@ QuestManager.CaptureStatus
 ]]--
 
 -- No Kill Cam
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.CameraManager"):get_method("RequestActive(snow.CameraManager.CameraType)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), function(args)
 	if settings.NoKillCam.disableKillCam and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
 		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
@@ -99,7 +98,7 @@ end);
 
 -- BTH
 local QuestManager_obj = nil;
-Constants.SDK.hook(QuestManager_type_def:get_method("updateQuestEndFlow"), function(args)
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), function(args)
 	if settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim then
 		QuestManager_obj = Constants.SDK.to_managed_object(args[2]);
 	end

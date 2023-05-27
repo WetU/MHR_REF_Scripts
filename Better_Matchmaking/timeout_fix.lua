@@ -5,7 +5,6 @@ if not Constants then
 end
 
 local this = {};
-local utils;
 local config;
 --
 local session_manager_type_def = Constants.SDK.find_type_definition("snow.SnowSessionManager");
@@ -77,7 +76,6 @@ end
 
 function this.init_module()
 	config = require("Better_Matchmaking.config");
-	utils = require("Better_Matchmaking.utils");
 
 	Constants.SDK.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), this.prehook_on_timeout, function()
 		if session_manager then
@@ -253,6 +251,12 @@ function this.init_module()
 					quest_type.enemy_id.value = nullable_uint32_get_value_or_default_method:call(args[6]);
 				end
 			end
+		end
+	end);
+
+	Constants.SDK.hook(session_manager_type_def:get_method("reqOnlineWarning"), function()
+		if config.current_config.hide_online_warning.enabled then
+			return Constants.SDK.SKIP_ORIGINAL;
 		end
 	end);
 end

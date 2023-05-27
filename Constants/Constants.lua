@@ -106,27 +106,37 @@ local this = {
     VECTOR3f = Vector3f_func,
     VALUETYPE = ValueType_func,
     RE = re_func,
-    TRUE_POINTER = sdk_func.to_ptr(1),
-    FALSE_POINTER = sdk_func.to_ptr(0),
     MasterPlayerIndex = nil,
-    Font = imgui_func.load_font("NotoSansKR-Bold.otf", 22, {
-        0x0020, 0x00FF, -- Basic Latin + Latin Supplement
-        0x2000, 0x206F, -- General Punctuation
-        0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
-        0x3130, 0x318F, -- Hangul Compatibility Jamo
-        0x31F0, 0x31FF, -- Katakana Phonetic Extensions
-        0xFF00, 0xFFEF, -- Half-width characters
-        0x4e00, 0x9FAF, -- CJK Ideograms
-        0xA960, 0xA97F, -- Hangul Jamo Extended-A
-        0xAC00, 0xD7A3, -- Hangul Syllables
-        0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
-        0
-    })
+    type_definitions = {}
 };
 
+this.TRUE_POINTER = this.SDK.to_ptr(1);
+this.FALSE_POINTER = this.SDK.to_ptr(0);
+this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
+    0x0020, 0x00FF, -- Basic Latin + Latin Supplement
+    0x2000, 0x206F, -- General Punctuation
+    0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
+    0x3130, 0x318F, -- Hangul Compatibility Jamo
+    0x31F0, 0x31FF, -- Katakana Phonetic Extensions
+    0xFF00, 0xFFEF, -- Half-width characters
+    0x4e00, 0x9FAF, -- CJK Ideograms
+    0xA960, 0xA97F, -- Hangul Jamo Extended-A
+    0xAC00, 0xD7A3, -- Hangul Syllables
+    0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
+    0
+});
+
+this.type_definitions.viaMovie_type_def = this.SDK.find_type_definition("via.movie.Movie");
+this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
+this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
+this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
+this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
+this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
+this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
+
 local get_GameStartState_method = this.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
-local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
-local getMasterPlayerID_method = this.SDK.find_type_definition("snow.player.PlayerManager"):get_method("getMasterPlayerID"); -- retval
+local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
+local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval
 
 local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
 local GAME_START_STATES =	{
@@ -134,7 +144,7 @@ local GAME_START_STATES =	{
 	Nvidia_Logo = GameStartStateType_type_def:get_field("Nvidia_Logo"):get_data(nil) -- 7
 };
 
-local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
+local QuestStatus_None = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 
 function this.GetMasterPlayerId(idx)
     this.MasterPlayerIndex = idx ~= nil and idx or getMasterPlayerID_method:call(this.SDK.get_managed_singleton("snow.player.PlayerManager"));
@@ -153,7 +163,7 @@ end
 
 function this.checkStatus(questManager)
     if not questManager then
-        questManager = this.SDK.get_managed_singleton("snow.quest.QuestManager");
+        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
     end
     return checkStatus_method:call(questManager, QuestStatus_None);
 end

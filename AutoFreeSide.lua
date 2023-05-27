@@ -16,7 +16,7 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter
     isOpenRewardWindow = true;
 end);
 
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.StmGuiInput"):get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, function(retval)
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, function(retval)
     if isOpenRewardWindow then
         isOpenRewardWindow = nil;
         return Constants.TRUE_POINTER;

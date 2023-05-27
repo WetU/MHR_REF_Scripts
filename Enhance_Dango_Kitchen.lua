@@ -25,7 +25,7 @@ end
 local mealFunc_type_def = Constants.SDK.find_type_definition("snow.facility.kitchen.MealFunc");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
-local get_refGuiDangoLog_method = Constants.SDK.find_type_definition("snow.gui.GuiManager"):get_method("get_refGuiDangoLog");
+local get_refGuiDangoLog_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refGuiDangoLog");
 local reqDangoLogStart_method = get_refGuiDangoLog_method:get_return_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");

@@ -3,6 +3,7 @@ if not Constants then
 	return;
 end
 --
+local ActionArg_type_def = Constants.SDK.find_type_definition("via.behaviortree.ActionArg");
 local set_FadeMode_method = Constants.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 --
 local FINISHED = Constants.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
@@ -22,7 +23,7 @@ end
 
 local function PostHook_notifyActionEnd()
 	if currentAction then
-		Constants.SDK.call_native_func(currentAction, currentAction:get_type_definition(), "notifyActionEnd");
+		Constants.SDK.call_native_func(currentAction, ActionArg_type_def, "notifyActionEnd");
 	end
 	currentAction = nil;
 end
@@ -45,18 +46,15 @@ local function TitleSkip(retval)
 end
 --
 local currentMovie = nil;
-Constants.SDK.hook(Constants.SDK.find_type_definition("via.movie.Movie"):get_method("play"), function(args)
+Constants.SDK.hook(Constants.type_definitions.viaMovie_type_def:get_method("play"), function(args)
 	if Constants.IsGameStartState() then
 		currentMovie = Constants.SDK.to_managed_object(args[2]);
 	end
 end, function()
 	if currentMovie then
-		local currentMovie_type_def = currentMovie:get_type_definition();
-		if currentMovie_type_def then
-			local DurationTime = Constants.SDK.call_native_func(currentMovie, currentMovie_type_def, "get_DurationTime");
-			if DurationTime ~= nil then
-				Constants.SDK.call_native_func(currentMovie, currentMovie_type_def, "seek(System.UInt64)", DurationTime);
-			end
+		local DurationTime = Constants.SDK.call_native_func(currentMovie, Constants.type_definitions.viaMovie_type_def, "get_DurationTime");
+		if DurationTime ~= nil then
+			Constants.SDK.call_native_func(currentMovie, Constants.type_definitions.viaMovie_type_def, "seek(System.UInt64)", DurationTime);
 		end
 	end
 	currentMovie = nil;
@@ -78,6 +76,5 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGam
 	selfObj = nil;
 end);
 
-local StmGuiInput_type_def = Constants.SDK.find_type_definition("snow.gui.StmGuiInput");
-Constants.SDK.hook(StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, TitleSkip);
-Constants.SDK.hook(StmGuiInput_type_def:get_method("getTitleDispSkipTrg"), nil, TitleSkip);
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, TitleSkip);
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitleDispSkipTrg"), nil, TitleSkip);

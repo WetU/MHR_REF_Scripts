@@ -5,7 +5,6 @@ if not Constants then
 end
 
 local this = {};
-local utils;
 local config;
 
 local session_steam_type_def = Constants.SDK.find_type_definition("via.network.SessionSteam");
@@ -31,7 +30,6 @@ end
 
 function this.init_module()
 	config = require("Better_Matchmaking.config");
-	utils = require("Better_Matchmaking.utils");
 
 	Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), this.on_set_is_invisible);
 end

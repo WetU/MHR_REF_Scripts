@@ -4,7 +4,7 @@ if not Constants then
 end
 -- Cache
 local ResetState_None = Constants.SDK.find_type_definition("snow.camera.PlayerCamera.ResetState"):get_field("None"):get_data(nil);
-local get_MarionetteCameraType_method = Constants.SDK.find_type_definition("snow.CameraManager"):get_method("get_MarionetteCameraType"); -- retval
+local get_MarionetteCameraType_method = Constants.type_definitions.CameraManager_type_def:get_method("get_MarionetteCameraType"); -- retval
 local MarionetteCameraType_type_def = get_MarionetteCameraType_method:get_return_type();
 local NotResetTypes = {
 	[MarionetteCameraType_type_def:get_field("GetOff"):get_data(nil)] = true,

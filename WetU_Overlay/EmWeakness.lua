@@ -8,9 +8,8 @@ local GetMonsterName_method = Constants.SDK.find_type_definition("snow.gui.Messa
 
 local GameStatusType_Village = Constants.SDK.find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
-local GuiManager_type_def = Constants.SDK.find_type_definition("snow.gui.GuiManager");
-local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList"); -- retval
-local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
+local get_refMonsterList_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refMonsterList"); -- retval
+local monsterListParam_field = Constants.type_definitions.GuiManager_type_def:get_field("monsterListParam");
 
 local MonsterList_type_def = get_refMonsterList_method:get_return_type();
 local getMonsterPartName_method = MonsterList_type_def:get_method("getMonsterPartName(snow.data.monsterList.PartType)"); -- static, retval
@@ -62,9 +61,8 @@ local MeatAttr = {
     }
 };
 --
-local QuestManager_type_def = Constants.SDK.find_type_definition("snow.QuestManager");
-local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
-local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
+local getQuestTargetTotalBossEmNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
+local getQuestTargetEmTypeList_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
 
 local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
 local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
@@ -215,7 +213,7 @@ end, function()
 end);
 
 local EnemyCharacterBase = nil;
-Constants.SDK.hook(QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), function(args)
     if this.currentQuestMonsterTypes ~= nil and currentTargetUniqueId ~= nil then
         EnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
     end
@@ -227,7 +225,7 @@ end, function()
 end);
 
 local QuestManager = nil;
-Constants.SDK.hook(QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), function(args)
     if not creating and not this.MonsterListData then
         CreateDataList();
     end
@@ -254,10 +252,10 @@ end, function()
     QuestManager = nil;
 end);
 
-Constants.SDK.hook(QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
 
 local doTerminate = nil;
-Constants.SDK.hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
     if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
         doTerminate = true;
     end

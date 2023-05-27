@@ -85,8 +85,7 @@ local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
 local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value"); -- retval
 local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault"); -- retval
 
-local EquipDataManager_type_def = Constants.SDK.find_type_definition("snow.data.EquipDataManager");
-local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySetList");
+local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");  -- retval
 
@@ -126,7 +125,7 @@ local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
 
-local findMasterPlayer_method = Constants.SDK.find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
+local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
 
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
@@ -597,7 +596,7 @@ end
 
 local EquipDataManager = nil;
 local setIdx = nil;
-Constants.SDK.hook(EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
     if config.Enabled then
         EquipDataManager = Constants.SDK.to_managed_object(args[2]);
         setIdx = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;

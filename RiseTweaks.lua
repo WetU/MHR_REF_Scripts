@@ -53,7 +53,7 @@ local function applyFps()
 end
 
 local firstHook = true;
-Constants.SDK.hook(Constants.SDK.find_type_definition("via.movie.Movie"):get_method("play"), nil, function()
+Constants.SDK.hook(Constants.type_definitions.viaMovie_type_def:get_method("play"), nil, function()
 	if config.enableFPS and firstHook then
 		firstHook = false;
 		if Constants.IsGameStartState() then

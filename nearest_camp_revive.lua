@@ -38,11 +38,11 @@ local nekoTakuList = {
 local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 
-local findMasterPlayer_method = Constants.SDK.find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
+local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
 
-local get_GameObject_method = findMasterPlayer_method:get_return_type():get_method("get_GameObject");
+local Component_type_def = Constants.SDK.find_type_definition("via.Component");
 
-local GameObject_type_def = get_GameObject_method:get_return_type();
+local GameObject_type_def = Constants.SDK.find_type_definition("via.GameObject");
 
 local Transform_type_def = Constants.SDK.find_type_definition("via.Transform");
 
@@ -88,7 +88,7 @@ local function getCurrentPosition()
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
-            local GameObject = get_GameObject_method:call(MasterPlayer);
+            local GameObject = Constants.SDK.call_native_func(MasterPlayer, Component_type_def, "get_GameObject");
             if GameObject then
                 local Transform = Constants.SDK.call_native_func(GameObject, GameObject_type_def, "get_Transform");
                 if Transform then

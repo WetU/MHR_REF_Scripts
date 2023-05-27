@@ -4,15 +4,13 @@ if not Constants then
 	return;
 end
 --
-local EquipDataManager_type_def = Constants.SDK.find_type_definition("snow.data.EquipDataManager");
-local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
-local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
-local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("getEquippingLvBuffcageData"); -- retval
+local calcLvBuffNumToMax_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
+local calcLvBuffValue_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
+local getEquippingLvBuffcageData_method = Constants.type_definitions.EquipDataManager_type_def:get_method("getEquippingLvBuffcageData"); -- retval
 
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
 
-local PlayerManager_type_def = Constants.SDK.find_type_definition("snow.player.PlayerManager");
-local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
+local getLvBuffCnt_method = Constants.type_definitions.PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
 
 local PlayerQuestBase_type_def = Constants.SDK.find_type_definition("snow.player.PlayerQuestBase");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
@@ -157,7 +155,7 @@ end);
 
 local addBuffType = nil;
 local PlayerManager_obj = nil;
-Constants.SDK.hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), function(args)
     if this.SpiribirdsHudDataCreated then
         addBuffType = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
         if addBuffType ~= nil and addBuffType ~= LvBuff.Rainbow then
@@ -186,7 +184,7 @@ end, function()
     PlayerManager_obj = nil;
 end);
 
-Constants.SDK.hook(PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, function()
+Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, function()
     if this.SpiribirdsHudDataCreated then
         hasRainbow = false;
         this.AcquiredValues = 0;
@@ -217,7 +215,7 @@ end, function()
 end);
 
 local newPlayerIndex = nil;
-Constants.SDK.hook(PlayerManager_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex, snow.player.PlayerIndex)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex, snow.player.PlayerIndex)"), function(args)
     newPlayerIndex = Constants.SDK.to_int64(args[4]) & 0xFF;
 end, function(retval)
     if newPlayerIndex ~= nil then
@@ -230,7 +228,7 @@ end, function(retval)
     return retval;
 end);
 
-Constants.SDK.hook(PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
+Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
     Constants.GetMasterPlayerId(Constants.SDK.to_int64(args[3]) & 0xFF);
 end);
 
