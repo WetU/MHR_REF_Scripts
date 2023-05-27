@@ -165,20 +165,10 @@ Constants.RE.on_frame(function()
         Constants.IMGUI.pop_font();
     end
 
-    if HarvestMoonTimer.HarvestMoonTimer_Inside then
+    if HarvestMoonTimer.CircleTimer then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) then
-            Constants.IMGUI.text(HarvestMoonTimer.HarvestMoonTimer_Inside);
-            if HarvestMoonTimer.HarvestMoonTimer_Outside then
-                Constants.IMGUI.text(HarvestMoonTimer.HarvestMoonTimer_Outside);
-            end
-            Constants.IMGUI.end_window();
-        end
-        Constants.IMGUI.pop_font();
-    elseif HarvestMoonTimer.HarvestMoonTimer_Outside then
-        Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) then
-            Constants.IMGUI.text(HarvestMoonTimer.HarvestMoonTimer_Outside);
+            Constants.IMGUI.text(HarvestMoonTimer.CircleTimer);
             Constants.IMGUI.end_window();
         end
         Constants.IMGUI.pop_font();

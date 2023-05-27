@@ -10,31 +10,19 @@ local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
 local get_OwnerId_method = Constants.SDK.find_type_definition("snow.shell.PlayerShellBase"):get_method("get_OwnerId"); -- retval
 
-local CircleType_type_def = CircleType_field:get_type();
-local HarvestMoonCircleType = {
-    ["Inside"] = CircleType_type_def:get_field("Inside"):get_data(nil),
-    ["Outside"] = CircleType_type_def:get_field("Outside"):get_data(nil)
-};
+local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
 local this = {
-    HarvestMoonTimer_Inside = nil,
-    HarvestMoonTimer_Outside = nil
+    CircleTimer = nil
 };
 
-local HarvestMoonTimer_String = {
-    ["Inside"] = "원월 내부 타이머: %.f초",
-    ["Outside"] = "원월 외부 타이머: %.f초"
-};
+local HarvestMoonTimer_String = "원월 타이머: %.f초";
 
 local function getHarvestMoonTimer(shellObj)
     if get_OwnerId_method:call(shellObj) == Constants.MasterPlayerIndex then
-        local lifeTimer = lifeTimer_field:get_data(shellObj);
-        local CircleType = CircleType_field:get_data(shellObj);
-        if CircleType == HarvestMoonCircleType.Inside then
-            this.HarvestMoonTimer_Inside = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String.Inside, lifeTimer) or nil;
-        end
-        if CircleType == HarvestMoonCircleType.Outside then
-            this.HarvestMoonTimer_Outside = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String.Outside, lifeTimer) or nil;
+        if CircleType_field:get_data(shellObj) == HarvestMoonCircleType_OutSide then
+            local lifeTimer = lifeTimer_field:get_data(shellObj);
+            this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
         end
     end
 end
@@ -75,14 +63,8 @@ Constants.SDK.hook(LongSwordShell010_type_def:get_method("onDestroy"), function(
         LongSwordShell010_onDestroy = nil;
     end
 end, function()
-    if LongSwordShell010_onDestroy then
-        local CircleType = CircleType_field:get_data(LongSwordShell010_onDestroy);
-        if CircleType == HarvestMoonCircleType.Inside then
-            this.HarvestMoonTimer_Inside = nil;
-        end
-        if CircleType == HarvestMoonCircleType.Outside then
-            this.HarvestMoonTimer_Outside = nil;
-        end
+    if LongSwordShell010_onDestroy and CircleType_field:get_data(LongSwordShell010_onDestroy) == HarvestMoonCircleType_OutSide then
+        this.CircleTimer = nil;
     end
     LongSwordShell010_onDestroy = nil;
 end);

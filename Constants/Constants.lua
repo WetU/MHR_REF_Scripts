@@ -125,14 +125,12 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 });
-
-this.type_definitions.viaMovie_type_def = this.SDK.find_type_definition("via.movie.Movie");
 this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
 this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
-this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
 this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
+this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval
