@@ -20,7 +20,6 @@ local settings = Constants.JSON.load_file("NoKillCam+BTH.json") or
 if settings.NoKillCam.disableKillCam == nil then
 	settings.NoKillCam.disableKillCam = true;
 end
---
 if settings.BTH.autoSkipCountdown == nil then
 	settings.BTH.autoSkipCountdown = false;
 end

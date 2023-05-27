@@ -47,11 +47,11 @@ local function hasNpcId(npcid)
     for village, ids in Constants.LUA.pairs(npcList) do
         for _, id in Constants.LUA.pairs(ids) do
             if id == npcid then
-                return true;
+                return village;
             end
         end
     end
-    return false;
+    return nil;
 end
 
 local function talkAction(npcTalkMessageCtrl)
@@ -80,10 +80,11 @@ local function post_getTalkTarget()
         local npcId = get_NpcId_method:call(NpcTalkMessageCtrl);
         if npcId ~= nil and hasNpcId(npcId) then
             if not npcTalkMessageList then
-                npcTalkMessageList = {};
-            end
-            if not npcTalkMessageList[npcId] then
-                npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
+                npcTalkMessageList = {npcId = NpcTalkMessageCtrl};
+            else
+                if not npcTalkMessageList[npcId] then
+                    npcTalkMessageList[npcId] = NpcTalkMessageCtrl;
+                end
             end
         end
     end
@@ -116,45 +117,26 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.VillageMapManager"):
             for k, v in Constants.LUA.pairs(npcTalkMessageList) do
                 if v ~= nil and Constants.SDK.is_managed_object(v) then
                     local npcId = ctorActivated and v:call("get_NpcId") or nil;
+                    local npcVillage = nil;
                     if npcId ~= nil then
-                        if hasNpcId(npcId) then
-                            if isKamura then
-                                for _, id in Constants.LUA.pairs(npcList.KAMURA) do
-                                    if id == npcId then
-                                        talkAction(v);
-                                        npcTalkMessageList[k] = nil;
-                                        break;
-                                    end
-                                end
-                            elseif isElgado then
-                                for _, id in Constants.LUA.pairs(npcList.ELGADO) do
-                                    if id == npcId then
-                                        talkAction(v);
-                                        npcTalkMessageList[k] = nil;
-                                        break;
-                                    end
-                                end
+                        npcVillage = hasNpcId(npcId);
+                        if npcVillage then
+                            if (npcVillage == "KAMURA" and isKamura) or (npcVillage == "ELGADO" and isElgado) then
+                                talkAction(v);
+                                npcTalkMessageList[k] = nil;
                             end
                         else
                             npcTalkMessageList[k] = nil;
                         end
                     else
-                        if isKamura then
-                            for _, id in Constants.LUA.pairs(npcList.KAMURA) do
-                                if id == k then
-                                    talkAction(v);
-                                    npcTalkMessageList[k] = nil;
-                                    break;
-                                end
+                        npcVillage = hasNpcId(k);
+                        if npcVillage then
+                            if (npcVillage == "KAMURA" and isKamura) or (npcVillage == "ELGADO" and isElgado) then
+                                talkAction(v);
+                                npcTalkMessageList[k] = nil;
                             end
-                        elseif isElgado then
-                            for _, id in Constants.LUA.pairs(npcList.ELGADO) do
-                                if id == k then
-                                    talkAction(v);
-                                    npcTalkMessageList[k] = nil;
-                                    break;
-                                end
-                            end
+                        else
+                            npcTalkMessageList[k] = nil;
                         end
                     end
                 else

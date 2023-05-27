@@ -4,7 +4,8 @@ if not Constants then
 end
 --
 local via_Language_Korean = Constants.SDK.find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
-local GetMonsterName_method = Constants.SDK.find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
+local get_PartName_method = Constants.SDK.find_type_definition("via.gui.message"):get_method("get(System.Guid, via.Language)"); -- static
+local getEnemyNameMessage_method = Constants.SDK.find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
 
 local GameStatusType_Village = Constants.SDK.find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
@@ -105,7 +106,7 @@ local function CreateDataList()
                                     local conditionData = getConditionData_method:call(monsterListParam, monsterType);
                                     if meatData and conditionData then
                                         local MonsterDataTable = {
-                                            Name = GetMonsterName_method:call(nil, monsterType),
+                                            Name = getEnemyNameMessage_method:call(nil, monsterType),
                                             PartData = {},
                                             ConditionData = {}
                                         };
@@ -119,7 +120,7 @@ local function CreateDataList()
                                                     if partGuid then
                                                         local PartDataTable = {
                                                             PartType    = partType,
-                                                            PartName    = Constants.SDK.call_native_func(Constants.SDK.get_native_singleton("via.gui.message"), Constants.SDK.find_type_definition("via.gui.message"), "get(System.Guid, via.Language)", partGuid, via_Language_Korean);
+                                                            PartName    = get_PartName_method:call(nil, partGuid, via_Language_Korean);
                                                             MeatType    = meatType,
                                                             MeatValues  = {},
                                                             HighestMeat = ""

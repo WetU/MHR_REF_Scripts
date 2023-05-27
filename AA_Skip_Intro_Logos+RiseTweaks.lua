@@ -14,9 +14,11 @@ if config.desiredFPS == nil then
 	config.desiredFPS = 60.0;
 end
 --
-local Application_type_def = Constants.SDK.find_type_definition("via.Application");
-local ActionArg_type_def = Constants.SDK.find_type_definition("via.behaviortree.ActionArg");
+local set_MaxFps_method = Constants.SDK.find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static
+local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 local viaMovie_type_def = Constants.SDK.find_type_definition("via.movie.Movie");
+local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime");
+local seek_method = viaMovie_type_def:get_method("seek(System.UInt64)");
 
 local get_GameStartState_method = Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 local set_FadeMode_method = Constants.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
@@ -58,7 +60,7 @@ end
 
 local function PostHook_notifyActionEnd()
 	if currentAction then
-		Constants.SDK.call_native_func(currentAction, ActionArg_type_def, "notifyActionEnd");
+		notifyActionEnd_method:call(currentAction);
 	end
 	currentAction = nil;
 end
@@ -108,7 +110,7 @@ local function applyFps()
 	if config.autoFPS then
 		getAutoFps();
 	end
-	Constants.SDK.call_native_func(Constants.SDK.get_native_singleton("via.Application"), Application_type_def, "set_MaxFps(System.Single)", config.desiredFPS);
+	set_MaxFps_method:call(nil, config.desiredFPS);
 end
 --
 local firstHook = true;
@@ -119,9 +121,9 @@ Constants.SDK.hook(viaMovie_type_def:get_method("play"), function(args)
 	end
 end, function()
 	if currentMovie then
-		local DurationTime = Constants.SDK.call_native_func(currentMovie, viaMovie_type_def, "get_DurationTime");
+		local DurationTime = get_DurationTime_method:call(currentMovie);
 		if DurationTime ~= nil then
-			Constants.SDK.call_native_func(currentMovie, viaMovie_type_def, "seek(System.UInt64)", DurationTime);
+			seek_method:call(currentMovie, DurationTime);
 		end
 		if firstHook then
 			firstHook = nil;

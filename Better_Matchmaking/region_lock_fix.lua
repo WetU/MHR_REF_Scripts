@@ -8,6 +8,7 @@ local this = {};
 local config;
 
 local session_steam_type_def = Constants.SDK.find_type_definition("via.network.SessionSteam");
+local setLobbyDistanceFilter_method = session_steam_type_def:get_method("setLobbyDistanceFilter(System.UInt32)");
 
 local last_session_steam_object = nil;
 function this.on_set_is_invisible(args)
@@ -18,10 +19,10 @@ function this.on_set_is_invisible(args)
 						  or config.current_config.region_lock_fix.distance_filter == "Far" and 2
 						  or config.current_config.region_lock_fix.distance_filter == "Close" and 0
 						  or 1;
-			Constants.SDK.call_native_func(session_steam, session_steam_type_def, "setLobbyDistanceFilter(System.UInt32)", distance);
+			setLobbyDistanceFilter_method:call(session_steam, distance);
 		else
 			if session_steam ~= last_session_steam_object then
-				Constants.SDK.call_native_func(session_steam, session_steam_type_def, "setLobbyDistanceFilter(System.UInt32)", 1);
+				setLobbyDistanceFilter_method:call(session_steam, 1);
 			end
 		end
 		last_session_steam_object = session_steam;

@@ -40,11 +40,9 @@ local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuM
 
 local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
 
-local Component_type_def = Constants.SDK.find_type_definition("via.Component");
-
-local GameObject_type_def = Constants.SDK.find_type_definition("via.GameObject");
-
-local Transform_type_def = Constants.SDK.find_type_definition("via.Transform");
+local get_GameObject_method = Constants.SDK.find_type_definition("via.Component"):get_method("get_GameObject");
+local get_Transform_method = get_GameObject_method:get_return_type():get_method("get_Transform");
+local get_Position_method = get_Transform_method:get_return_type():get_method("get_Position");
 
 local stagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
 local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
@@ -76,7 +74,7 @@ local function getCurrentMapNo()
     local QuestMapManager = Constants.SDK.get_managed_singleton("snow.QuestMapManager");
     if QuestMapManager then
         local CurrentMapNo = get_CurrentMapNo_method:call(QuestMapManager);
-        if CurrentMapNo then
+        if CurrentMapNo ~= nil then
             return CurrentMapNo;
         end
     end
@@ -88,11 +86,11 @@ local function getCurrentPosition()
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
-            local GameObject = Constants.SDK.call_native_func(MasterPlayer, Component_type_def, "get_GameObject");
+            local GameObject = get_GameObject_method:call(MasterPlayer);
             if GameObject then
-                local Transform = Constants.SDK.call_native_func(GameObject, GameObject_type_def, "get_Transform");
+                local Transform = get_Transform_method:call(GameObject);
                 if Transform then
-                    local Position = Constants.SDK.call_native_func(Transform, Transform_type_def, "get_Position");
+                    local Position = get_Position_method:call(Transform);
                     if Position then
                         return Position;
                     end
@@ -204,19 +202,26 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicMana
     end
 end);
 
+local NekotakuManager = nil;
+local PlIndex = nil;
+local AngleY = nil;
 Constants.SDK.hook(createNekotaku_method, function(args)
     if skipCreateNeko then
         skipCreateNeko = false;
-        local obj = Constants.SDK.to_managed_object(args[2]);
-        if obj and nekoTaku ~= nil then
-            local PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-            local AngY = Constants.SDK.to_float(args[5]);
-            if PlIndex ~= nil and AngY ~= nil then
-                createNekotaku_method:call(obj, PlIndex, nekoTaku, AngY);
-                return Constants.SDK.SKIP_ORIGINAL;
-            end
+        NekotakuManager = Constants.SDK.to_managed_object(args[2]);
+        if NekotakuManager and nekoTaku ~= nil then
+            PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+            AngleY = Constants.SDK.to_float(args[5]);
+            return Constants.SDK.SKIP_ORIGINAL;
         end
     end
+end, function()
+    if PlIndex ~= nil and AngleY ~= nil then
+        createNekotaku_method:call(NekotakuManager, PlIndex, nekoTaku, AngleY);
+    end
+    NekotakuManager = nil;
+    PlIndex = nil;
+    AngleY = nil;
 end);
 
 Constants.SDK.hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), function(args)
