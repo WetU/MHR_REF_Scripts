@@ -1,12 +1,22 @@
+local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
+
+local RiseTweaks = require("RiseTweaks");
 --
 local ActionArg_type_def = Constants.SDK.find_type_definition("via.behaviortree.ActionArg");
+local get_GameStartState_method = Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 local set_FadeMode_method = Constants.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 --
 local FINISHED = Constants.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
+
+local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
+local GAME_START_STATES =	{
+	Caution = GameStartStateType_type_def:get_field("Caution"):get_data(nil), -- 0
+	Nvidia_Logo = GameStartStateType_type_def:get_field("Nvidia_Logo"):get_data(nil) -- 7
+};
 --
 local function ClearFade()
 	local FadeManager = Constants.SDK.get_managed_singleton("snow.FadeManager");
@@ -38,16 +48,28 @@ local function ClearFadeWithAction()
 	ClearFade();
 end
 
+local function IsGameStartState()
+	local GuiGameStartFsmManager = Constants.SDK.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
+	if GuiGameStartFsmManager then
+		local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
+		if GameStartState ~= nil and (GameStartState >= GAME_START_STATES.Caution and GameStartState <= GAME_START_STATES.Nvidia_Logo) then
+			return true;
+		end
+	end
+	return false;
+end
+
 local function TitleSkip(retval)
-	if Constants.IsGameStartState() then
+	if IsGameStartState() then
 		return Constants.TRUE_POINTER;
 	end
 	return retval;
 end
 --
+local firstHook = true;
 local currentMovie = nil;
 Constants.SDK.hook(Constants.type_definitions.viaMovie_type_def:get_method("play"), function(args)
-	if Constants.IsGameStartState() then
+	if IsGameStartState() then
 		currentMovie = Constants.SDK.to_managed_object(args[2]);
 	end
 end, function()
@@ -55,6 +77,10 @@ end, function()
 		local DurationTime = Constants.SDK.call_native_func(currentMovie, Constants.type_definitions.viaMovie_type_def, "get_DurationTime");
 		if DurationTime ~= nil then
 			Constants.SDK.call_native_func(currentMovie, Constants.type_definitions.viaMovie_type_def, "seek(System.UInt64)", DurationTime);
+		end
+		if firstHook then
+			firstHook = nil;
+			RiseTweaks.applyFps();
 		end
 	end
 	currentMovie = nil;

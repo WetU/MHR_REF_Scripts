@@ -134,31 +134,13 @@ this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.
 this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
 this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
 
-local get_GameStartState_method = this.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval
-
-local GameStartStateType_type_def = get_GameStartState_method:get_return_type();
-local GAME_START_STATES =	{
-	Caution = GameStartStateType_type_def:get_field("Caution"):get_data(nil), -- 0
-	Nvidia_Logo = GameStartStateType_type_def:get_field("Nvidia_Logo"):get_data(nil) -- 7
-};
 
 local QuestStatus_None = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 
 function this.GetMasterPlayerId(idx)
     this.MasterPlayerIndex = idx ~= nil and idx or getMasterPlayerID_method:call(this.SDK.get_managed_singleton("snow.player.PlayerManager"));
-end
-
-function this.IsGameStartState()
-	local GuiGameStartFsmManager = this.SDK.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-	if GuiGameStartFsmManager then
-		local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
-		if GameStartState ~= nil and (GameStartState >= GAME_START_STATES.Caution and GameStartState <= GAME_START_STATES.Nvidia_Logo) then
-			return true;
-		end
-	end
-	return false;
 end
 
 function this.checkStatus(questManager)

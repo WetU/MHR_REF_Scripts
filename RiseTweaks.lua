@@ -3,6 +3,8 @@ if not Constants then
 	return;
 end
 --
+local this = {};
+--
 local config = Constants.JSON.load_file("RiseTweaks/config.json") or {enableFPS = true, autoFPS = true, desiredFPS = 60.0};
 if config.enableFPS == nil then
 	config.enableFPS = true;
@@ -45,26 +47,16 @@ local function getAutoFps()
 	end
 end
 
-local function applyFps()
+function this.applyFps()
 	if config.autoFPS then
 		getAutoFps();
 	end
 	Constants.SDK.call_native_func(Constants.SDK.get_native_singleton("via.Application"), Application_type_def, "set_MaxFps(System.Single)", config.desiredFPS);
 end
 
-local firstHook = true;
-Constants.SDK.hook(Constants.type_definitions.viaMovie_type_def:get_method("play"), nil, function()
-	if config.enableFPS and firstHook then
-		firstHook = false;
-		if Constants.IsGameStartState() then
-			applyFps();
-		end
-	end
-end);
-
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, function()
 	if config.enableFPS then
-		applyFps();
+		this.applyFps();
 	end
 end);
 
@@ -87,7 +79,7 @@ Constants.RE.on_draw_ui(function()
 			end
 			if changed then
 				if config.enableFPS then
-					applyFps();
+					this.applyFps();
 				end
 				save_config();
 			end
@@ -95,3 +87,5 @@ Constants.RE.on_draw_ui(function()
 		end
 	end
 end);
+
+return this;
