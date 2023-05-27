@@ -1,69 +1,52 @@
-local json = json;
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
 
-local Vector3f = Vector3f;
-local Vector3f_new = Vector3f.new;
-
-local sdk = sdk;
-local sdk_call_native_func = sdk.call_native_func;
-local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_to_float = sdk.to_float;
-local sdk_to_int64 = sdk.to_int64;
-local sdk_hook = sdk.hook;
-local sdk_SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
-
-local re = re;
-
-local imgui = imgui;
-local imgui_tree_node = imgui.tree_node;
-local imgui_checkbox = imgui.checkbox;
-local imgui_tree_pop = imgui.tree_pop;
-
-local settings = json.load_file("Nearest_camp_revive.json") or {enable = true};
+local settings = Constants.JSON.load_file("Nearest_camp_revive.json") or {enable = true};
 if settings.enable == nil then
     settings.enable = true
 end
 
 local nekoTakuList = {
     [1] = {
-        [1] = Vector3f_new(236.707, 174.37, -510.568)
+        [1] = Constants.VECTOR3f.new(236.707, 174.37, -510.568)
     },
     [2] = {
-        [1] = Vector3f_new(-117.699, -45.653, -233.201),
-        [2] = Vector3f_new(116.07, -63.316, -428.018)
+        [1] = Constants.VECTOR3f.new(-117.699, -45.653, -233.201),
+        [2] = Constants.VECTOR3f.new(116.07, -63.316, -428.018)
     },
     [3] = {
-        [1] = Vector3f_new(207.968, 90.447, 46.081)
+        [1] = Constants.VECTOR3f.new(207.968, 90.447, 46.081)
     },
     [4] = {
-        [1] = Vector3f_new(-94.171, 2.744, -371.947),
-        [2] = Vector3f_new(103.986, 26, -496.863)
+        [1] = Constants.VECTOR3f.new(-94.171, 2.744, -371.947),
+        [2] = Constants.VECTOR3f.new(103.986, 26, -496.863)
     },
     [5] = {
-        [1] = Vector3f_new(244.252, 147.122, -537.940),
-        [2] = Vector3f_new(-40.000, 81.136, -429.201)
+        [1] = Constants.VECTOR3f.new(244.252, 147.122, -537.940),
+        [2] = Constants.VECTOR3f.new(-40.000, 81.136, -429.201)
     },
     [12] = {
-        [1] = Vector3f_new(3.854, 32.094, -147.152)
+        [1] = Constants.VECTOR3f.new(3.854, 32.094, -147.152)
     },
     [13] = {
-        [1] = Vector3f_new(107.230, 94.988, -254.308)
+        [1] = Constants.VECTOR3f.new(107.230, 94.988, -254.308)
     }
 };
 --
-local get_CurrentMapNo_method = sdk_find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
-local createNekotaku_method = sdk_find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
+local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
+local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 
-local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
+local findMasterPlayer_method = Constants.SDK.find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
 local get_GameObject_method = findMasterPlayer_method:get_return_type():get_method("get_GameObject");
 
 local GameObject_type_def = get_GameObject_method:get_return_type();
 
-local Transform_type_def = sdk_find_type_definition("via.Transform");
+local Transform_type_def = Constants.SDK.find_type_definition("via.Transform");
 
-local stagePointManager_type_def = sdk_find_type_definition("snow.stage.StagePointManager");
+local stagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
 local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
 local tentPositionList_field = stagePointManager_type_def:get_field("_TentPositionList");
 
@@ -79,10 +62,10 @@ local tentPositionList_type_def = tentPositionList_field:get_type();
 local tentPositionList_get_Count_method = tentPositionList_type_def:get_method("get_Count"); -- retval
 local tentPositionList_get_Item_method = tentPositionList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local stageManager_type_def = sdk_find_type_definition("snow.stage.StageManager");
+local stageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 
-local AreaMoveQuest_Die = sdk_find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
+local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 --
 local skipCreateNeko = false;
 local skipWarpNeko = false;
@@ -90,7 +73,7 @@ local reviveCamp = nil;
 local nekoTaku = nil;
 
 local function getCurrentMapNo()
-    local QuestMapManager = sdk_get_managed_singleton("snow.QuestMapManager");
+    local QuestMapManager = Constants.SDK.get_managed_singleton("snow.QuestMapManager");
     if QuestMapManager then
         local CurrentMapNo = get_CurrentMapNo_method:call(QuestMapManager);
         if CurrentMapNo then
@@ -101,15 +84,15 @@ local function getCurrentMapNo()
 end
 
 local function getCurrentPosition()
-    local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+    local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
             local GameObject = get_GameObject_method:call(MasterPlayer);
             if GameObject then
-                local Transform = sdk_call_native_func(GameObject, GameObject_type_def, "get_Transform");
+                local Transform = Constants.SDK.call_native_func(GameObject, GameObject_type_def, "get_Transform");
                 if Transform then
-                    local Position = sdk_call_native_func(Transform, Transform_type_def, "get_Position");
+                    local Position = Constants.SDK.call_native_func(Transform, Transform_type_def, "get_Position");
                     if Position then
                         return Position;
                     end
@@ -175,7 +158,7 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
                 if nearestCampIndex ~= 0 and fastTravelPt ~= nil then
                     skipCreateNeko = true;
                     skipWarpNeko = true;
-                    reviveCamp = Vector3f_new(fastTravelPt.x, fastTravelPt.y, fastTravelPt.z);
+                    reviveCamp = Constants.VECTOR3f.new(fastTravelPt.x, fastTravelPt.y, fastTravelPt.z);
                     nekoTaku = nekoTakuPos[nearestCampIndex];
                     if not nekoTaku and reviveCamp ~= nil then
                         nekoTaku = reviveCamp;
@@ -187,25 +170,25 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
 end
 
 local function SaveSettings()
-    json.dump_file("Nearest_camp_revive.json", settings);
+    Constants.JSON.dump_file("Nearest_camp_revive.json", settings);
 end
 
-re.on_draw_ui(function()
+Constants.RE.on_draw_ui(function()
     local changed = false;
-	if imgui_tree_node("Nearest Camp Revive") then
-		changed, settings.enable = imgui_checkbox("Enabled", settings.enable);
+	if Constants.IMGUI.tree_node("Nearest Camp Revive") then
+		changed, settings.enable = Constants.IMGUI.checkbox("Enabled", settings.enable);
         if changed then
             SaveSettings();
         end
-		imgui_tree_pop();
+		Constants.IMGUI.tree_pop();
 	end
 end);
 
-re.on_config_save(SaveSettings);
+Constants.RE.on_config_save(SaveSettings);
 
-sdk_hook(sdk_find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), function()
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), function()
     if settings.enable then
-        local StagePointManager = sdk_get_managed_singleton("snow.stage.StagePointManager");
+        local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
         local mapNo = getCurrentMapNo();
         if StagePointManager and mapNo ~= nil then
             skipCreateNeko = false;
@@ -221,28 +204,28 @@ sdk_hook(sdk_find_type_definition("snow.wwise.WwiseMusicManager"):get_method("st
     end
 end);
 
-sdk_hook(createNekotaku_method, function(args)
+Constants.SDK.hook(createNekotaku_method, function(args)
     if skipCreateNeko then
         skipCreateNeko = false;
-        local obj = sdk_to_managed_object(args[2]);
+        local obj = Constants.SDK.to_managed_object(args[2]);
         if obj and nekoTaku ~= nil then
-            local PlIndex = sdk_to_int64(args[3]) & 0xFFFFFFFF;
-            local AngY = sdk_to_float(args[5]);
+            local PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+            local AngY = Constants.SDK.to_float(args[5]);
             if PlIndex ~= nil and AngY ~= nil then
                 createNekotaku_method:call(obj, PlIndex, nekoTaku, AngY);
-                return sdk_SKIP_ORIGINAL;
+                return Constants.SDK.SKIP_ORIGINAL;
             end
         end
     end
 end);
 
-sdk_hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), function(args)
+Constants.SDK.hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), function(args)
     if skipWarpNeko then
         skipWarpNeko = false;
-        local obj = sdk_to_managed_object(args[2]);
+        local obj = Constants.SDK.to_managed_object(args[2]);
         if obj and reviveCamp ~= nil then
             setPlWarpInfo_method:call(obj, reviveCamp, 0.0, AreaMoveQuest_Die);
-            return sdk_SKIP_ORIGINAL;
+            return Constants.SDK.SKIP_ORIGINAL;
         end
     end
 end);

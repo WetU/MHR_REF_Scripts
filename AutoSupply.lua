@@ -1,57 +1,12 @@
-local pairs = pairs;
-
-local string = string;
-local string_format = string.format;
-
-local json = json;
-
-local sdk = sdk;
-local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_to_int64 = sdk.to_int64;
-local sdk_hook = sdk.hook;
-
-local re = re;
-
-local imgui = imgui;
-local imgui_load_font = imgui.load_font;
-local imgui_push_font = imgui.push_font;
-local imgui_pop_font = imgui.pop_font;
-local imgui_tree_node = imgui.tree_node;
-local imgui_tree_pop = imgui.tree_pop;
-local imgui_checkbox = imgui.checkbox;
-local imgui_combo = imgui.combo;
-local imgui_slider_int = imgui.slider_int;
-
------------ Font ---------------------------
-local Font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
-    0x0020, 0x00FF, -- Basic Latin + Latin Supplement
-    0x2000, 0x206F, -- General Punctuation
-    0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
-    0x3130, 0x318F, -- Hangul Compatibility Jamo
-    0x31F0, 0x31FF, -- Katakana Phonetic Extensions
-    0xFF00, 0xFFEF, -- Half-width characters
-    0x4e00, 0x9FAF, -- CJK Ideograms
-    0xA960, 0xA97F, -- Hangul Jamo Extended-A
-    0xAC00, 0xD7A3, -- Hangul Syllables
-    0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
-    0
-});
+local Constants = require("Constants.Constants");
+if not Constants then
+    return;
+end
+--
 local Languages = {"en-US", "ko-KR"};
 
------------ Helper Functions ----------------
-local function FindIndex(table, value)
-    for i = 1, #table, 1 do
-        if table[i] == value then
-            return i;
-        end
-    end
-    return nil;
-end
-
 ------------- Config Management --------------
-local config = json.load_file("AutoSupply.json") or {
+local config = Constants.JSON.load_file("AutoSupply.json") or {
     Enabled = true,
     EnableNotification = true,
     EnableCohoot = true,
@@ -96,23 +51,23 @@ end
 if config.CohootMaxStock == nil then
     config.CohootMaxStock = 5;
 end
-if config.Language == nil or FindIndex(Languages, config.Language) == nil then
+if config.Language == nil or Constants.FindIndex(Languages, config.Language) == nil then
     config.Language = "ko-KR";
 end
 
 local function save_config()
-    json.dump_file("AutoSupply.json", config);
+    Constants.JSON.dump_file("AutoSupply.json", config);
 end
 
-re.on_config_save(save_config);
+Constants.RE.on_config_save(save_config);
 
-local reqAddChatInfomation_method = sdk_find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
+local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
-local DataManager_type_def = sdk_find_type_definition("snow.data.DataManager");
+local DataManager_type_def = Constants.SDK.find_type_definition("snow.data.DataManager");
 local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
 
-local VillagePoint_type_def = sdk_find_type_definition("snow.data.VillagePoint");
+local VillagePoint_type_def = Constants.SDK.find_type_definition("snow.data.VillagePoint");
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static, retval
 local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
@@ -130,7 +85,7 @@ local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
 local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value"); -- retval
 local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault"); -- retval
 
-local EquipDataManager_type_def = sdk_find_type_definition("snow.data.EquipDataManager");
+local EquipDataManager_type_def = Constants.SDK.find_type_definition("snow.data.EquipDataManager");
 local PlEquipMySetList_field = EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");  -- retval
@@ -143,7 +98,7 @@ local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData
 
 local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType"); -- retval
 
-local getCustomShortcutSystem_method = sdk_find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static, retval
+local getCustomShortcutSystem_method = Constants.SDK.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static, retval
 
 local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
@@ -153,9 +108,9 @@ local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type
 
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
 
-local SycleTypes_Quest = sdk_find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
+local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 
-local VillageAreaManager_type_def = sdk_find_type_definition("snow.VillageAreaManager");
+local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
 local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
@@ -163,7 +118,7 @@ local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
 local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
 local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
 
-local owlNestManagerSingleton_type_def = sdk_find_type_definition("snow.progress.ProgressOwlNestManager");
+local owlNestManagerSingleton_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
 local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData"); -- retval
 
@@ -171,11 +126,11 @@ local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
 
-local findMasterPlayer_method = sdk_find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
+local findMasterPlayer_method = Constants.SDK.find_type_definition("snow.player.PlayerManager"):get_method("findMasterPlayer"); -- retval
 
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local get_TradeFunc_method = sdk_find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc"); -- retval
+local get_TradeFunc_method = Constants.SDK.find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc"); -- retval
 
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
 local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList"); -- retval
@@ -189,7 +144,7 @@ local NegotiationData_type_def = getNegotiationData_method:get_return_type();
 local get_Cost_method = NegotiationData_type_def:get_method("get_Cost"); -- retval
 local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count"); -- retval
 
-local TradeOrder_type_def = sdk_find_type_definition("snow.facility.tradeCenter.TradeOrderData");
+local TradeOrder_type_def = Constants.SDK.find_type_definition("snow.facility.tradeCenter.TradeOrderData");
 local initialize_method = TradeOrder_type_def:get_method("initialize");
 local get_InventoryList_method = TradeOrder_type_def:get_method("get_InventoryList"); -- retval
 local get_NegotiationCount_method = TradeOrder_type_def:get_method("get_NegotiationCount"); -- retval
@@ -209,7 +164,7 @@ local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get
 --
 local function SendMessage(text)
     if config.EnableNotification then
-        local ChatManager = sdk_get_managed_singleton("snow.gui.ChatManager");
+        local ChatManager = Constants.SDK.get_managed_singleton("snow.gui.ChatManager");
         if ChatManager then
 		    reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
         end
@@ -217,7 +172,7 @@ local function SendMessage(text)
 end
 
 local function ApplyItemLoadout(loadoutIndex)
-    local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
+    local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
     if DataManager then
         local ItemMySet = getItemMySet_method:call(DataManager);
         if ItemMySet then
@@ -237,7 +192,7 @@ end
 
 ----------- Equipment Loadout Managementt ----
 local function GetCurrentWeaponType()
-    local PlayerManager = sdk_get_managed_singleton("snow.player.PlayerManager");
+    local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
     if PlayerManager then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
         if MasterPlayer then
@@ -249,7 +204,7 @@ end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
     if not equipDataManager then
-        equipDataManager = sdk_get_managed_singleton("snow.data.EquipDataManager");
+        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
     end
     local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
     if PlEquipMySetList then
@@ -380,15 +335,15 @@ local function UseDefaultItemSet()
 end
 
 local function WeaponTypeNotSetUseDefault(weaponName, itemName)
-    return string_format(Localized().WeaponTypeNotSetUseDefault, weaponName, itemName);
+    return Constants.LUA.string_format(Localized().WeaponTypeNotSetUseDefault, weaponName, itemName);
 end
 
 local function UseWeaponTypeItemSet(weaponName, itemName)
-    return string_format(Localized().UseWeaponTypeItemSet, weaponName, itemName);
+    return Constants.LUA.string_format(Localized().UseWeaponTypeItemSet, weaponName, itemName);
 end
 
 local function FromLoadout(equipName, itemName)
-    return string_format(Localized().FromLoadout, equipName, itemName);
+    return Constants.LUA.string_format(Localized().FromLoadout, equipName, itemName);
 end
 
 local function FromWeaponType(equipName, itemName, mismatch)
@@ -396,19 +351,19 @@ local function FromWeaponType(equipName, itemName, mismatch)
     if mismatch then
         msg = Localized().MismatchLoadout;
     end
-    return msg .. string_format(Localized().FromWeaponType, equipName, itemName);
+    return msg .. Constants.LUA.string_format(Localized().FromWeaponType, equipName, itemName);
 end
 
 local function FromDefault(itemName, mismatch)
     local msg = "";
     if mismatch then
-        msg = string_format(Localized().MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
+        msg = Constants.LUA.string_format(Localized().MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
     end
-    return msg .. string_format(Localized().FromDefault, itemName);
+    return msg .. Constants.LUA.string_format(Localized().FromDefault, itemName);
 end
 
 local function OutOfStock(itemName)
-    return string_format(Localized().OutOfStock, itemName);
+    return Constants.LUA.string_format(Localized().OutOfStock, itemName);
 end
 
 local function PaletteNilError()
@@ -416,7 +371,7 @@ local function PaletteNilError()
 end
 
 local function PaletteApplied(paletteName)
-    return string_format(Localized().PaletteApplied, paletteName);
+    return Constants.LUA.string_format(Localized().PaletteApplied, paletteName);
 end
 
 local function PaletteListEmpty()
@@ -539,7 +494,7 @@ local function Restock(equipDataManager, loadoutIndex)
 end
 
 local function Supply()
-    local ProgressOwlNestManager = sdk_get_managed_singleton("snow.progress.ProgressOwlNestManager");
+    local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
     if ProgressOwlNestManager then
         local saveData = get_SaveData_method:call(ProgressOwlNestManager);
         if saveData then
@@ -555,7 +510,7 @@ local function Supply()
             end
 
             if tempNum > 0 then
-                local VillageAreaManager = sdk_get_managed_singleton("snow.VillageAreaManager");
+                local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
                 if VillageAreaManager then
                     local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
                     if tempNum == 1 then
@@ -593,8 +548,8 @@ local function Supply()
 end
 
 local function autoArgosy()
-    local TradeCenterFacility = sdk_get_managed_singleton("snow.facility.TradeCenterFacility");
-    local DataManager = sdk_get_managed_singleton("snow.data.DataManager");
+    local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
+    local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
     if TradeCenterFacility and DataManager then
         local tradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
         if tradeFunc then
@@ -642,10 +597,10 @@ end
 
 local EquipDataManager = nil;
 local setIdx = nil;
-sdk_hook(EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
+Constants.SDK.hook(EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
     if config.Enabled then
-        EquipDataManager = sdk_to_managed_object(args[2]);
-        setIdx = sdk_to_int64(args[3]) & 0xFFFFFFFF;
+        EquipDataManager = Constants.SDK.to_managed_object(args[2]);
+        setIdx = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
     end
 end, function(retval)
     if EquipDataManager then
@@ -668,13 +623,13 @@ end, function(retval)
     return retval;
 end);
 
-sdk_hook(sdk_find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, function()
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, function()
     if config.Enabled then
         Restock(nil, nil);
     end
 end);
 
-sdk_hook(sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
     if config.EnableArgosy then
         autoArgosy();
     end
@@ -686,55 +641,54 @@ sdk_hook(sdk_find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_meth
     end
 end);
 ----------------------------------------------
-re.on_draw_ui(function()
-    imgui_push_font(Font);
+Constants.RE.on_draw_ui(function()
+    Constants.IMGUI.push_font(Constants.Font);
     local changed = false;
-    if imgui_tree_node("AutoSupply") then
-        changed, config.Enabled = imgui_checkbox("Enabled", config.Enabled);
-        changed, config.EnableNotification = imgui_checkbox("EnableNotification", config.EnableNotification);
-        changed, config.EnableCohoot = imgui_checkbox("EnableCohootSupply", config.EnableCohoot);
-        changed, config.EnableArgosy = imgui_checkbox("EnableArgosy", config.EnableArgosy);
+    if Constants.IMGUI.tree_node("AutoSupply") then
+        changed, config.Enabled = Constants.IMGUI.checkbox("Enabled", config.Enabled);
+        changed, config.EnableNotification = Constants.IMGUI.checkbox("EnableNotification", config.EnableNotification);
+        changed, config.EnableCohoot = Constants.IMGUI.checkbox("EnableCohootSupply", config.EnableCohoot);
+        changed, config.EnableArgosy = Constants.IMGUI.checkbox("EnableArgosy", config.EnableArgosy);
 
-        local langIdx = FindIndex(Languages, config.Language);
-        local langChanged, new_langIdx = imgui_combo("Language", langIdx, Languages);
+        local langChanged, new_langIdx = Constants.IMGUI.combo("Language", Constants.FindIndex(Languages, config.Language), Languages);
         if langChanged then
             config.Language = Languages[new_langIdx];
             save_config();
         end
 
-        changed, config.DefaultSet = imgui_slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
+        changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
 
-        if imgui_tree_node("WeaponType") then
+        if Constants.IMGUI.tree_node("WeaponType") then
             for i = 1, 14, 1 do
                 local weaponType = i - 1;
-                changed, config.WeaponTypeConfig[i] = imgui_slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
+                changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
             end
-            imgui_tree_pop();
+            Constants.IMGUI.tree_pop();
         end
 
-        if imgui_tree_node("Loadout") then
+        if Constants.IMGUI.tree_node("Loadout") then
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
                 local name = GetEquipmentLoadoutName(nil, loadoutIndex);
                 if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then
                     local msg = "";
                     if EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
-                        msg = " (Current)";
+                        msg = " (사용 중)";
                     end
-                    changed, config.EquipLoadoutConfig[i] = imgui_slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
+                    changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
                 end
             end
-            imgui_tree_pop();
+            Constants.IMGUI.tree_pop();
         end
 
-        if imgui_tree_node("Auto cohoot nest") then
-            changed, config.CohootMaxStock = imgui_slider_int("Maximum stock", config.CohootMaxStock, 1, 5);
-            imgui_tree_pop();
+        if Constants.IMGUI.tree_node("Auto cohoot nest") then
+            changed, config.CohootMaxStock = Constants.IMGUI.slider_int("Maximum stock", config.CohootMaxStock, 1, 5);
+            Constants.IMGUI.tree_pop();
         end
         if changed then
             save_config();
         end
-        imgui_tree_pop();
+        Constants.IMGUI.tree_pop();
     end
-    imgui_pop_font();
+    Constants.IMGUI.pop_font();
 end);

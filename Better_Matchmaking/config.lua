@@ -1,15 +1,16 @@
 local require = require;
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
 
 local this = {
 	current_config = nil,
 	config_file_name = "Better Matchmaking/config.json",
-	default_config = {}
+	default_config = nil
 };
 local version = "2.3.2";
-
 local utils;
-
-local json = json;
 
 function this.init()
 	this.default_config = {
@@ -45,7 +46,7 @@ function this.init()
 end
 
 function this.load()
-	local loaded_config = json.load_file(this.config_file_name);
+	local loaded_config = Constants.JSON.load_file(this.config_file_name);
 	if loaded_config ~= nil then
 		this.current_config = utils.table.merge(this.default_config, loaded_config);
 	else
@@ -54,7 +55,7 @@ function this.load()
 end
 
 function this.save()
-	json.dump_file(this.config_file_name, this.current_config);
+	Constants.JSON.dump_file(this.config_file_name, this.current_config);
 end
 
 function this.reset()

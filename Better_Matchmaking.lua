@@ -1,12 +1,10 @@
-local pcall = pcall;
 local require = require;
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
 
 local reframework = reframework;
-
-local re = re;
-
-local imgui = imgui;
-local imgui_button = imgui.button;
 
 local utils = require("Better_Matchmaking.utils");
 local config = require("Better_Matchmaking.config");
@@ -25,18 +23,18 @@ timeout_fix.init_module();
 region_lock_fix.init_module();
 misc_fixes.init_module();
 
-re.on_draw_ui(function()
-	if imgui_button("Better Matchmaking v" .. config.current_config.version) then
+Constants.RE.on_draw_ui(function()
+	if Constants.IMGUI.button("Better Matchmaking v" .. config.current_config.version) then
 		customization_menu.is_opened = not customization_menu.is_opened;
 	end
 end);
 
-re.on_frame(function()
+Constants.RE.on_frame(function()
 	if not reframework:is_drawing_ui() then
 		customization_menu.is_opened = false;
 	end
 
 	if customization_menu.is_opened then
-		pcall(customization_menu.draw);
+		Constants.LUA.pcall(customization_menu.draw);
 	end
 end);

@@ -1,22 +1,14 @@
-local pairs = pairs;
-
-local table = table;
-local table_insert = table.insert;
-
-local math = math;
-local math_max = math.max;
-
-local sdk = sdk;
-local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_hook = sdk.hook;
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
 --
-local via_Language_Korean = sdk_find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
-local GetMonsterName_method = sdk_find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
+local via_Language_Korean = Constants.SDK.find_type_definition("via.Language"):get_field("Korean"):get_data(nil);
+local GetMonsterName_method = Constants.SDK.find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
 
-local GameStatusType_Village = sdk_find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
+local GameStatusType_Village = Constants.SDK.find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
-local GuiManager_type_def = sdk_find_type_definition("snow.gui.GuiManager");
+local GuiManager_type_def = Constants.SDK.find_type_definition("snow.gui.GuiManager");
 local get_refMonsterList_method = GuiManager_type_def:get_method("get_refMonsterList"); -- retval
 local monsterListParam_field = GuiManager_type_def:get_field("monsterListParam");
 
@@ -54,7 +46,7 @@ local Part_field = PartData_type_def:get_field("_Part");
 local EmPart_field = PartData_type_def:get_field("_EmPart");
 local EmMeatGroupIdx_field = PartData_type_def:get_field("_EmMeatGroupIdx");
 
-local MeatAttr_type_def = sdk_find_type_definition("snow.enemy.EnemyDef.MeatAttr");
+local MeatAttr_type_def = Constants.SDK.find_type_definition("snow.enemy.EnemyDef.MeatAttr");
 local MeatAttr = {
     ["Phys"] = {
         Slash = MeatAttr_type_def:get_field("Slash"):get_data(nil),
@@ -70,7 +62,7 @@ local MeatAttr = {
     }
 };
 --
-local QuestManager_type_def = sdk_find_type_definition("snow.QuestManager");
+local QuestManager_type_def = Constants.SDK.find_type_definition("snow.QuestManager");
 local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
 local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
@@ -79,9 +71,9 @@ local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_retur
 local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
 local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local QuestStatus_None = sdk_find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
+local QuestStatus_None = Constants.SDK.find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --
-local EnemyCharacterBase_type_def = sdk_find_type_definition("snow.enemy.EnemyCharacterBase");
+local EnemyCharacterBase_type_def = Constants.SDK.find_type_definition("snow.enemy.EnemyCharacterBase");
 local checkDie_method = EnemyCharacterBase_type_def:get_method("checkDie"); -- retval
 local get_EnemyType_method = EnemyCharacterBase_type_def:get_method("get_EnemyType"); -- retval
 local get_UniqueId_method = EnemyCharacterBase_type_def:get_method("get_UniqueId"); -- retval
@@ -96,7 +88,7 @@ local currentTargetUniqueId = nil;
 
 local function CreateDataList()
     creating = true;
-    local GuiManager = sdk.get_managed_singleton("snow.gui.GuiManager");
+    local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
     if GuiManager then
         local MonsterList = get_refMonsterList_method:call(GuiManager);
         local monsterListParam = monsterListParam_field:get_data(GuiManager);
@@ -132,27 +124,27 @@ local function CreateDataList()
                                                     if partGuid then
                                                         local PartDataTable = {
                                                             PartType    = partType,
-                                                            PartName    = sdk.call_native_func(sdk.get_native_singleton("via.gui.message"), sdk_find_type_definition("via.gui.message"), "get(System.Guid, via.Language)", partGuid, via_Language_Korean);
+                                                            PartName    = Constants.SDK.call_native_func(Constants.SDK.get_native_singleton("via.gui.message"), Constants.SDK.find_type_definition("via.gui.message"), "get(System.Guid, via.Language)", partGuid, via_Language_Korean);
                                                             MeatType    = meatType,
                                                             MeatValues  = {},
                                                             HighestMeat = ""
                                                         };
-                                                        for _, attrType in pairs(MeatAttr) do
-                                                            for k, v in pairs(attrType) do
+                                                        for _, attrType in Constants.LUA.pairs(MeatAttr) do
+                                                            for k, v in Constants.LUA.pairs(attrType) do
                                                                 PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
                                                             end
                                                         end
 
-                                                        local highestPhys = math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
-                                                        local highestElem = math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
+                                                        local highestPhys = Constants.LUA.math_max(PartDataTable.MeatValues.Slash, PartDataTable.MeatValues.Strike, PartDataTable.MeatValues.Shell);
+                                                        local highestElem = Constants.LUA.math_max(PartDataTable.MeatValues.Fire, PartDataTable.MeatValues.Water, PartDataTable.MeatValues.Elect, PartDataTable.MeatValues.Ice, PartDataTable.MeatValues.Dragon);
 
-                                                        for k, v in pairs(PartDataTable.MeatValues) do
+                                                        for k, v in Constants.LUA.pairs(PartDataTable.MeatValues) do
                                                             local compareValue = MeatAttr.Phys[k] ~= nil and highestPhys or highestElem;
                                                             if v == compareValue then
                                                                 PartDataTable.HighestMeat = PartDataTable.HighestMeat .. "_" .. k;
                                                             end
                                                         end
-                                                        table_insert(MonsterDataTable.PartData, PartDataTable);
+                                                        Constants.LUA.table_insert(MonsterDataTable.PartData, PartDataTable);
                                                     end
                                                 end
                                             end
@@ -170,7 +162,7 @@ local function CreateDataList()
                                                 end
                                             end
 
-                                            MonsterDataTable.ConditionData.HighestCondition = math_max(
+                                            MonsterDataTable.ConditionData.HighestCondition = Constants.LUA.math_max(
                                                 MonsterDataTable.ConditionData[1],
                                                 MonsterDataTable.ConditionData[2],
                                                 MonsterDataTable.ConditionData[3],
@@ -206,11 +198,11 @@ local function TerminateMonsterHud()
 end
 
 local TargetEnemyCharacterBase = nil;
-sdk_hook(sdk_find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"), function(args)
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"), function(args)
     if not creating and not this.MonsterListData then
         CreateDataList();
     end
-    TargetEnemyCharacterBase = sdk_to_managed_object(args[3]);
+    TargetEnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
 end, function()
     if not TargetEnemyCharacterBase or checkDie_method:call(TargetEnemyCharacterBase) then
         TerminateMonsterHud();
@@ -226,9 +218,9 @@ end, function()
 end);
 
 local EnemyCharacterBase = nil;
-sdk_hook(QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), function(args)
+Constants.SDK.hook(QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), function(args)
     if this.currentQuestMonsterTypes ~= nil and currentTargetUniqueId ~= nil then
-        EnemyCharacterBase = sdk_to_managed_object(args[3]);
+        EnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
     end
 end, function()
     if EnemyCharacterBase and get_EnemyType_method:call(EnemyCharacterBase) == this.currentQuestMonsterTypes[1] and get_UniqueId_method:call(EnemyCharacterBase) == currentTargetUniqueId then
@@ -238,12 +230,12 @@ end, function()
 end);
 
 local QuestManager = nil;
-sdk_hook(QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), function(args)
+Constants.SDK.hook(QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), function(args)
     if not creating and not this.MonsterListData then
         CreateDataList();
     end
     TerminateMonsterHud();
-    QuestManager = sdk_to_managed_object(args[2]);
+    QuestManager = Constants.SDK.to_managed_object(args[2]);
 end, function()
     if QuestManager and checkStatus_method:call(QuestManager, QuestStatus_None) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
@@ -256,7 +248,7 @@ end, function()
                         if not this.currentQuestMonsterTypes then
                             this.currentQuestMonsterTypes = {};
                         end
-                        table_insert(this.currentQuestMonsterTypes, QuestTargetEmType);
+                        Constants.LUA.table_insert(this.currentQuestMonsterTypes, QuestTargetEmType);
                     end
                 end
             end
@@ -265,11 +257,11 @@ end, function()
     QuestManager = nil;
 end);
 
-sdk_hook(QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
+Constants.SDK.hook(QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
 
 local doTerminate = nil;
-sdk_hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
-    if (sdk.to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
+Constants.SDK.hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
+    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
         doTerminate = true;
     end
 end, function()

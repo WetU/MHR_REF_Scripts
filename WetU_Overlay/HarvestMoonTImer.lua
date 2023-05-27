@@ -1,28 +1,20 @@
 local require = require;
-
-local string = string;
-local string_format = string.format;
-
-local sdk = sdk;
-local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_to_managed_object = sdk.to_managed_object;
-local sdk_to_int64 = sdk.to_int64;
-local sdk_hook = sdk.hook;
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
 --
-local LongSwordShell010_type_def = sdk_find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):get_return_type():get_method("get_Item(System.Int32)"):get_return_type();
+local LongSwordShell010_type_def = Constants.SDK.find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):get_return_type():get_method("get_Item(System.Int32)"):get_return_type();
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
-local get_OwnerId_method = sdk_find_type_definition("snow.shell.PlayerShellBase"):get_method("get_OwnerId"); -- retval
+local get_OwnerId_method = Constants.SDK.find_type_definition("snow.shell.PlayerShellBase"):get_method("get_OwnerId"); -- retval
 
 local CircleType_type_def = CircleType_field:get_type();
 local HarvestMoonCircleType = {
     ["Inside"] = CircleType_type_def:get_field("Inside"):get_data(nil),
     ["Outside"] = CircleType_type_def:get_field("Outside"):get_data(nil)
 };
---
-local Constants = require("WetU_Overlay.Constants");
 --
 local this = {
     HarvestMoonTimer_Inside = nil,
@@ -39,19 +31,19 @@ local function getHarvestMoonTimer(shellObj)
         local lifeTimer = lifeTimer_field:get_data(shellObj);
         local CircleType = CircleType_field:get_data(shellObj);
         if CircleType == HarvestMoonCircleType.Inside then
-            this.HarvestMoonTimer_Inside = lifeTimer ~= nil and string_format(HarvestMoonTimer_String.Inside, lifeTimer) or nil;
+            this.HarvestMoonTimer_Inside = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String.Inside, lifeTimer) or nil;
         end
         if CircleType == HarvestMoonCircleType.Outside then
-            this.HarvestMoonTimer_Outside = lifeTimer ~= nil and string_format(HarvestMoonTimer_String.Outside, lifeTimer) or nil;
+            this.HarvestMoonTimer_Outside = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String.Outside, lifeTimer) or nil;
         end
     end
 end
 
 local LongSwordShell010_start = nil;
-sdk_hook(LongSwordShell010_type_def:get_method("start"), function(args)
-    LongSwordShell010_start = sdk_to_managed_object(args[2]);
+Constants.SDK.hook(LongSwordShell010_type_def:get_method("start"), function(args)
+    LongSwordShell010_start = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
-        Constants.getMasterPlayerId();
+        Constants.GetMasterPlayerId(nil);
     end
 end, function()
     if LongSwordShell010_start then
@@ -61,10 +53,10 @@ end, function()
 end);
 
 local LongSwordShell010_update = nil;
-sdk_hook(LongSwordShell010_type_def:get_method("update"), function(args)
-    LongSwordShell010_update = sdk_to_managed_object(args[2]);
+Constants.SDK.hook(LongSwordShell010_type_def:get_method("update"), function(args)
+    LongSwordShell010_update = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
-        Constants.getMasterPlayerId();
+        Constants.GetMasterPlayerId(nil);
     end
 end, function()
     if LongSwordShell010_update then
@@ -74,10 +66,10 @@ end, function()
 end);
 
 local LongSwordShell010_onDestroy = nil;
-sdk_hook(LongSwordShell010_type_def:get_method("onDestroy"), function(args)
-    LongSwordShell010_onDestroy = sdk_to_managed_object(args[2]);
+Constants.SDK.hook(LongSwordShell010_type_def:get_method("onDestroy"), function(args)
+    LongSwordShell010_onDestroy = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
-        Constants.getMasterPlayerId();
+        Constants.GetMasterPlayerId(nil);
     end
     if LongSwordShell010_onDestroy and (get_OwnerId_method:call(LongSwordShell010_onDestroy) ~= Constants.MasterPlayerIndex) then
         LongSwordShell010_onDestroy = nil;

@@ -1,21 +1,9 @@
-local json = json;
-
-local sdk = sdk;
-local sdk_find_type_definition = sdk.find_type_definition;
-local sdk_get_native_singleton = sdk.get_native_singleton;
-local sdk_get_managed_singleton = sdk.get_managed_singleton;
-local sdk_call_native_func = sdk.call_native_func;
-local sdk_hook = sdk.hook;
-
-local re = re;
-
-local imgui = imgui;
-local imgui_tree_node = imgui.tree_node;
-local imgui_checkbox = imgui.checkbox;
-local imgui_tree_pop = imgui.tree_pop;
-local imgui_slider_float = imgui.slider_float;
-
-local config = json.load_file("RiseTweaks/config.json") or {enableFPS = true, autoFPS = true, desiredFPS = 60.0};
+local Constants = require("Constants.Constants");
+if not Constants then
+	return;
+end
+--
+local config = Constants.JSON.load_file("RiseTweaks/config.json") or {enableFPS = true, autoFPS = true, desiredFPS = 60.0};
 if config.enableFPS == nil then
 	config.enableFPS = true;
 end
@@ -26,9 +14,9 @@ if config.desiredFPS == nil then
 	config.desiredFPS = 60.0;
 end
 --
-local get_GameStartState_method = sdk_find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval
+local Application_type_def = Constants.SDK.find_type_definition("via.Application");
 
-local StmOptionDataContainer_field = sdk_find_type_definition("snow.StmOptionManager"):get_field("_StmOptionDataContainer");
+local StmOptionDataContainer_field = Constants.SDK.find_type_definition("snow.StmOptionManager"):get_field("_StmOptionDataContainer");
 
 local getFrameRateOption_method = StmOptionDataContainer_field:get_type():get_method("getFrameRateOption"); -- retval
 
@@ -45,7 +33,7 @@ local FrameRate = {
 };
 --
 local function getAutoFps()
-	local OptionManager = sdk_get_managed_singleton("snow.StmOptionManager");
+	local OptionManager = Constants.SDK.get_managed_singleton("snow.StmOptionManager");
 	if OptionManager then
 		local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
 		if OptionDataContainer then
@@ -57,59 +45,53 @@ local function getAutoFps()
 	end
 end
 
+local function applyFps()
+	if config.autoFPS then
+		getAutoFps();
+	end
+	Constants.SDK.call_native_func(Constants.SDK.get_native_singleton("via.Application"), Application_type_def, "set_MaxFps(System.Single)", config.desiredFPS);
+end
+
 local firstHook = true;
-sdk_hook(sdk_find_type_definition("via.movie.Movie"):get_method("play"), nil, function()
+Constants.SDK.hook(Constants.SDK.find_type_definition("via.movie.Movie"):get_method("play"), nil, function()
 	if config.enableFPS and firstHook then
 		firstHook = false;
-		local GuiGameStartFsmManager = sdk_get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-		if GuiGameStartFsmManager then
-			local GameStartStateType = get_GameStartState_method:call(GuiGameStartFsmManager);
-			if GameStartStateType ~= nil then
-				if config.autoFPS then
-					getAutoFps();
-				end
-				sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
-			end
+		if Constants.IsGameStartState() then
+			applyFps();
 		end
 	end
 end);
 
-sdk_hook(sdk_find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, function()
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, function()
 	if config.enableFPS then
-		if config.autoFPS then
-			getAutoFps();
-		end
-		sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
+		applyFps();
 	end
 end);
 
 local function save_config()
-	json.dump_file("RiseTweaks/config.json", config);
+	Constants.JSON.dump_file("RiseTweaks/config.json", config);
 end
 
-re.on_config_save(save_config);
+Constants.RE.on_config_save(save_config);
 
-re.on_draw_ui(function()
+Constants.RE.on_draw_ui(function()
 	local changed = false;
-	if imgui_tree_node("RiseTweaks") then
-		if imgui_tree_node("Frame Rate") then
-			changed, config.enableFPS = imgui_checkbox("Enable", config.enableFPS);
+	if Constants.IMGUI.tree_node("RiseTweaks") then
+		if Constants.IMGUI.tree_node("Frame Rate") then
+			changed, config.enableFPS = Constants.IMGUI.checkbox("Enable", config.enableFPS);
 			if config.enableFPS then
-				changed, config.autoFPS = imgui_checkbox("Automatic Frame Rate", config.autoFPS);
+				changed, config.autoFPS = Constants.IMGUI.checkbox("Automatic Frame Rate", config.autoFPS);
 				if not config.autoFPS then
-					changed, config.desiredFPS = imgui_slider_float("Frame Rate", config.desiredFPS, 10.0, 600.0, "%.2f");
+					changed, config.desiredFPS = Constants.IMGUI.slider_float("Frame Rate", config.desiredFPS, 10.0, 600.0, "%.2f");
 				end
 			end
 			if changed then
 				if config.enableFPS then
-					if config.autoFPS then
-						getAutoFps();
-					end
-					sdk_call_native_func(sdk_get_native_singleton("via.Application"), sdk_find_type_definition("via.Application"), "set_MaxFps(System.Single)", config.desiredFPS);
+					applyFps();
 				end
 				save_config();
 			end
-			imgui_tree_pop();
+			Constants.IMGUI.tree_pop();
 		end
 	end
 end);
