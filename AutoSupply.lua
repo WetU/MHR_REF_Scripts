@@ -641,9 +641,9 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpa
 end);
 ----------------------------------------------
 Constants.RE.on_draw_ui(function()
-    Constants.IMGUI.push_font(Constants.Font);
-    local changed = false;
     if Constants.IMGUI.tree_node("AutoSupply") then
+        Constants.IMGUI.push_font(Constants.Font);
+        local changed = false;
         changed, config.Enabled = Constants.IMGUI.checkbox("Enabled", config.Enabled);
         changed, config.EnableNotification = Constants.IMGUI.checkbox("EnableNotification", config.EnableNotification);
         changed, config.EnableCohoot = Constants.IMGUI.checkbox("EnableCohootSupply", config.EnableCohoot);
@@ -672,7 +672,7 @@ Constants.RE.on_draw_ui(function()
                 if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then
                     local msg = "";
                     if EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
-                        msg = " (사용 중)";
+                        msg = " (현재)";
                     end
                     changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
                 end
@@ -688,6 +688,6 @@ Constants.RE.on_draw_ui(function()
             save_config();
         end
         Constants.IMGUI.tree_pop();
+        Constants.IMGUI.pop_font();
     end
-    Constants.IMGUI.pop_font();
 end);

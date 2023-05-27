@@ -70,7 +70,7 @@ local imgui_func = {
     table_next_row = imgui.table_next_row,
     end_table = imgui.end_table,
     spacing = imgui.spacing,
-    imgui_same_line = imgui.same_line,
+    same_line = imgui.same_line,
     set_next_window_pos = imgui.set_next_window_pos,
     set_next_window_size = imgui.set_next_window_size
 };

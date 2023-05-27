@@ -115,7 +115,7 @@ end);
 
 -- Remove Town Interaction Delay
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)"), function(args)
-	if (Constants.SDK.to_int64(args[3]) & 1) ~= 1 and Constants.checkStatus(nil) then
+	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkStatus(nil) then
 		return Constants.SDK.SKIP_ORIGINAL;
 	end
 end);
