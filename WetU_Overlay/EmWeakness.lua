@@ -63,15 +63,12 @@ local MeatAttr = {
 };
 --
 local QuestManager_type_def = Constants.SDK.find_type_definition("snow.QuestManager");
-local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getQuestTargetTotalBossEmNum_method = QuestManager_type_def:get_method("getQuestTargetTotalBossEmNum"); -- retval
 local getQuestTargetEmTypeList_method = QuestManager_type_def:get_method("getQuestTargetEmTypeList"); -- retval
 
 local QuestTargetEmTypeList_type_def = getQuestTargetEmTypeList_method:get_return_type();
 local QuestTargetEmTypeList_get_Count_method = QuestTargetEmTypeList_type_def:get_method("get_Count"); -- retval
 local QuestTargetEmTypeList_get_Item_method = QuestTargetEmTypeList_type_def:get_method("get_Item(System.Int32)"); -- retval
-
-local QuestStatus_None = Constants.SDK.find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --
 local EnemyCharacterBase_type_def = Constants.SDK.find_type_definition("snow.enemy.EnemyCharacterBase");
 local checkDie_method = EnemyCharacterBase_type_def:get_method("checkDie"); -- retval
@@ -237,7 +234,7 @@ Constants.SDK.hook(QuestManager_type_def:get_method("questActivate(snow.LobbyMan
     TerminateMonsterHud();
     QuestManager = Constants.SDK.to_managed_object(args[2]);
 end, function()
-    if QuestManager and checkStatus_method:call(QuestManager, QuestStatus_None) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
+    if QuestManager and Constants.checkStatus(QuestManager) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
             local listCount = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);

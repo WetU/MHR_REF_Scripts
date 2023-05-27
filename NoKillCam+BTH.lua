@@ -61,10 +61,6 @@ local getTotalJoinNum_method = QuestManager_type_def:get_method("getTotalJoinNum
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)"); -- static, retval
--- Remove Town Interaction Delay cache
-local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
-
-local QuestStatus_None = Constants.SDK.find_type_definition("snow.QuestManager.Status"):get_field("None"):get_data(nil);
 --[[
 QuestManager.EndFlow
  0 == Start;
@@ -120,11 +116,8 @@ end);
 
 -- Remove Town Interaction Delay
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)"), function(args)
-	if (Constants.SDK.to_int64(args[3]) & 1) ~= 1 then
-		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
-		if QuestManager and checkStatus_method:call(QuestManager, QuestStatus_None) then
-			return Constants.SDK.SKIP_ORIGINAL;
-		end
+	if (Constants.SDK.to_int64(args[3]) & 1) ~= 1 and Constants.checkStatus(nil) then
+		return Constants.SDK.SKIP_ORIGINAL;
 	end
 end);
 
