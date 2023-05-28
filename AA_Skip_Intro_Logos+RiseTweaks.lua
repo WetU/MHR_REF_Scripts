@@ -183,5 +183,6 @@ Constants.RE.on_draw_ui(function()
 			end
 			Constants.IMGUI.tree_pop();
 		end
+		Constants.IMGUI.tree_pop();
 	end
 end);
