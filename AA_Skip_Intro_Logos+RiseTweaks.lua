@@ -16,6 +16,7 @@ end
 --
 local set_MaxFps_method = Constants.SDK.find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static
 local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
+
 local viaMovie_type_def = Constants.SDK.find_type_definition("via.movie.Movie");
 local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime");
 local seek_method = viaMovie_type_def:get_method("seek(System.UInt64)");

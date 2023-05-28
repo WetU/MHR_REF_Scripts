@@ -131,6 +131,7 @@ this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition(
 this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
 this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
 this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
+this.type_definitions.PlayerQuestBase_type_def = this.SDK.find_type_definition("snow.player.PlayerQuestBase");
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval

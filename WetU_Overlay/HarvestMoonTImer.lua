@@ -5,6 +5,8 @@ if not Constants then
 end
 --
 local LongSwordShell010_type_def = Constants.SDK.find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):get_return_type():get_method("get_Item(System.Int32)"):get_return_type();
+local update_method = LongSwordShell010_type_def:get_method("update");
+local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
@@ -15,58 +17,33 @@ local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Out
 local this = {
     CircleTimer = nil
 };
-
+--
+local LongSwordShell010 = nil;
 local HarvestMoonTimer_String = "원월 타이머: %.f초";
 
-local function getHarvestMoonTimer(shellObj)
-    if get_OwnerId_method:call(shellObj) == Constants.MasterPlayerIndex then
-        if CircleType_field:get_data(shellObj) == HarvestMoonCircleType_OutSide then
-            local lifeTimer = lifeTimer_field:get_data(shellObj);
-            this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
-        end
-    end
+local function UpdateHarvestMoonTimer()
+    local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+    this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
 end
 
-local LongSwordShell010_start = nil;
+function this.TerminateHarvestMoon()
+    this.CircleTimer = nil;
+    LongSwordShell010 = nil;
+end
+
 Constants.SDK.hook(LongSwordShell010_type_def:get_method("start"), function(args)
-    LongSwordShell010_start = Constants.SDK.to_managed_object(args[2]);
+    LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
         Constants.GetMasterPlayerId(nil);
     end
 end, function()
-    if LongSwordShell010_start then
-        getHarvestMoonTimer(LongSwordShell010_start);
+    if LongSwordShell010 and get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
+        UpdateHarvestMoonTimer();
+        Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
+        Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, this.TerminateHarvestMoon);
+    else
+        LongSwordShell010 = nil;
     end
-    LongSwordShell010_start = nil;
-end);
-
-local LongSwordShell010_update = nil;
-Constants.SDK.hook(LongSwordShell010_type_def:get_method("update"), function(args)
-    LongSwordShell010_update = Constants.SDK.to_managed_object(args[2]);
-    if Constants.MasterPlayerIndex == nil then
-        Constants.GetMasterPlayerId(nil);
-    end
-end, function()
-    if LongSwordShell010_update then
-        getHarvestMoonTimer(LongSwordShell010_update);
-    end
-    LongSwordShell010_update = nil;
-end);
-
-local LongSwordShell010_onDestroy = nil;
-Constants.SDK.hook(LongSwordShell010_type_def:get_method("onDestroy"), function(args)
-    LongSwordShell010_onDestroy = Constants.SDK.to_managed_object(args[2]);
-    if Constants.MasterPlayerIndex == nil then
-        Constants.GetMasterPlayerId(nil);
-    end
-    if LongSwordShell010_onDestroy and (get_OwnerId_method:call(LongSwordShell010_onDestroy) ~= Constants.MasterPlayerIndex) then
-        LongSwordShell010_onDestroy = nil;
-    end
-end, function()
-    if LongSwordShell010_onDestroy and CircleType_field:get_data(LongSwordShell010_onDestroy) == HarvestMoonCircleType_OutSide then
-        this.CircleTimer = nil;
-    end
-    LongSwordShell010_onDestroy = nil;
 end);
 
 return this;

@@ -1,7 +1,10 @@
+local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
+
+local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 --
 local this = {
     SpiribirdsHudDataCreated = false,
@@ -9,8 +12,7 @@ local this = {
     StatusBuffLimits = nil,
     AcquiredValues = nil,
     BirdsMaxCounts = nil,
-    AcquiredCounts = nil,
-    PlayerQuestBase_type_def = Constants.SDK.find_type_definition("snow.player.PlayerQuestBase")
+    AcquiredCounts = nil
 };
 --
 local calcLvBuffNumToMax_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
@@ -21,8 +23,9 @@ local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_t
 
 local getLvBuffCnt_method = Constants.type_definitions.PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
 
-local get_IsInTrainingArea_method = this.PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
-local IsEnableStage_Skill211_field = this.PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
+local onDestroy_method = Constants.type_definitions.PlayerQuestBase_type_def:get_method("onDestroy");
+local get_IsInTrainingArea_method = Constants.type_definitions.PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
+local IsEnableStage_Skill211_field = Constants.type_definitions.PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local PlayerBase_type_def = Constants.SDK.find_type_definition("snow.player.PlayerBase");
 local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
@@ -48,23 +51,25 @@ local BuffTypes = {
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
 --
+local PlayerQuestBase = nil;
+
 local TimerString = {
     Disabled = "향응 비활성 지역",
     Enabled = "향응 타이머: %.f초"
 };
 
 local hasRainbow = false;
-
 local firstHook = true;
 local skipUpdate = false;
 
-function this.TerminateSpiribirdsHud()
+local function TerminateSpiribirdsHud()
     this.SpiribirdsHudDataCreated = false;
     this.SpiribirdsCall_Timer = nil;
     this.StatusBuffLimits = nil;
     this.AcquiredValues = nil;
     this.BirdsMaxCounts = nil;
     this.AcquiredCounts = nil;
+    PlayerQuestBase = nil;
     hasRainbow = false;
     firstHook = true;
     skipUpdate = false;
@@ -80,20 +85,19 @@ local function getCountsAndValues(playerManager, equipDataManager, buffType)
     end
 end
 
-local function getCallTimer(playerQuestBase)
-    local masterPlayerData = get_PlayerData_method:call(playerQuestBase);
+local function getCallTimer()
+    local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
     if masterPlayerData then
         local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
         this.SpiribirdsCall_Timer = Timer ~= nil and Constants.LUA.string_format(TimerString.Enabled, 60.0 - (Timer / 60.0)) or nil;
     end
 end
 
-local PlayerQuestBase_start = nil;
-Constants.SDK.hook(this.PlayerQuestBase_type_def:get_method("start"), function(args)
-    PlayerQuestBase_start = Constants.SDK.to_managed_object(args[2]);
+Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_method("start"), function(args)
+    PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
 end, function()
-    if PlayerQuestBase_start and isMasterPlayer_method:call(PlayerQuestBase_start) then
-        Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase_start));
+    if PlayerQuestBase and isMasterPlayer_method:call(PlayerQuestBase) then
+        Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
         local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
         local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
         if EquipDataManager and PlayerManager then
@@ -108,7 +112,6 @@ end, function()
                     if k ~= "Rainbow" then
                         local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
                         local LvBuffNumToMax = calcLvBuffNumToMax_method:call(EquipDataManager, v);
-
                         this.StatusBuffLimits[k] = StatusBuffLimit;
                         this.BirdsMaxCounts[k] = LvBuffNumToMax;
                         this.AcquiredCounts[k] = hasRainbow and LvBuffNumToMax or Constants.LUA.math_min(Constants.LUA.math_max(getLvBuffCnt_method:call(PlayerManager, v), 0), LvBuffNumToMax);
@@ -118,19 +121,23 @@ end, function()
                 this.SpiribirdsHudDataCreated = true;
             end
         end
+        Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, function()
+            TerminateSpiribirdsHud();
+            HarvestMoonTimer.TerminateHarvestMoon();
+            Constants.MasterPlayerIndex = nil;
+        end);
+    else
+        PlayerQuestBase = nil;
     end
-    PlayerQuestBase_start = nil;
 end);
 
-local PlayerQuestBase_subLvBuffFromEnemy = nil;
 local subBuffType = nil;
-Constants.SDK.hook(this.PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), function(args)
-    if this.SpiribirdsHudDataCreated then
-        PlayerQuestBase_subLvBuffFromEnemy = Constants.SDK.to_managed_object(args[2]);
+Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), function(args)
+    if this.SpiribirdsHudDataCreated and PlayerQuestBase and (PlayerQuestBase == Constants.SDK.to_managed_object(args[2])) then
         subBuffType = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
     end
 end, function(retval)
-    if PlayerQuestBase_subLvBuffFromEnemy and isMasterPlayer_method:call(PlayerQuestBase_subLvBuffFromEnemy) and (Constants.SDK.to_int64(retval) & 1) == 1 and subBuffType ~= nil then
+    if subBuffType ~= nil and (Constants.SDK.to_int64(retval) & 1) == 1 then
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
             for k, v in Constants.LUA.pairs(LvBuff) do
@@ -145,9 +152,30 @@ end, function(retval)
             end
         end
     end
-    PlayerQuestBase_subLvBuffFromEnemy = nil;
     subBuffType = nil;
     return retval;
+end);
+
+local doUpdate = nil;
+Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_method("updateEquipSkill211"), function(args)
+    if PlayerQuestBase and (PlayerQuestBase == Constants.SDK.to_managed_object(args[2])) and (firstHook or not skipUpdate) then
+        doUpdate = true;
+    end
+end, function()
+    if doUpdate then
+        if firstHook then
+            firstHook = false;
+            if get_IsInTrainingArea_method:call(PlayerQuestBase) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase) then
+                skipUpdate = true;
+                this.SpiribirdsCall_Timer = TimerString.Disabled;
+            else
+                getCallTimer();
+            end
+        else
+            getCallTimer();
+        end
+    end
+    doUpdate = nil;
 end);
 
 local addBuffType = nil;
@@ -187,28 +215,6 @@ Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method(
         this.AcquiredValues = 0;
         this.AcquiredCounts = 0;
     end
-end);
-
-local PlayerQuestBase_obj = nil;
-Constants.SDK.hook(this.PlayerQuestBase_type_def:get_method("updateEquipSkill211"), function(args)
-    if firstHook or not skipUpdate then
-        PlayerQuestBase_obj = Constants.SDK.to_managed_object(args[2]);
-    end
-end, function()
-    if PlayerQuestBase_obj and isMasterPlayer_method:call(PlayerQuestBase_obj) then
-        if firstHook then
-            firstHook = false;
-            if get_IsInTrainingArea_method:call(PlayerQuestBase_obj) or not IsEnableStage_Skill211_field:get_data(PlayerQuestBase_obj) then
-                skipUpdate = true;
-                this.SpiribirdsCall_Timer = TimerString.Disabled;
-            else
-                getCallTimer(PlayerQuestBase_obj);
-            end
-        else
-            getCallTimer(PlayerQuestBase_obj);
-        end
-    end
-    PlayerQuestBase_obj = nil;
 end);
 
 local newPlayerIndex = nil;

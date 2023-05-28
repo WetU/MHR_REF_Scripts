@@ -12,12 +12,6 @@ local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 --==--==--==--==--==--
 
 
-Constants.SDK.hook(SpiribirdsStatus.PlayerQuestBase_type_def:get_method("onDestroy"), nil, function()
-    SpiribirdsStatus.TerminateSpiribirdsHud();
-    HarvestMoonTimer.CircleTimer = nil;
-    Constants.MasterPlayerIndex = nil;
-end);
-
 local LocalizedMeatAttr = {
     "절단",
     "타격",
