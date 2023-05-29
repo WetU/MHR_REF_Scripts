@@ -7,33 +7,6 @@ local settings = Constants.JSON.load_file("Nearest_camp_revive.json") or {enable
 if settings.enable == nil then
     settings.enable = true
 end
-
-local nekoTakuList = {
-    [1] = {
-        [1] = Constants.VECTOR3f.new(236.707, 174.37, -510.568)
-    },
-    [2] = {
-        [1] = Constants.VECTOR3f.new(-117.699, -45.653, -233.201),
-        [2] = Constants.VECTOR3f.new(116.07, -63.316, -428.018)
-    },
-    [3] = {
-        [1] = Constants.VECTOR3f.new(207.968, 90.447, 46.081)
-    },
-    [4] = {
-        [1] = Constants.VECTOR3f.new(-94.171, 2.744, -371.947),
-        [2] = Constants.VECTOR3f.new(103.986, 26, -496.863)
-    },
-    [5] = {
-        [1] = Constants.VECTOR3f.new(244.252, 147.122, -537.940),
-        [2] = Constants.VECTOR3f.new(-40.000, 81.136, -429.201)
-    },
-    [12] = {
-        [1] = Constants.VECTOR3f.new(3.854, 32.094, -147.152)
-    },
-    [13] = {
-        [1] = Constants.VECTOR3f.new(107.230, 94.988, -254.308)
-    }
-};
 --
 local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
@@ -64,6 +37,34 @@ local stageManager_type_def = Constants.SDK.find_type_definition("snow.stage.Sta
 local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 
 local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
+--
+local MapNoType_type_def = get_CurrentMapNo_method:get_return_type();
+local nekoTakuList = {
+    [MapNoType_type_def:get_field("No01"):get_data(nil)] = { -- 사원 폐허
+        [1] = Constants.VECTOR3f.new(236.707, 174.37, -510.568)
+    },
+    [MapNoType_type_def:get_field("No02"):get_data(nil)] = { -- 모래 평원
+        [1] = Constants.VECTOR3f.new(-117.699, -45.653, -233.201),
+        [2] = Constants.VECTOR3f.new(116.07, -63.316, -428.018)
+    },
+    [MapNoType_type_def:get_field("No03"):get_data(nil)] = { -- 수몰된 숲
+        [1] = Constants.VECTOR3f.new(207.968, 90.447, 46.081)
+    },
+    [MapNoType_type_def:get_field("No04"):get_data(nil)] = { -- 한랭 군도
+        [1] = Constants.VECTOR3f.new(-94.171, 2.744, -371.947),
+        [2] = Constants.VECTOR3f.new(103.986, 26, -496.863)
+    },
+    [MapNoType_type_def:get_field("No05"):get_data(nil)] = { -- 용암 동굴
+        [1] = Constants.VECTOR3f.new(244.252, 147.122, -537.940),
+        [2] = Constants.VECTOR3f.new(-40.000, 81.136, -429.201)
+    },
+    [MapNoType_type_def:get_field("No31"):get_data(nil)] = { -- 밀림
+        [1] = Constants.VECTOR3f.new(3.854, 32.094, -147.152)
+    },
+    [MapNoType_type_def:get_field("No32"):get_data(nil)] = { -- 요새고원
+        [1] = Constants.VECTOR3f.new(107.230, 94.988, -254.308)
+    }
+};
 --
 local skipCreateNeko = false;
 local skipWarpNeko = false;
@@ -189,48 +190,43 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicMana
         local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
         local mapNo = getCurrentMapNo();
         if StagePointManager and mapNo ~= nil then
-            skipCreateNeko = false;
-            skipWarpNeko = false;
-            reviveCamp = nil;
-            nekoTaku = nil;
             local camps = getCampList(StagePointManager);
             local nekoTakuItem = nekoTakuList[mapNo];
             if camps ~= nil and nekoTakuItem ~= nil then
+                skipCreateNeko = false;
+                skipWarpNeko = false;
+                reviveCamp = nil;
+                nekoTaku = nil;
                 findNearestCamp(StagePointManager, camps, nekoTakuItem);
             end
         end
     end
 end);
 
-local NekotakuManager = nil;
-local PlIndex = nil;
-local AngleY = nil;
 Constants.SDK.hook(createNekotaku_method, function(args)
     if skipCreateNeko then
         skipCreateNeko = false;
-        NekotakuManager = Constants.SDK.to_managed_object(args[2]);
-        if NekotakuManager and nekoTaku ~= nil then
-            PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-            AngleY = Constants.SDK.to_float(args[5]);
-            return Constants.SDK.SKIP_ORIGINAL;
+        if nekoTaku ~= nil then
+            local NekotakuManager = Constants.SDK.to_managed_object(args[2]);
+            local PlIndex = Constants.SDK.to_int64(args[3]);
+            local AngleY = Constants.SDK.to_float(args[5]);
+            if NekotakuManager and PlIndex ~= nil and AngleY ~= nil then
+                createNekotaku_method:call(NekotakuManager, PlIndex, nekoTaku, AngleY);
+                return Constants.SDK.SKIP_ORIGINAL;
+            end
         end
     end
-end, function()
-    if PlIndex ~= nil and AngleY ~= nil then
-        createNekotaku_method:call(NekotakuManager, PlIndex, nekoTaku, AngleY);
-    end
-    NekotakuManager = nil;
-    PlIndex = nil;
-    AngleY = nil;
 end);
 
 Constants.SDK.hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), function(args)
     if skipWarpNeko then
         skipWarpNeko = false;
-        local obj = Constants.SDK.to_managed_object(args[2]);
-        if obj and reviveCamp ~= nil then
-            setPlWarpInfo_method:call(obj, reviveCamp, 0.0, AreaMoveQuest_Die);
-            return Constants.SDK.SKIP_ORIGINAL;
+        if reviveCamp ~= nil then
+            local StageManager = Constants.SDK.to_managed_object(args[2]);
+            if StageManager then
+                setPlWarpInfo_method:call(StageManager, reviveCamp, 0.0, AreaMoveQuest_Die);
+                return Constants.SDK.SKIP_ORIGINAL;
+            end
         end
     end
 end);
