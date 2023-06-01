@@ -556,6 +556,7 @@ local function autoArgosy()
             if tradeOrderList then
                 local tradeOrderList_count = TradeOrderList_get_Count_method:call(tradeOrderList);
                 if tradeOrderList_count > 0 then
+                    local isReceived = false;
                     for i = 0, tradeOrderList_count - 1, 1 do
                         local tradeOrder = TradeOrderList_get_Item_method:call(tradeOrderList, i);
                         if tradeOrder then
@@ -579,6 +580,7 @@ local function autoArgosy()
                                         local inventory = InventoryList_get_Item_method:call(inventoryList, i);
                                         if inventory and not isEmpty_method:call(inventory) and sendInventory_method:call(inventory, inventory, inventory, 65536) ~= SendInventoryResult_AllSended then
                                             trySellGameItem_method:call(DataManager, inventory, Inventory_get_Count_method:call(inventory));
+                                            isReceived = true;
                                         end
                                     end
                                 end
@@ -587,7 +589,9 @@ local function autoArgosy()
                             initialize_method:call(tradeOrder);
                         end
                     end
-                    SendMessage("교역선 아이템을 받았습니다");
+                    if isReceived then
+                        SendMessage("교역선 아이템을 받았습니다");
+                    end
                 end
             end
         end

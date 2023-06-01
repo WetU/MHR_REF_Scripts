@@ -59,6 +59,8 @@ local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)"); -- static, retval
+--
+local changeAllMarkerEnable_method = Constants.SDK.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 --[[
 QuestManager.EndFlow
  0 == Start;
@@ -113,9 +115,13 @@ end, function()
 end);
 
 -- Remove Town Interaction Delay
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)"), function(args)
+Constants.SDK.hook(changeAllMarkerEnable_method, function(args)
 	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkStatus(nil) then
-		return Constants.SDK.SKIP_ORIGINAL;
+		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
+		if ObjectAccessManager then
+			changeAllMarkerEnable_method:call(ObjectAccessManager, true);
+			return Constants.SDK.SKIP_ORIGINAL;
+		end
 	end
 end);
 
