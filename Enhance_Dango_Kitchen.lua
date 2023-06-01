@@ -71,6 +71,10 @@ end, function()
 end);
 
 -- Skip Dango Song Main Function
+local COOK_DEMO = 1;
+local EAT_DEMO = 2;
+local BBQ_DEMO = 3;
+
 local DemoHandler = nil;
 local DemoType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
 Constants.SDK.hook(EventcutHandler_type_def:get_method("play(System.Boolean)"), function(args)
@@ -79,7 +83,7 @@ Constants.SDK.hook(EventcutHandler_type_def:get_method("play(System.Boolean)"), 
 		if DemoHandler then
 			local EventId = get_EventId_method:call(DemoHandler);
 			if EventId ~= nil then
-				DemoType = (cooking_events[EventId] and 1) or (eating_events[EventId] and 2) or (bbq_events[EventId] and 3) or nil;
+				DemoType = (cooking_events[EventId] and COOK_DEMO) or (eating_events[EventId] and EAT_DEMO) or (bbq_events[EventId] and BBQ_DEMO) or nil;
 			end
 			if not DemoType then
 				DemoHandler = nil;
@@ -91,8 +95,8 @@ end, function()
 		if get_LoadState_method:call(DemoHandler) == LOADSTATE_ACTIVE and get_Playing_method:call(DemoHandler) then
 			reqFinish_method:call(DemoHandler, 0.0);
 			DemoHandler = nil;
-			if DemoType ~= 2 then
-				if DemoType == 1 and not settings.skipEating then
+			if DemoType ~= EAT_DEMO then
+				if DemoType == COOK_DEMO and not settings.skipEating then
 					local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 					if kitchenFsm ~= nil then
 						set_IsCookDemoSkip_method:call(kitchenFsm, true);
@@ -105,7 +109,7 @@ end, function()
 end);
 
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, function()
-	if DemoType == 2 then
+	if DemoType == EAT_DEMO then
 		DemoType = nil;
 		local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
 		local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
