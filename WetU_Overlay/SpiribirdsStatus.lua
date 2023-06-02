@@ -231,8 +231,4 @@ end, function(retval)
     return retval;
 end);
 
-Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
-    Constants.GetMasterPlayerId(Constants.SDK.to_int64(args[3]) & 0xFF);
-end);
-
 return this;
