@@ -76,7 +76,7 @@ local EAT_DEMO = 2;
 local BBQ_DEMO = 3;
 
 local DemoHandler = nil;
-local DemoType = nil;  -- 1 = Cook, 2 = Eating, 3 = BBQ;
+local DemoType = nil;
 Constants.SDK.hook(EventcutHandler_type_def:get_method("play(System.Boolean)"), function(args)
 	if settings.skipDangoSong or settings.skipEating or settings.skipMotley then
 		DemoHandler = Constants.SDK.to_managed_object(args[2]);

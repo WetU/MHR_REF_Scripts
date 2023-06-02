@@ -18,7 +18,7 @@ local set_MaxFps_method = Constants.SDK.find_type_definition("via.Application"):
 local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 
 local viaMovie_type_def = Constants.SDK.find_type_definition("via.movie.Movie");
-local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime");
+local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime"); -- retval, float
 local seek_method = viaMovie_type_def:get_method("seek(System.UInt64)");
 
 local get_GameStartState_method = Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState"); -- retval

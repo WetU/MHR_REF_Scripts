@@ -578,8 +578,10 @@ local function autoArgosy()
                                 if inventoryList_count > 0 then
                                     for j = 0, inventoryList_count - 1, 1 do
                                         local inventory = InventoryList_get_Item_method:call(inventoryList, i);
-                                        if inventory and not isEmpty_method:call(inventory) and sendInventory_method:call(inventory, inventory, inventory, 65536) ~= SendInventoryResult_AllSended then
-                                            trySellGameItem_method:call(DataManager, inventory, Inventory_get_Count_method:call(inventory));
+                                        if inventory and not isEmpty_method:call(inventory) then
+                                            if sendInventory_method:call(inventory, inventory, inventory, 65536) ~= SendInventoryResult_AllSended then
+                                                trySellGameItem_method:call(DataManager, inventory, Inventory_get_Count_method:call(inventory));
+                                            end
                                             isReceived = true;
                                         end
                                     end

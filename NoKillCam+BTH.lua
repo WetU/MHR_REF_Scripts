@@ -98,6 +98,15 @@ Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method(
 end);
 
 -- BTH
+local function getSkipTrg(skipType)
+	if skipType == "Countdown" then
+		return settings.BTH.autoSkipCountdown or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) or false;
+	elseif skipType == "PostAnim" then
+		return settings.BTH.autoSkipPostAnim or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) or false;
+	end
+	return nil;
+end
+
 local QuestManager_obj = nil;
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), function(args)
 	if settings.BTH.enableKeyboard or settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim then
@@ -106,8 +115,7 @@ Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("
 end, function()
 	if QuestManager_obj and getQuestReturnTimerSec_method:call(QuestManager_obj) > 1.0 then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
-		if (endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 and (settings.BTH.autoSkipCountdown or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey))))
-		or (endFlow == EndFlow.CameraDemo and (settings.BTH.autoSkipPostAnim or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)))) then
+		if (endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown"))	or (endFlow == EndFlow.CameraDemo and getSkipTrg("PostAnim")) then
 			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 		end
     end
@@ -116,7 +124,7 @@ end);
 
 -- Remove Town Interaction Delay
 Constants.SDK.hook(changeAllMarkerEnable_method, function(args)
-	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkStatus(nil) then
+	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkStatus_None(nil) then
 		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
 		if ObjectAccessManager then
 			changeAllMarkerEnable_method:call(ObjectAccessManager, true);

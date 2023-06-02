@@ -142,7 +142,7 @@ function this.GetMasterPlayerId(idx)
     this.MasterPlayerIndex = idx ~= nil and idx or getMasterPlayerID_method:call(this.SDK.get_managed_singleton("snow.player.PlayerManager"));
 end
 
-function this.checkStatus(questManager)
+function this.checkStatus_None(questManager)
     if not questManager then
         questManager = this.SDK.get_managed_singleton("snow.QuestManager");
     end

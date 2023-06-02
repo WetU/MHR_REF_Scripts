@@ -114,7 +114,7 @@ local function getFastTravelPt(stagePointManager, index)
     local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
     if FastTravelPointList then
         local count = fastTravelPointList_get_Count_method:call(FastTravelPointList);
-        if count > 0 and (index > 0 and index <= count - 1) then
+        if count > 0 and (index >= 0 and index <= count - 1) then
             local FastTravelPoint = fastTravelPointList_get_Item_method:call(FastTravelPointList, index);
             if FastTravelPoint then
                 local Points = get_Points_method:call(FastTravelPoint);

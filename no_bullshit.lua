@@ -172,7 +172,7 @@ end);
 Constants.RE.on_frame(function()
     if npcTalkMessageList then
         local valid = false;
-        for k, v in Constants.LUA.pairs(npcTalkMessageList) do
+        for _, v in Constants.LUA.pairs(npcTalkMessageList) do
             if v ~= nil then
                 valid = true;
                 break;

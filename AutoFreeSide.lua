@@ -11,6 +11,7 @@ local function PreHook_doOpen(args)
         GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
         GuiSideQuestOrder:set_field("DecideDelay", 0.0);
     end
+    isOpenRewardWindow = nil;
 end
 
 local function PostHook_getReaward()
