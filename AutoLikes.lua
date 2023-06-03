@@ -4,8 +4,6 @@ if not Constants then
 end
 -- Cache
 local GoodRelationship_type_def = Constants.SDK.find_type_definition("snow.gui.GuiHud_GoodRelationship");
-local isInBlockList_method = GoodRelationship_type_def:get_method("isInBlockList(System.Guid)"); -- retval
-
 local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 
@@ -16,10 +14,7 @@ local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- r
 local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
 local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local PlInfo_type_def = get_Item_method:get_return_type();
-local Enable_field = PlInfo_type_def:get_field("_Enable");
-local good_field = PlInfo_type_def:get_field("_good");
-local uniqueHunterId_field = PlInfo_type_def:get_field("_uniqueHunterId");
+local Enable_field = get_Item_method:get_return_type():get_field("_Enable");
 -- Main Function
 local GoodRelationshipHud = nil;
 local sendGoodReady = nil;
@@ -50,12 +45,9 @@ local function PostHook_updatePlayerInfo()
 				for i = 0, count - 1, 1 do
 					local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
 					if OtherPlayerInfo and Enable_field:get_data(OtherPlayerInfo) then
-						local uniqueHunterId = uniqueHunterId_field:get_data(OtherPlayerInfo);
-						if uniqueHunterId and not isInBlockList_method:call(GoodRelationshipHud, uniqueHunterId) then
-							OtherPlayerInfo:set_field("_good", true);
-							set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-							isChanged = true;
-						end
+						OtherPlayerInfo:set_field("_good", true);
+						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+						isChanged = true;
 					end
 				end
 				if isChanged then
