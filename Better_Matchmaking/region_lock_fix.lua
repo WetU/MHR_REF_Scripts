@@ -31,7 +31,6 @@ end
 
 function this.init_module()
 	config = require("Better_Matchmaking.config");
-
 	Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), this.on_set_is_invisible);
 end
 

@@ -193,27 +193,27 @@ local function TerminateMonsterHud()
     currentTargetUniqueId = nil;
 end
 
-local TargetEnemyCharacterBase = nil;
+local EnemyCharacterBase = nil;
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.TargetCamera_Moment"):get_method("UpdateTargetCameraParamData(snow.enemy.EnemyCharacterBase, System.Boolean)"), function(args)
     if not creating and not this.MonsterListData then
         CreateDataList();
     end
-    TargetEnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
+    EnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
 end, function()
-    if not TargetEnemyCharacterBase or checkDie_method:call(TargetEnemyCharacterBase) then
+    if not EnemyCharacterBase or checkDie_method:call(EnemyCharacterBase) then
         TerminateMonsterHud();
     else
-        local EnemyType = get_EnemyType_method:call(TargetEnemyCharacterBase);
+        local EnemyType = get_EnemyType_method:call(EnemyCharacterBase);
         if EnemyType ~= nil and this.MonsterListData[EnemyType] ~= nil then
-            currentTargetUniqueId = get_UniqueId_method:call(TargetEnemyCharacterBase);
+            currentTargetUniqueId = get_UniqueId_method:call(EnemyCharacterBase);
             this.currentQuestMonsterTypes = {EnemyType};
         else
             TerminateMonsterHud();
         end
     end
+    EnemyCharacterBase = nil;
 end);
 
-local EnemyCharacterBase = nil;
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), function(args)
     if this.currentQuestMonsterTypes ~= nil and currentTargetUniqueId ~= nil then
         EnemyCharacterBase = Constants.SDK.to_managed_object(args[3]);
@@ -255,16 +255,10 @@ end);
 
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
 
-local doTerminate = nil;
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
     if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
-        doTerminate = true;
-    end
-end, function()
-    if doTerminate then
         TerminateMonsterHud();
     end
-    doTerminate = nil;
 end);
 
 return this;

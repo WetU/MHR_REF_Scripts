@@ -10,11 +10,11 @@ local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayer
 local gauge_set_Item_method = gaugeAngleMax_field:get_type():get_method("set_Item(System.Int32, System.Single)");
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
-local get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- retval
-local set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
-local get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
+local PlInfos_get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- retval
+local PlInfos_set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
+local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local Enable_field = get_Item_method:get_return_type():get_field("_Enable");
+local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field("_Enable");
 -- Main Function
 local GoodRelationshipHud = nil;
 local sendGoodReady = nil;
@@ -39,22 +39,19 @@ local function PostHook_updatePlayerInfo()
 	if GoodRelationshipHud then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos then
-			local count = get_Count_method:call(OtherPlayerInfos);
-			if count > 0 then
-				local isChanged = false;
-				for i = 0, count - 1, 1 do
-					local OtherPlayerInfo = get_Item_method:call(OtherPlayerInfos, i);
-					if OtherPlayerInfo and Enable_field:get_data(OtherPlayerInfo) then
-						OtherPlayerInfo:set_field("_good", true);
-						set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-						isChanged = true;
-					end
+			local isChanged = false;
+			for i = 0, PlInfos_get_Count_method:call(OtherPlayerInfos) - 1, 1 do
+				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+				if OtherPlayerInfo and PlInfo_Enable_field:get_data(OtherPlayerInfo) then
+					OtherPlayerInfo:set_field("_good", true);
+					PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+					isChanged = true;
 				end
-				if isChanged then
-					GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
-				end
-				sendGoodReady = true;
 			end
+			if isChanged then
+				GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
+			end
+			sendGoodReady = true;
 		end
 	end
 	GoodRelationshipHud = nil;

@@ -1,4 +1,3 @@
-local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;
@@ -18,8 +17,8 @@ local this = {
     CircleTimer = nil
 };
 --
-local LongSwordShell010 = nil;
 local HarvestMoonTimer_String = "원월 타이머: %.f초";
+local LongSwordShell010 = nil;
 
 local function UpdateHarvestMoonTimer()
     local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);

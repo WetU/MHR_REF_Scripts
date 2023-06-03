@@ -98,7 +98,7 @@ end, function()
 			if DemoType ~= EAT_DEMO then
 				if DemoType == COOK_DEMO and not settings.skipEating then
 					local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-					if kitchenFsm ~= nil then
+					if kitchenFsm then
 						set_IsCookDemoSkip_method:call(kitchenFsm, true);
 					end
 				end

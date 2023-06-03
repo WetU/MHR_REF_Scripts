@@ -4,8 +4,7 @@ if not Constants then
 	return;
 end
 --
-local settings = Constants.JSON.load_file("NoKillCam+BTH.json") or 
-{
+local settings = Constants.JSON.load_file("NoKillCam+BTH.json") or {
 	NoKillCam = {
 		disableKillCam = true,
 	},

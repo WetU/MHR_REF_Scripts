@@ -208,7 +208,7 @@ Constants.SDK.hook(createNekotaku_method, function(args)
         skipCreateNeko = false;
         if nekoTaku ~= nil then
             local NekotakuManager = Constants.SDK.to_managed_object(args[2]);
-            local PlIndex = Constants.SDK.to_int64(args[3]);
+            local PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
             local AngleY = Constants.SDK.to_float(args[5]);
             if NekotakuManager and PlIndex ~= nil and AngleY ~= nil then
                 createNekotaku_method:call(NekotakuManager, PlIndex, nekoTaku, AngleY);
