@@ -56,7 +56,6 @@ local TimerString = {
     Enabled = "향응 타이머: %.f초"
 };
 
-local PlayerQuestBase = nil;
 local hasRainbow = nil;
 local firstHook = true;
 local skipUpdate = nil;
@@ -68,7 +67,6 @@ local function TerminateSpiribirdsHud()
     this.AcquiredValues = nil;
     this.BirdsMaxCounts = nil;
     this.AcquiredCounts = nil;
-    PlayerQuestBase = nil;
     hasRainbow = nil;
     firstHook = true;
     skipUpdate = nil;
@@ -84,14 +82,15 @@ local function getCountsAndValues(playerManager, equipDataManager, buffType)
     end
 end
 
-local function getCallTimer()
-    local masterPlayerData = get_PlayerData_method:call(PlayerQuestBase);
+local function getCallTimer(playerQuestBase)
+    local masterPlayerData = get_PlayerData_method:call(playerQuestBase);
     if masterPlayerData then
         local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
         this.SpiribirdsCall_Timer = Timer ~= nil and Constants.LUA.string_format(TimerString.Enabled, 60.0 - (Timer / 60.0)) or nil;
     end
 end
 
+local PlayerQuestBase = nil;
 Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_method("start"), function(args)
     PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
 end, function()
@@ -125,9 +124,8 @@ end, function()
             HarvestMoonTimer.TerminateHarvestMoon();
             Constants.MasterPlayerIndex = nil;
         end);
-    else
-        PlayerQuestBase = nil;
     end
+    PlayerQuestBase = nil;
 end);
 
 local LvBuff_PlayerQuestBase = nil;
@@ -176,14 +174,10 @@ end, function()
                 skipUpdate = true;
                 this.SpiribirdsCall_Timer = TimerString.Disabled;
             else
-                if PlayerQuestBase then
-                    getCallTimer();
-                end
+                getCallTimer(EquipSkill211_PlayerQuestBase);
             end
         else
-            if PlayerQuestBase then
-                getCallTimer();
-            end
+            getCallTimer(EquipSkill211_PlayerQuestBase);
         end
     end
     EquipSkill211_PlayerQuestBase = nil;

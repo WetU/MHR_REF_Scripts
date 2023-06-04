@@ -11,8 +11,8 @@ local NotResetTypes = {
 	[MarionetteCameraType_type_def:get_field("GetOffTryAgainInput"):get_data(nil)] = true,
 	[MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)] = true
 };
--- Main Function
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"), nil, function(retval)
+-- Main
+local function SkipReset(retval)
 	if (Constants.SDK.to_int64(retval) & 0xFFFFFFFF) ~= ResetState_None then
 		local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
 		if CameraManager then
@@ -23,4 +23,6 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.TargetCamera_
 		end
 	end
 	return retval;
-end);
+end
+-- Hook
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"), nil, SkipReset);

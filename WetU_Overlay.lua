@@ -45,10 +45,14 @@ local LocalizedBirdTypes = {
 
 local BirdTypeToColor = {
     ["Atk"] = 4278190335,
-    ["Def"] = 4286513407,
+    ["Def"] = 4278222847,
     ["Vital"] = 4278222848,
     ["Stamina"] = 4278255615
 };
+
+
+--==--==--==--==--==--
+
 
 local function testAttribute(attribute, value, highest)
     Constants.IMGUI.table_next_column();
