@@ -51,10 +51,12 @@ end
 Constants.RE.on_config_save(SaveSettings);
 Constants.RE.on_draw_ui(function()
     if Constants.IMGUI.tree_node("AutoFreeSide") then
+        local config_changed = false;
         local changed = false;
-		changed, config.RemoveDelay = Constants.IMGUI.checkbox("Remove delay", config.RemoveDelay);
+		config_changed, config.RemoveDelay = Constants.IMGUI.checkbox("Remove delay", config.RemoveDelay);
         changed, config.AutoReceive = Constants.IMGUI.checkbox("Auto receive", config.AutoReceive);
-        if changed then
+        config_changed = config_changed or changed;
+        if config_changed then
             SaveSettings();
         end
 		Constants.IMGUI.tree_pop();

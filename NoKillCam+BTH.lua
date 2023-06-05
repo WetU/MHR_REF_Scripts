@@ -35,10 +35,6 @@ if settings.BTH.kbAnimSkipKey == nil then
 	settings.BTH.kbAnimSkipKey = 35;
 end
 local BTH_ENABLED = settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim or settings.BTH.enableKeyboard or false;
---
-local function SaveSettings()
-	Constants.JSON.dump_file("NoKillCam+BTH.json", settings);
-end
 -- Common Cache
 local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
 
@@ -89,14 +85,16 @@ QuestManager.CaptureStatus
 ]]--
 
 -- No Kill Cam
-Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), function(args)
+local function PreHook_RequestActive(args)
 	if settings.NoKillCam.disableKillCam and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
 		if QuestManager and isPlayQuest_method:call(QuestManager) and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
 			return Constants.SDK.SKIP_ORIGINAL;
 		end
 	end
-end);
+end
+
+Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), PreHook_RequestActive);
 
 -- BTH
 local function getSkipTrg(skipType)
@@ -109,11 +107,12 @@ local function getSkipTrg(skipType)
 end
 
 local QuestManager_obj = nil;
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), function(args)
+local function PreHook_updateQuestEndFlow(args)
 	if BTH_ENABLED then
 		QuestManager_obj = Constants.SDK.to_managed_object(args[2]);
 	end
-end, function()
+end
+local function PostHook_updateQuestEndFlow()
 	if QuestManager_obj then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown") then
@@ -127,10 +126,12 @@ end, function()
 		end
     end
 	QuestManager_obj = nil;
-end);
+end
+
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
 
 -- Remove Town Interaction Delay
-Constants.SDK.hook(changeAllMarkerEnable_method, function(args)
+local function PreHook_changeAllMarkerEnable(args)
 	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkStatus_None(nil) then
 		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
 		if ObjectAccessManager then
@@ -138,18 +139,27 @@ Constants.SDK.hook(changeAllMarkerEnable_method, function(args)
 			return Constants.SDK.SKIP_ORIGINAL;
 		end
 	end
-end);
+end
+
+Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
 
 -------------------------UI GARBAGE----------------------------------
+local function SaveSettings()
+	Constants.JSON.dump_file("NoKillCam+BTH.json", settings);
+end
+
+Constants.RE.on_config_save(SaveSettings);
+
 local KeyboardKeys = require("bth.KeyboardKeys");
 local drawSettings = false;
 local setAnimSkipKey = false;
 local setCDSkipKey = false;
 local padBtnPrev = 0;
 Constants.RE.on_draw_ui(function()
-	local changed = false;
     if Constants.IMGUI.tree_node("No Kill-Cam + BTH") then
-		changed, settings.NoKillCam.disableKillCam = Constants.IMGUI.checkbox("Disable KillCam", settings.NoKillCam.disableKillCam);
+		local config_changed = false;
+		local changed = false;
+		config_changed, settings.NoKillCam.disableKillCam = Constants.IMGUI.checkbox("Disable KillCam", settings.NoKillCam.disableKillCam);
 		Constants.IMGUI.spacing();
 		if Constants.IMGUI.button("Fast Return Settings") then
 			drawSettings = true;
@@ -158,12 +168,15 @@ Constants.RE.on_draw_ui(function()
 			if Constants.IMGUI.begin_window("Fast Return Settings", true, 64) then
 				if Constants.IMGUI.tree_node("~~Autoskip Settings~~") then
 					changed, settings.BTH.autoSkipCountdown = Constants.IMGUI.checkbox('Autoskip Carve Timer', settings.BTH.autoSkipCountdown);
+					config_changed = config_changed or changed;
 					changed, settings.BTH.autoSkipPostAnim = Constants.IMGUI.checkbox('Autoskip Ending Anim.', settings.BTH.autoSkipPostAnim);
+					config_changed = config_changed or changed;
 					Constants.IMGUI.tree_pop();
 				end
 
 				if Constants.IMGUI.tree_node("~~Keyboard Settings~~") then
 					changed, settings.BTH.enableKeyboard = Constants.IMGUI.checkbox("Enable Keyboard", settings.BTH.enableKeyboard);
+					config_changed = config_changed or changed;
 					if settings.BTH.enableKeyboard then
 						Constants.IMGUI.text("Timer Skip");
 						Constants.IMGUI.same_line();
@@ -186,8 +199,8 @@ Constants.RE.on_draw_ui(function()
 					for k, _ in Constants.LUA.pairs(KeyboardKeys) do
 						if getDown_method:call(nil, k) then
 							settings.BTH.kbCDSkipKey = k;
-							SaveSettings();
 							setCDSkipKey = false;
+							config_changed = true;
 							break;
 						end
 					end
@@ -196,8 +209,8 @@ Constants.RE.on_draw_ui(function()
 					for k, _ in Constants.LUA.pairs(KeyboardKeys) do
 						if getDown_method:call(nil, k) then
 							settings.BTH.kbAnimSkipKey = k;
-							SaveSettings();
 							setAnimSkipKey = false;
+							config_changed = true;
 							break;
 						end
 					end
@@ -210,12 +223,10 @@ Constants.RE.on_draw_ui(function()
 				setAnimSkipKey = false;
 			end
 		end
-		if changed then
+		if config_changed then
 			SaveSettings();
 			BTH_ENABLED = settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim or settings.BTH.enableKeyboard or false;
 		end
         Constants.IMGUI.tree_pop();
     end
 end);
-
-Constants.RE.on_config_save(SaveSettings);

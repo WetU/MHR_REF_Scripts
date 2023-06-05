@@ -11,7 +11,7 @@ local session_steam_type_def = Constants.SDK.find_type_definition("via.network.S
 local setLobbyDistanceFilter_method = session_steam_type_def:get_method("setLobbyDistanceFilter(System.UInt32)");
 
 local last_session_steam_object = nil;
-function this.on_set_is_invisible(args)
+local function on_set_is_invisible(args)
 	local session_steam = Constants.SDK.to_managed_object(args[1]);
 	if session_steam ~= nil then
 		if config.current_config.region_lock_fix.enabled then
@@ -31,7 +31,7 @@ end
 
 function this.init_module()
 	config = require("Better_Matchmaking.config");
-	Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), this.on_set_is_invisible);
+	Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), on_set_is_invisible);
 end
 
 return this;

@@ -68,93 +68,175 @@ local quest_type = quest_types.invalid;
 local skip_next_hook = nil;
 
 local session_manager = nil;
-function this.prehook_on_timeout(args)
+local function prehook_on_timeout(args)
 	if quest_type ~= quest_types.invalid and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) >= SessionAttr_Quest then
 		session_manager = Constants.SDK.to_managed_object(args[2]);
+	end
+end
+local function posthook_on_timeout()
+	if session_manager then
+		if quest_type == quest_types.regular then
+			skip_next_hook = "regular";
+			req_matchmaking_method:call(session_manager, quest_type.quest_id);
+
+		elseif quest_type == quest_types.random then
+			skip_next_hook = "random";
+			req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
+
+		elseif quest_type == quest_types.rampage then
+			skip_next_hook = "rampage";
+			local quest_level_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+			nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
+			quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
+
+			local target_enemy_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+			nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
+			target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
+
+			req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
+
+		elseif quest_type == quest_types.random_master_rank then
+			skip_next_hook = "random_master_rank";
+			req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
+
+		elseif quest_type == quest_types.random_anomaly then
+			skip_next_hook = "random_anomaly";
+			req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank, quest_type.anomaly_research_level);
+
+		elseif quest_type == quest_types.anomaly_investigation then
+			skip_next_hook = "anomaly_investigation";
+			local enemy_id_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+			nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
+			enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
+
+			req_matchmaking_random_mystery_quest_method:call(
+				session_manager,
+				quest_type.min_level,
+				quest_type.max_level,
+				quest_type.party_limit,
+				enemy_id_pointer,
+				quest_type.reward_item,
+				quest_type.is_special_random_mystery
+			);
+		end
+	end
+	session_manager = nil;
+end
+
+local function prehook_req_matchmaking(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.regular then
+		if skip_next_hook == "regular" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.regular;
+			quest_type.quest_id = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+		end
+	end
+end
+
+local function prehook_req_matchmaking_random(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random then
+		if skip_next_hook == "random" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.random;
+			quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+		end
+	end
+end
+
+local function prehook_req_matchmaking_hyakuryu(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.rampage then
+		if skip_next_hook == "rampage" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.rampage;
+			quest_type.difficulty = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+
+			local quest_level = Constants.SDK.to_int64(args[4]);
+			local target_enemy = Constants.SDK.to_int64(args[5]);
+
+			quest_type.quest_level.has_value = nullable_uint32_get_has_value_method:call(quest_level);
+			quest_type.target_enemy.has_value = nullable_uint32_get_has_value_method:call(target_enemy);
+
+			if quest_type.quest_level.has_value then
+				quest_type.quest_level.value = nullable_uint32_get_value_or_default_method:call(args[4]);
+			end
+
+			if quest_type.target_enemy.has_value then
+				quest_type.target_enemy.value = nullable_uint32_get_value_or_default_method:call(args[5]);
+			end
+		end
+	end
+end
+
+local function prehook_req_matchmaking_random_master_rank(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random_master_rank then
+		if skip_next_hook == "random_master_rank" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.random_master_rank;
+			quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+			quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
+		end
+	end
+end
+
+local function prehook_req_matchmaking_random_mystery(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random_anomaly then
+		if skip_next_hook == "random_anomaly" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.random_anomaly;
+			quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+			quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
+			quest_type.anomaly_research_level = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
+		end
+	end
+end
+
+local function prehook_req_matchmaking_random_mystery_quest(args)
+	if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.anomaly_investigation then
+		if skip_next_hook == "anomaly_investigation" then
+			skip_next_hook = nil;
+		else
+			quest_type = quest_types.anomaly_investigation;
+			quest_type.min_level = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+			quest_type.max_level = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
+			quest_type.party_limit = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
+			quest_type.reward_item = Constants.SDK.to_int64(args[7]) & 0xFFFFFFFF;
+			quest_type.is_special_random_mystery = (Constants.SDK.to_int64(args[8]) & 1) == 1;
+
+			local enemy_id = Constants.SDK.to_int64(args[6]);
+			quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id);
+			if quest_type.enemy_id.has_value then
+				quest_type.enemy_id.value = nullable_uint32_get_value_or_default_method:call(args[6]);
+			end
+		end
+	end
+end
+
+local function prehook_reqOnlineWarning()
+	if config.current_config.hide_online_warning.enabled then
+		return Constants.SDK.SKIP_ORIGINAL;
 	end
 end
 
 function this.init_module()
 	config = require("Better_Matchmaking.config");
-	Constants.SDK.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), this.prehook_on_timeout, function()
-		if session_manager then
-			if quest_type == quest_types.regular then
-				skip_next_hook = "regular";
-				req_matchmaking_method:call(session_manager, quest_type.quest_id);
-
-			elseif quest_type == quest_types.random then
-				skip_next_hook = "random";
-				req_matchmaking_random_method:call(session_manager, quest_type.my_hunter_rank);
-
-			elseif quest_type == quest_types.rampage then
-				skip_next_hook = "rampage";
-				local quest_level_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
-				nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
-				quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
-
-				local target_enemy_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
-				nullable_uint32_constructor_method:call(target_enemy_pointer, quest_type.target_enemy.value);
-				target_enemy_pointer:set_field("_HasValue", quest_type.target_enemy.has_value);
-
-				req_matchmaking_hyakuryu_method:call(session_manager, quest_type.difficulty, quest_level_pointer, target_enemy_pointer);
-
-			elseif quest_type == quest_types.random_master_rank then
-				skip_next_hook = "random_master_rank";
-				req_matchmaking_random_master_rank_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank);
-
-			elseif quest_type == quest_types.random_anomaly then
-				skip_next_hook = "random_anomaly";
-				req_matchmaking_random_mystery_method:call(session_manager, quest_type.my_hunter_rank, quest_type.my_master_rank, quest_type.anomaly_research_level);
-
-			elseif quest_type == quest_types.anomaly_investigation then
-				skip_next_hook = "anomaly_investigation";
-				local enemy_id_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
-				nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
-				enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
-
-				req_matchmaking_random_mystery_quest_method:call(
-					session_manager,
-					quest_type.min_level,
-					quest_type.max_level,
-					quest_type.party_limit,
-					enemy_id_pointer,
-					quest_type.reward_item,
-					quest_type.is_special_random_mystery
-				);
-			end
-		end
-		session_manager = nil;
-	end);
+	Constants.SDK.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), prehook_on_timeout, posthook_on_timeout);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSession(
 	--	System.UInt32 						questID
 	--)
-	Constants.SDK.hook(req_matchmaking_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.regular then
-			if skip_next_hook == "regular" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.regular;
-				quest_type.quest_id = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-			end
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_method, prehook_req_matchmaking);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSessionRandom(
 	--	System.UInt32 						myHunterRank
 	--)
-	Constants.SDK.hook(req_matchmaking_random_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random then
-			if skip_next_hook == "random" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.random;
-				quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-			end
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_random_method, prehook_req_matchmaking_random);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSessionHyakuryu(
@@ -162,47 +244,14 @@ function this.init_module()
 	--	System.Nullable`1<System.UInt32>	questLevel
 	--	System.Nullable`1<System.UInt32>	targetEnemy
 	--)
-	Constants.SDK.hook(req_matchmaking_hyakuryu_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.rampage then
-			if skip_next_hook == "rampage" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.rampage;
-				quest_type.difficulty = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-
-				local quest_level = Constants.SDK.to_int64(args[4]);
-				local target_enemy = Constants.SDK.to_int64(args[5]);
-
-				quest_type.quest_level.has_value = nullable_uint32_get_has_value_method:call(quest_level);
-				quest_type.target_enemy.has_value = nullable_uint32_get_has_value_method:call(target_enemy);
-
-				if quest_type.quest_level.has_value then
-					quest_type.quest_level.value = nullable_uint32_get_value_or_default_method:call(args[4]);
-				end
-
-				if quest_type.target_enemy.has_value then
-					quest_type.target_enemy.value = nullable_uint32_get_value_or_default_method:call(args[5]);
-				end
-			end
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_hyakuryu_method, prehook_req_matchmaking_hyakuryu);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSessionRandomMasterRank(
 	--	System.UInt32 						myHunterRank
 	--	System.UInt32						myMasterRank
 	--)
-	Constants.SDK.hook(req_matchmaking_random_master_rank_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random_master_rank then
-			if skip_next_hook == "random_master_rank" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.random_master_rank;
-				quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-				quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
-			end
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_random_master_rank_method, prehook_req_matchmaking_random_master_rank);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSessionRandomMystery(
@@ -210,18 +259,7 @@ function this.init_module()
 	--	System.UInt32						myMasterRank
 	--	System.UInt32						myMasterRank (it is actually anomaly research level)
 	--)
-	Constants.SDK.hook(req_matchmaking_random_mystery_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.random_anomaly then
-			if skip_next_hook == "random_anomaly" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.random_anomaly;
-				quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-				quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
-				quest_type.anomaly_research_level = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
-			end
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_random_mystery_method, prehook_req_matchmaking_random_mystery);
 
 	--snow.SnowSessionManager.
 	--reqMatchmakingAutoJoinSessionRandomMysteryQuest(
@@ -232,32 +270,8 @@ function this.init_module()
 	--	snow.data.ContentsIdSystem.ItemId	rewardItem
 	--	System.Boolean						isSpecialRandomMystery
 	--)
-	Constants.SDK.hook(req_matchmaking_random_mystery_quest_method, function(args)
-		if config.current_config.timeout_fix.enabled and config.current_config.timeout_fix.quest_types.anomaly_investigation then
-			if skip_next_hook == "anomaly_investigation" then
-				skip_next_hook = nil;
-			else
-				quest_type = quest_types.anomaly_investigation;
-				quest_type.min_level = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-				quest_type.max_level = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
-				quest_type.party_limit = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
-				quest_type.reward_item = Constants.SDK.to_int64(args[7]) & 0xFFFFFFFF;
-				quest_type.is_special_random_mystery = (Constants.SDK.to_int64(args[8]) & 1) == 1;
-
-				local enemy_id = Constants.SDK.to_int64(args[6]);
-				quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id);
-				if quest_type.enemy_id.has_value then
-					quest_type.enemy_id.value = nullable_uint32_get_value_or_default_method:call(args[6]);
-				end
-			end
-		end
-	end);
-
-	Constants.SDK.hook(session_manager_type_def:get_method("reqOnlineWarning"), function()
-		if config.current_config.hide_online_warning.enabled then
-			return Constants.SDK.SKIP_ORIGINAL;
-		end
-	end);
+	Constants.SDK.hook(req_matchmaking_random_mystery_quest_method, prehook_req_matchmaking_random_mystery_quest);
+	Constants.SDK.hook(session_manager_type_def:get_method("reqOnlineWarning"), prehook_reqOnlineWarning);
 end
 
 return this;

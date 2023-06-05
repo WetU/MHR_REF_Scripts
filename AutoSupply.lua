@@ -54,13 +54,7 @@ end
 if config.Language == nil or Constants.FindIndex(Languages, config.Language) == nil then
     config.Language = "ko-KR";
 end
-
-local function save_config()
-    Constants.JSON.dump_file("AutoSupply.json", config);
-end
-
-Constants.RE.on_config_save(save_config);
-
+--
 local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local DataManager_type_def = Constants.SDK.find_type_definition("snow.data.DataManager");
@@ -627,13 +621,11 @@ end, function(retval)
     setIdx = nil;
     return retval;
 end);
-
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, function()
     if config.Enabled then
         Restock(nil, nil);
     end
 end);
-
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
     if config.EnableArgosy then
         autoArgosy();
@@ -646,27 +638,38 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpa
     end
 end);
 ----------------------------------------------
+local function save_config()
+    Constants.JSON.dump_file("AutoSupply.json", config);
+end
+
+Constants.RE.on_config_save(save_config);
 Constants.RE.on_draw_ui(function()
     if Constants.IMGUI.tree_node("AutoSupply") then
         Constants.IMGUI.push_font(Constants.Font);
+        local config_changed = false;
         local changed = false;
-        changed, config.Enabled = Constants.IMGUI.checkbox("Enabled", config.Enabled);
+        config_changed, config.Enabled = Constants.IMGUI.checkbox("Enabled", config.Enabled);
         changed, config.EnableNotification = Constants.IMGUI.checkbox("EnableNotification", config.EnableNotification);
+        config_changed = config_changed or changed;
         changed, config.EnableCohoot = Constants.IMGUI.checkbox("EnableCohootSupply", config.EnableCohoot);
+        config_changed = config_changed or changed;
         changed, config.EnableArgosy = Constants.IMGUI.checkbox("EnableArgosy", config.EnableArgosy);
+        config_changed = config_changed or changed;
 
         local langChanged, new_langIdx = Constants.IMGUI.combo("Language", Constants.FindIndex(Languages, config.Language), Languages);
+        config_changed = config_changed or langChanged;
         if langChanged then
             config.Language = Languages[new_langIdx];
-            save_config();
         end
 
         changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
+        config_changed = config_changed or changed;
 
         if Constants.IMGUI.tree_node("WeaponType") then
             for i = 1, 14, 1 do
                 local weaponType = i - 1;
                 changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
+                config_changed = config_changed or changed;
             end
             Constants.IMGUI.tree_pop();
         end
@@ -681,6 +684,7 @@ Constants.RE.on_draw_ui(function()
                         msg = " (현재)";
                     end
                     changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
+                    config_changed = config_changed or changed;
                 end
             end
             Constants.IMGUI.tree_pop();
@@ -688,12 +692,13 @@ Constants.RE.on_draw_ui(function()
 
         if Constants.IMGUI.tree_node("Auto cohoot nest") then
             changed, config.CohootMaxStock = Constants.IMGUI.slider_int("Maximum stock", config.CohootMaxStock, 1, 5);
+            config_changed = config_changed or changed;
             Constants.IMGUI.tree_pop();
         end
-        if changed then
+        if config_changed then
             save_config();
         end
-        Constants.IMGUI.tree_pop();
         Constants.IMGUI.pop_font();
+        Constants.IMGUI.tree_pop();
     end
 end);

@@ -15,7 +15,6 @@ if config.desiredFPS == nil then
 end
 --
 local set_MaxFps_method = Constants.SDK.find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static
-local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 
 local viaMovie_type_def = Constants.SDK.find_type_definition("via.movie.Movie");
 local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime"); -- retval, float
@@ -46,36 +45,6 @@ local GAME_START_STATES =	{
 	Nvidia_Logo = GameStartStateType_type_def:get_field("Nvidia_Logo"):get_data(nil) -- 7
 };
 --
-local function ClearFade()
-	local FadeManager = Constants.SDK.get_managed_singleton("snow.FadeManager");
-	if FadeManager then
-		set_FadeMode_method:call(FadeManager, FINISHED);
-		FadeManager:set_field("fadeOutInFlag", false);
-	end
-end
-
-local currentAction = nil;
-local function PreHook_GetActionObject(args)
-	currentAction = Constants.SDK.to_managed_object(args[3]);
-end
-
-local function PostHook_notifyActionEnd()
-	if currentAction then
-		notifyActionEnd_method:call(currentAction);
-	end
-	currentAction = nil;
-end
-
-local selfObj = nil;
-local function PreHook_GetSelfObject(args)
-	selfObj = Constants.SDK.to_managed_object(args[2]);
-end
-
-local function ClearFadeWithAction()
-	PostHook_notifyActionEnd();
-	ClearFade();
-end
-
 local function IsGameStartState()
 	local GuiGameStartFsmManager = Constants.SDK.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 	if GuiGameStartFsmManager then
@@ -92,6 +61,45 @@ local function TitleSkip(retval)
 		return Constants.TRUE_POINTER;
 	end
 	return retval;
+end
+
+local currentAction = nil;
+local function PreHook_GetActionObject(args)
+	currentAction = Constants.SDK.to_managed_object(args[3]);
+end
+
+local function PostHook_ClearAction()
+	if currentAction then
+		Constants.methods.notifyActionEnd_method:call(currentAction);
+	end
+	currentAction = nil;
+end
+
+local function PostHook_ClearFade()
+	local FadeManager = Constants.SDK.get_managed_singleton("snow.FadeManager");
+	if FadeManager then
+		set_FadeMode_method:call(FadeManager, FINISHED);
+		FadeManager:set_field("fadeOutInFlag", false);
+	end
+end
+
+local function PostHook_ClearActionWithFade()
+	PostHook_ClearAction();
+	PostHook_ClearFade();
+end
+
+local function PreHook_OtherLogoFadeIn(args)
+	local obj = Constants.SDK.to_managed_object(args[2]);
+	if obj then
+		Constants.SDK.hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, PostHook_ClearActionWithFade);
+	end
+end
+
+local function PreHook_HealthCautionFadeIn(args)
+	local obj = Constants.SDK.to_managed_object(args[2]);
+	if obj then
+		Constants.SDK.hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_ClearFade);
+	end
 end
 
 local function getAutoFps()
@@ -133,22 +141,12 @@ end, function()
 	end
 	currentMovie = nil;
 end);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, ClearFadeWithAction);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_GetVTableObejct, function()
-	if selfObj then
-		Constants.SDK.hook_vtable(selfObj, selfObj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, ClearFadeWithAction);
-	end
-	selfObj = nil;
-end);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_AutoSaveCaution_Action"):get_method("start(via.behaviortree.ActionArg)"), PreHook_GetActionObject, PostHook_notifyActionEnd);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_GetVTableObejct, function()
-	if selfObj then
-		Constants.SDK.hook_vtable(selfObj, selfObj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), nil, ClearFade);
-	end
-	selfObj = nil;
-end);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), PreHook_GetActionObject, PostHook_ClearActionWithFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_OtherLogoFadeIn);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_AutoSaveCaution_Action"):get_method("start(via.behaviortree.ActionArg)"), PreHook_GetActionObject, PostHook_ClearAction);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_HealthCautionFadeIn);
 
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, TitleSkip);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitleDispSkipTrg"), nil, TitleSkip);
@@ -164,19 +162,21 @@ local function save_config()
 end
 
 Constants.RE.on_config_save(save_config);
-
 Constants.RE.on_draw_ui(function()
-	local changed = false;
 	if Constants.IMGUI.tree_node("RiseTweaks") then
 		if Constants.IMGUI.tree_node("Frame Rate") then
-			changed, config.enableFPS = Constants.IMGUI.checkbox("Enable", config.enableFPS);
+			local config_changed = false;
+			local changed = false;
+			config_changed, config.enableFPS = Constants.IMGUI.checkbox("Enable", config.enableFPS);
 			if config.enableFPS then
 				changed, config.autoFPS = Constants.IMGUI.checkbox("Automatic Frame Rate", config.autoFPS);
+				config_changed = config_changed or changed;
 				if not config.autoFPS then
 					changed, config.desiredFPS = Constants.IMGUI.slider_float("Frame Rate", config.desiredFPS, 10.0, 600.0, "%.2f");
+					config_changed = config_changed or changed;
 				end
 			end
-			if changed then
+			if config_changed then
 				if config.enableFPS then
 					applyFps();
 				end

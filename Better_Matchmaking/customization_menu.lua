@@ -34,61 +34,39 @@ function this.draw()
 
 	Constants.IMGUI.text("Status: " .. Constants.LUA.tostring(this.status));
 
-	local config_changed = false;
-	local changed = false;
-	local index = 1;
-
 	if Constants.IMGUI.tree_node("Timeout Fix") then
-		changed, config.current_config.timeout_fix.enabled = Constants.IMGUI.checkbox(
-			"Enabled", config.current_config.timeout_fix.enabled);
-		config_changed = config_changed or changed;
-
+		local config_changed = false;
+		config_changed, config.current_config.timeout_fix.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.timeout_fix.enabled);
 		if Constants.IMGUI.tree_node("Quest Types") then
-			changed, config.current_config.timeout_fix.quest_types.regular = Constants.IMGUI.checkbox(
-				"Regular", config.current_config.timeout_fix.quest_types.regular);
+			local changed = false;
+			changed, config.current_config.timeout_fix.quest_types.regular = Constants.IMGUI.checkbox("Regular", config.current_config.timeout_fix.quest_types.regular);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.timeout_fix.quest_types.rampage = Constants.IMGUI.checkbox(
-				"Rampage", config.current_config.timeout_fix.quest_types.rampage);
+			changed, config.current_config.timeout_fix.quest_types.rampage = Constants.IMGUI.checkbox("Rampage", config.current_config.timeout_fix.quest_types.rampage);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.timeout_fix.quest_types.random = Constants.IMGUI.checkbox(
-				"Random", config.current_config.timeout_fix.quest_types.random);
+			changed, config.current_config.timeout_fix.quest_types.random = Constants.IMGUI.checkbox("Random", config.current_config.timeout_fix.quest_types.random);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.timeout_fix.quest_types.random_master_rank = Constants.IMGUI.checkbox(
-				"Random MR", config.current_config.timeout_fix.quest_types.random_master_rank);
+			changed, config.current_config.timeout_fix.quest_types.random_master_rank = Constants.IMGUI.checkbox("Random MR", config.current_config.timeout_fix.quest_types.random_master_rank);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.timeout_fix.quest_types.random_anomaly = Constants.IMGUI.checkbox(
-				"Random Anomaly", config.current_config.timeout_fix.quest_types.random_anomaly);
+			changed, config.current_config.timeout_fix.quest_types.random_anomaly = Constants.IMGUI.checkbox("Random Anomaly", config.current_config.timeout_fix.quest_types.random_anomaly);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.timeout_fix.quest_types.anomaly_investigation = Constants.IMGUI.checkbox(
-				"Anomaly Investigation", config.current_config.timeout_fix.quest_types.anomaly_investigation);
+			changed, config.current_config.timeout_fix.quest_types.anomaly_investigation = Constants.IMGUI.checkbox("Anomaly Investigation", config.current_config.timeout_fix.quest_types.anomaly_investigation);
 			config_changed = config_changed or changed;
-
 			Constants.IMGUI.tree_pop();
 		end
-
 		Constants.IMGUI.tree_pop();
+		if config_changed then
+			config.save();
+		end
 	end
 
 	if Constants.IMGUI.tree_node("Region Lock Fix (Join Requests)") then
-		changed, config.current_config.region_lock_fix.enabled = Constants.IMGUI.checkbox(
-			"Enabled", config.current_config.region_lock_fix.enabled);
+		local config_changed = false;
+		config_changed, config.current_config.region_lock_fix.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.region_lock_fix.enabled);
+		local changed, index = Constants.IMGUI.combo("Distance Filter", utils.table.find_index(this.region_lock_filters, config.current_config.region_lock_fix.distance_filter), this.region_lock_filters);
 		config_changed = config_changed or changed;
-
-		changed, index = Constants.IMGUI.combo(
-			"Distance Filter", 
-			utils.table.find_index(this.region_lock_filters, config.current_config.region_lock_fix.distance_filter), 
-			this.region_lock_filters);
-		config_changed = config_changed or changed;
-
 		if changed then
 			config.current_config.region_lock_fix.distance_filter = this.region_lock_filters[index];
 		end
-
 
 		if Constants.IMGUI.tree_node("Explanation") then
 			--k_ELobbyDistanceFilterClose	0	Only lobbies in the same immediate region will be returned.
@@ -101,46 +79,40 @@ function this.draw()
 			Constants.IMGUI.text("Far - Will return quest sessions about half-way around the globe.");
 			Constants.IMGUI.text("Worldwide - No filtering, will match quest sessions as far as India to NY");
 			Constants.IMGUI.text("(not recommended, expect multiple seconds of latency between the clients).");
-
 			Constants.IMGUI.tree_pop();
 		end
-
 		Constants.IMGUI.tree_pop();
+		if config_changed then
+			config.save();
+		end
 	end
 
 	if Constants.IMGUI.tree_node("Hide Network Errors") then
-		changed, config.current_config.hide_network_errors.enabled = Constants.IMGUI.checkbox(
-			"Enabled", config.current_config.hide_network_errors.enabled);
-		config_changed = config_changed or changed;
-
+		local config_changed = false;
+		config_changed, config.current_config.hide_network_errors.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.hide_network_errors.enabled);
 		if Constants.IMGUI.tree_node("When to hide") then
-			changed, config.current_config.hide_network_errors.when_to_hide.on_quests = Constants.IMGUI.checkbox(
-				"On Quests", config.current_config.hide_network_errors.when_to_hide.on_quests);
+			local changed = false;
+			changed, config.current_config.hide_network_errors.when_to_hide.on_quests = Constants.IMGUI.checkbox("On Quests", config.current_config.hide_network_errors.when_to_hide.on_quests);
 			config_changed = config_changed or changed;
-
-			changed, config.current_config.hide_network_errors.when_to_hide.outside_quests = Constants.IMGUI.checkbox(
-				"Outside Quests", config.current_config.hide_network_errors.when_to_hide.outside_quests);
+			changed, config.current_config.hide_network_errors.when_to_hide.outside_quests = Constants.IMGUI.checkbox("Outside Quests", config.current_config.hide_network_errors.when_to_hide.outside_quests);
 			config_changed = config_changed or changed;
-
 			Constants.IMGUI.tree_pop();
 		end
-
 		Constants.IMGUI.tree_pop();
+		if config_changed then
+			config.save();
+		end
 	end
 
 	if Constants.IMGUI.tree_node("Misc") then
-		changed, config.current_config.hide_online_warning.enabled = Constants.IMGUI.checkbox(
-			"Hide Online Warning", config.current_config.hide_online_warning.enabled);
-		config_changed = config_changed or changed;
-
+		local config_changed = false;
+		config_changed, config.current_config.hide_online_warning.enabled = Constants.IMGUI.checkbox("Hide Online Warning", config.current_config.hide_online_warning.enabled);
 		Constants.IMGUI.tree_pop();
+		if config_changed then
+			config.save();
+		end
 	end
-
 	Constants.IMGUI.end_window();
-
-	if config_changed then
-		config.save();
-	end
 end
 
 function this.init_module()

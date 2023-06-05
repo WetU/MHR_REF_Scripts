@@ -107,7 +107,8 @@ local this = {
     VALUETYPE = ValueType_func,
     RE = re_func,
     MasterPlayerIndex = nil,
-    type_definitions = {}
+    type_definitions = {},
+    methods = {}
 };
 
 this.TRUE_POINTER = this.SDK.to_ptr(1);
@@ -125,6 +126,7 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 });
+this.type_definitions.ActionArg_type_def = this.SDK.find_type_definition("via.behaviortree.ActionArg");
 this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
 this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
@@ -132,6 +134,8 @@ this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.
 this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
 this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
 this.type_definitions.PlayerQuestBase_type_def = this.SDK.find_type_definition("snow.player.PlayerQuestBase");
+
+this.methods.notifyActionEnd_method = this.type_definitions.ActionArg_type_def:get_method("notifyActionEnd");
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval

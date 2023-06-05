@@ -25,103 +25,101 @@ end
 local mealFunc_type_def = Constants.SDK.find_type_definition("snow.facility.kitchen.MealFunc");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
-local get_refGuiDangoLog_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refGuiDangoLog");
-local reqDangoLogStart_method = get_refGuiDangoLog_method:get_return_type():get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local get_refGuiKichen_BBQ_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refGuiKichen_BBQ"); -- retval
+local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+local get_KitchenCookDemoHandler_method = kitchenFsm_type_def:get_method("get_KitchenCookDemoHandler"); -- retval
 local set_IsCookDemoSkip_method = kitchenFsm_type_def:get_method("set_IsCookDemoSkip(System.Boolean)");
-local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam");
+local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam"); -- retval
+
+local BBQ_DemoHandler_field = get_refGuiKichen_BBQ_method:get_return_type():get_field("_DemoHandler");
 
 local EventcutHandler_type_def = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler");
-local get_EventId_method = EventcutHandler_type_def:get_method("get_EventId"); -- retval
 local get_LoadState_method = EventcutHandler_type_def:get_method("get_LoadState"); -- retval
 local get_Playing_method = EventcutHandler_type_def:get_method("get_Playing"); -- retval
 local reqFinish_method = EventcutHandler_type_def:get_method("reqFinish(System.Single)");
 
-local LOADSTATE_ACTIVE = get_LoadState_method:get_return_type():get_field("Active"):get_data(nil);
-
-local EventId_type_def = get_EventId_method:get_return_type();
-local cooking_events = {
-    [EventId_type_def:get_field("evc3026"):get_data(nil)] = settings.skipDangoSong, --village
-    [EventId_type_def:get_field("evc3027"):get_data(nil)] = settings.skipDangoSong, --hub
-    [EventId_type_def:get_field("evc3503"):get_data(nil)] = settings.skipDangoSong  --plaza
-};
-local eating_events = {
-    [EventId_type_def:get_field("evc3025"):get_data(nil)] = settings.skipEating, --village
-    [EventId_type_def:get_field("evc3024"):get_data(nil)] = settings.skipEating, --hub
-    [EventId_type_def:get_field("evc3504"):get_data(nil)] = settings.skipEating  --plaza
-};
-local bbq_events = {
-    [EventId_type_def:get_field("evc3033"):get_data(nil)] = settings.skipMotley, --village
-    [EventId_type_def:get_field("evc3034"):get_data(nil)] = settings.skipMotley, --hub
-    [EventId_type_def:get_field("evc3505"):get_data(nil)] = settings.skipMotley  --plaza
-};
-
+local LoadState_ACTIVE = get_LoadState_method:get_return_type():get_field("Active"):get_data(nil);
 -- VIP Dango Ticket Main Function
 local MealFunc = nil;
-Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), function(args)
+local function PreHook_updateList(args)
 	if settings.TicketByDefault then
 		MealFunc = Constants.SDK.to_managed_object(args[2]);
 	end
-end, function()
+end
+local function PostHook_updateList()
 	if MealFunc then
 		setMealTicketFlag_method:call(MealFunc, true);
 	end
 	MealFunc = nil;
-end);
-
+end
+Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList, PostHook_updateList);
 -- Skip Dango Song Main Function
-local COOK_DEMO = 1;
-local EAT_DEMO = 2;
-local BBQ_DEMO = 3;
-
-local DemoHandler = nil;
-local DemoType = nil;
-Constants.SDK.hook(EventcutHandler_type_def:get_method("play(System.Boolean)"), function(args)
-	if settings.skipDangoSong or settings.skipEating or settings.skipMotley then
-		DemoHandler = Constants.SDK.to_managed_object(args[2]);
-		if DemoHandler then
-			local EventId = get_EventId_method:call(DemoHandler);
-			if EventId ~= nil then
-				DemoType = (cooking_events[EventId] and COOK_DEMO) or (eating_events[EventId] and EAT_DEMO) or (bbq_events[EventId] and BBQ_DEMO) or nil;
-			end
-			if not DemoType then
-				DemoHandler = nil;
-			end
-		end
-	end
-end, function()
-	if DemoHandler and DemoType then
-		if get_LoadState_method:call(DemoHandler) == LOADSTATE_ACTIVE and get_Playing_method:call(DemoHandler) then
-			reqFinish_method:call(DemoHandler, 0.0);
-			DemoHandler = nil;
-			if DemoType ~= EAT_DEMO then
-				if DemoType == COOK_DEMO and not settings.skipEating then
-					local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-					if kitchenFsm then
-						set_IsCookDemoSkip_method:call(kitchenFsm, true);
-					end
-				end
-				DemoType = nil;
-			end
-		end
-	end
-end);
-
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, function()
-	if DemoType == EAT_DEMO then
-		DemoType = nil;
-		local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
+--CookDemo
+local function PostHook_CookingDemoUpdate()
+	if settings.skipDangoSong then
 		local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-		if GuiManager and kitchenFsm then
-			local GuiDangoLog = get_refGuiDangoLog_method:call(GuiManager);
-			local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(kitchenFsm);
-			if GuiDangoLog and KitchenDangoLogParam then
-				reqDangoLogStart_method:call(GuiDangoLog, KitchenDangoLogParam, 5.0);
+		if kitchenFsm then
+			local CookDemoHandler = get_KitchenCookDemoHandler_method:call(kitchenFsm);
+			if CookDemoHandler and get_LoadState_method:call(CookDemoHandler) == LoadState_ACTIVE and get_Playing_method:call(CookDemoHandler) then
+				reqFinish_method:call(CookDemoHandler, 0.0);
+				if not settings.skipEating then
+					set_IsCookDemoSkip_method:call(kitchenFsm, true);
+				end
 			end
 		end
 	end
-end);
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenCookingEventDemoFsmAction"):get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_CookingDemoUpdate);
+--EatDemo
+local showDangoLog = nil;
+local EatingActionArg = nil;
+local function PreHook_EatingDemoUpdate(args)
+	if settings.skipEating then
+		EatingActionArg = Constants.SDK.to_managed_object(args[3]);
+	end
+end
+local function PostHook_EatingDemoUpdate()
+	if EatingActionArg then
+		showDangoLog = true;
+		Constants.methods.notifyActionEnd_method:call(EatingActionArg);
+	end
+	EatingActionArg = nil;
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenEatingEventDemoFsmAction"):get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate, PostHook_EatingDemoUpdate);
+
+local function PostHook_requestAutoSaveAll()
+	if showDangoLog then
+		showDangoLog = nil;
+		local kitchenFsm = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+		if kitchenFsm then
+			local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
+			local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(kitchenFsm);
+			if GuiManager and KitchenDangoLogParam then
+				reqDangoLogStart_method:call(GuiManager, KitchenDangoLogParam, 5.0);
+			end
+		end
+	end
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
+--BBQ
+local GuiKichen_BBQ = nil;
+local function PreHook_BBQ_updatePlayDemo(args)
+	if settings.skipMotley then
+		GuiKichen_BBQ = Constants.SDK.to_managed_object(args[2]);
+	end
+end
+local function PostHook_BBQ_updatePlayDemo()
+	if GuiKichen_BBQ then
+		local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKichen_BBQ);
+		if BBQ_DemoHandler and get_LoadState_method:call(BBQ_DemoHandler) == LoadState_ACTIVE and get_Playing_method:call(BBQ_DemoHandler) then
+			reqFinish_method:call(BBQ_DemoHandler, 0.0);
+		end
+	end
+	GuiKichen_BBQ = nil;
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiKitchen_BBQ"):get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo, PostHook_BBQ_updatePlayDemo);
 
 ---- re Callbacks ----
 local function save_config()
@@ -137,15 +135,19 @@ Constants.RE.on_draw_ui(function()
 	end
 	
     if isDrawOptionWindow then
-		local changed = false;
         if Constants.IMGUI.begin_window("[Enhance Dango Kitchen] Options", true, 64) then
-			changed, settings.skipDangoSong = Constants.IMGUI.checkbox("Skip the song", settings.skipDangoSong);
+			local config_changed = false;
+			local changed = false;
+			config_changed, settings.skipDangoSong = Constants.IMGUI.checkbox("Skip the song", settings.skipDangoSong);
 			changed, settings.skipEating = Constants.IMGUI.checkbox("Skip eating", settings.skipEating);
+			config_changed = config_changed or changed;
 			changed, settings.skipMotley = Constants.IMGUI.checkbox("Skip Motley Mix", settings.skipMotley);
+			config_changed = config_changed or changed;
 			Constants.IMGUI.spacing();
 			changed, settings.TicketByDefault = Constants.IMGUI.checkbox("Use Dango Ticket as default choice##VIPDango", settings.TicketByDefault);
+			config_changed = config_changed or changed;
 			Constants.IMGUI.end_window();
-			if changed then
+			if config_changed then
 				save_config();
 			end
         else
