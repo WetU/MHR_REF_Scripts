@@ -100,9 +100,10 @@ end, function()
     if ctorObj then
         ctorActivated = true;
         if not npcTalkMessageList then
-            npcTalkMessageList = {};
+            npcTalkMessageList = {ctorObj};
+        else
+            Constants.LUA.table_insert(npcTalkMessageList, ctorObj);
         end
-        Constants.LUA.table_insert(npcTalkMessageList, ctorObj);
     end
     ctorObj = nil;
 end);
@@ -116,28 +117,14 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.VillageMapManager"):
             local isElgado = currentVillageMapNo == ELGADO;
             for k, v in Constants.LUA.pairs(npcTalkMessageList) do
                 if v ~= nil and Constants.SDK.is_managed_object(v) then
-                    local npcId = ctorActivated and v:call("get_NpcId") or nil;
-                    local npcVillage = nil;
-                    if npcId ~= nil then
-                        npcVillage = hasNpcId(npcId);
-                        if npcVillage then
-                            if (npcVillage == "KAMURA" and isKamura) or (npcVillage == "ELGADO" and isElgado) then
-                                talkAction(v);
-                                npcTalkMessageList[k] = nil;
-                            end
-                        else
+                    local npcVillage = ctorActivated and hasNpcId(v:call("get_NpcId")) or hasNpcId(k);
+                    if npcVillage ~= nil then
+                        if (npcVillage == "KAMURA" and isKamura) or (npcVillage == "ELGADO" and isElgado) then
+                            talkAction(v);
                             npcTalkMessageList[k] = nil;
                         end
                     else
-                        npcVillage = hasNpcId(k);
-                        if npcVillage then
-                            if (npcVillage == "KAMURA" and isKamura) or (npcVillage == "ELGADO" and isElgado) then
-                                talkAction(v);
-                                npcTalkMessageList[k] = nil;
-                            end
-                        else
-                            npcTalkMessageList[k] = nil;
-                        end
+                        npcTalkMessageList[k] = nil;
                     end
                 else
                     npcTalkMessageList[k] = nil;
