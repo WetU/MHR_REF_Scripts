@@ -10,12 +10,9 @@ end
 --
 local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
+local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 
-local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
-
-local get_GameObject_method = Constants.SDK.find_type_definition("via.Component"):get_method("get_GameObject");
-local get_Transform_method = get_GameObject_method:get_return_type():get_method("get_Transform");
-local get_Position_method = get_Transform_method:get_return_type():get_method("get_Position");
+local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
 local stagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
 local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
@@ -38,6 +35,7 @@ local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via
 
 local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 --
+local GameObjectType_MasterPlayer = Constants.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
 local MapNoType_type_def = get_CurrentMapNo_method:get_return_type();
 local nekoTakuList = {
     [MapNoType_type_def:get_field("No01"):get_data(nil)] = { -- 사원 폐허
@@ -83,19 +81,13 @@ local function getCurrentMapNo()
 end
 
 local function getCurrentPosition()
-    local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
-    if PlayerManager then
-        local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
-        if MasterPlayer then
-            local GameObject = get_GameObject_method:call(MasterPlayer);
-            if GameObject then
-                local Transform = get_Transform_method:call(GameObject);
-                if Transform then
-                    local Position = get_Position_method:call(Transform);
-                    if Position then
-                        return Position;
-                    end
-                end
+    local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
+    if CameraManager then
+        local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
+        if Transform then
+            local Position = get_Position_method:call(Transform);
+            if Position then
+                return Position;
             end
         end
     end

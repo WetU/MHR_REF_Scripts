@@ -44,10 +44,12 @@ local ctorActivated = false;
 local npcTalkMessageList = nil;
 
 local function hasNpcId(npcid)
-    for village, ids in Constants.LUA.pairs(npcList) do
-        for _, id in Constants.LUA.pairs(ids) do
-            if id == npcid then
-                return village;
+    if npcid ~= nil then
+        for village, ids in Constants.LUA.pairs(npcList) do
+            for _, id in Constants.LUA.pairs(ids) do
+                if id == npcid then
+                    return village;
+                end
             end
         end
     end
