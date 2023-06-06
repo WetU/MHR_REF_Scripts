@@ -113,8 +113,8 @@ local function PreHook_updateQuestEndFlow(args)
 end
 local function PostHook_updateQuestEndFlow()
 	if QuestManager_obj then
-		local EndFlow = EndFlow_field:get_data(QuestManager_obj);
-		if EndFlow == EndFlow.WaitEndTimer then
+		local endFlow = EndFlow_field:get_data(QuestManager_obj);
+		if endFlow == EndFlow.WaitEndTimer then
 			if getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown") then
 				if settings.BTH.autoSkipPostAnim then
 					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
@@ -122,7 +122,7 @@ local function PostHook_updateQuestEndFlow()
 					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			end
-		elseif EndFlow == EndFlow.CameraDemo then
+		elseif endFlow == EndFlow.CameraDemo then
 			if getSkipTrg("PostAnim") then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end

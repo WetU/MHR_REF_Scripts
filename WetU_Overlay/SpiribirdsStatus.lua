@@ -3,7 +3,6 @@ local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
-
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 --
 local this = {
@@ -72,6 +71,12 @@ local function TerminateSpiribirdsHud()
     skipUpdate = nil;
 end
 
+local function PostHook_onDestroy()
+    TerminateSpiribirdsHud();
+    HarvestMoonTimer.TerminateHarvestMoon();
+    Constants.MasterPlayerIndex = nil;
+end
+
 local function getCountsAndValues(playerManager, equipDataManager, buffType)
     for k, v in Constants.LUA.pairs(LvBuff) do
         if buffType == v then
@@ -95,7 +100,9 @@ Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_metho
     PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
 end, function()
     if PlayerQuestBase and isMasterPlayer_method:call(PlayerQuestBase) then
+        Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, PostHook_onDestroy);
         Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
+
         local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
         local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
         if EquipDataManager and PlayerManager then
@@ -119,11 +126,6 @@ end, function()
                 this.SpiribirdsHudDataCreated = true;
             end
         end
-        Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, function()
-            TerminateSpiribirdsHud();
-            HarvestMoonTimer.TerminateHarvestMoon();
-            Constants.MasterPlayerIndex = nil;
-        end);
     end
     PlayerQuestBase = nil;
 end);
@@ -162,12 +164,9 @@ local EquipSkill211_PlayerQuestBase = nil;
 Constants.SDK.hook(Constants.type_definitions.PlayerQuestBase_type_def:get_method("updateEquipSkill211"), function(args)
     if firstHook or not skipUpdate then
         EquipSkill211_PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
-        if EquipSkill211_PlayerQuestBase and not isMasterPlayer_method:call(EquipSkill211_PlayerQuestBase) then
-            EquipSkill211_PlayerQuestBase = nil;
-        end
     end
 end, function()
-    if EquipSkill211_PlayerQuestBase then
+    if EquipSkill211_PlayerQuestBase and isMasterPlayer_method:call(EquipSkill211_PlayerQuestBase) then
         if firstHook then
             firstHook = nil;
             if get_IsInTrainingArea_method:call(EquipSkill211_PlayerQuestBase) or IsEnableStage_Skill211_field:get_data(EquipSkill211_PlayerQuestBase) ~= true then
