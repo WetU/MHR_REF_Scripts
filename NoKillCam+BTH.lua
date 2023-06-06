@@ -44,7 +44,7 @@ local EndFlow = {
 	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil)
 };
 -- No Kill Cam Cache
-local isPlayQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isPlayQuest"); -- retval
+local isEndWait_method = Constants.type_definitions.QuestManager_type_def:get_method("isEndWait"); -- retval
 local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
@@ -88,12 +88,11 @@ QuestManager.CaptureStatus
 local function PreHook_RequestActive(args)
 	if settings.NoKillCam.disableKillCam and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
-		if QuestManager and isPlayQuest_method:call(QuestManager) and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
+		if QuestManager and isEndWait_method:call(QuestManager) and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
 			return Constants.SDK.SKIP_ORIGINAL;
 		end
 	end
 end
-
 Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), PreHook_RequestActive);
 
 -- BTH
@@ -127,7 +126,6 @@ local function PostHook_updateQuestEndFlow()
     end
 	QuestManager_obj = nil;
 end
-
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
 
 -- Remove Town Interaction Delay
@@ -140,7 +138,6 @@ local function PreHook_changeAllMarkerEnable(args)
 		end
 	end
 end
-
 Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
 
 -------------------------UI GARBAGE----------------------------------

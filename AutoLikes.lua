@@ -7,9 +7,12 @@ end
 local utils = require("Better_Matchmaking.utils");
 -- Config
 local SendType = {"Good", "NotGood"};
-local config = Constants.JSON.load_file("AutoLikes.json") or {enable = true, sendtype = "Good"};
+local config = Constants.JSON.load_file("AutoLikes.json") or {enable = true, autosend = true, sendtype = "Good"};
 if config.enable == nil then
 	config.enable = true;
+end
+if config.autosend == nil then
+	config.autosend = true;
 end
 if config.sendtype == nil then
 	config.sendtype = "Good";
@@ -34,7 +37,9 @@ local sendReady = nil;
 local function PreHook_doOpen(args)
 	if config.enable then
 		GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
-		sendReady = nil;
+		if config.autosend then
+			sendReady = nil;
+		end
 	end
 end
 
@@ -68,7 +73,9 @@ local function PostHook_updatePlayerInfo()
 				end
 			end
 		end
-		sendReady = true;
+		if config.autosend then
+			sendReady = true;
+		end
 	end
 	GoodRelationshipHud = nil;
 end
@@ -95,9 +102,12 @@ Constants.RE.on_draw_ui(function()
 		local config_changed = false;
 		config_changed, config.enable = Constants.IMGUI.checkbox("Enable", config.enable);
 		if config.enable then
-			local changed, index = Constants.IMGUI.combo("Send Type", utils.table.find_index(SendType, config.sendtype, false), SendType);
+			local changed = false;
+			changed, config.autosend = Constants.IMGUI.checkbox("Auto Send", config.autosend);
 			config_changed = config_changed or changed;
-			if changed then
+			local indexChanged, index = Constants.IMGUI.combo("Send Type", utils.table.find_index(SendType, config.sendtype, false), SendType);
+			config_changed = config_changed or indexChanged;
+			if indexChanged then
 				config.sendtype = SendType[index];
 			end
 		end

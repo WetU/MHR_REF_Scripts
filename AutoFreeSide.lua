@@ -25,12 +25,14 @@ local function PreHook_doOpen(args)
         isOpenRewardWindow = nil;
     end
 end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
 
 local function PostHook_getReaward()
     if config.AutoReceive then
         isOpenRewardWindow = true;
     end
 end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
 
 local function PostHook_DecideTrg(retval)
     if isOpenRewardWindow then
@@ -39,9 +41,6 @@ local function PostHook_DecideTrg(retval)
     end
     return retval;
 end
-
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_DecideTrg);
 --
 local function SaveSettings()
