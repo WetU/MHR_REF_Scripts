@@ -44,12 +44,12 @@ local EndFlow = {
 	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil)
 };
 -- No Kill Cam Cache
-local isEndWait_method = Constants.type_definitions.QuestManager_type_def:get_method("isEndWait"); -- retval
 local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
 local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
 local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
+local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
 local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
 
@@ -88,7 +88,7 @@ QuestManager.CaptureStatus
 local function PreHook_RequestActive(args)
 	if settings.NoKillCam.disableKillCam and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
 		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
-		if QuestManager and isEndWait_method:call(QuestManager) and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
+		if QuestManager and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
 			return Constants.SDK.SKIP_ORIGINAL;
 		end
 	end
@@ -113,15 +113,23 @@ local function PreHook_updateQuestEndFlow(args)
 end
 local function PostHook_updateQuestEndFlow()
 	if QuestManager_obj then
-		local endFlow = EndFlow_field:get_data(QuestManager_obj);
-		if endFlow == EndFlow.WaitEndTimer and getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown") then
-			if settings.BTH.autoSkipPostAnim then
-				nextEndFlowToCameraDemo_method:call(QuestManager_obj);
-			else
+		local EndFlow = EndFlow_field:get_data(QuestManager_obj);
+		if EndFlow == EndFlow.WaitEndTimer then
+			if getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown") then
+				if settings.BTH.autoSkipPostAnim then
+					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
+				else
+					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+				end
+			end
+		elseif EndFlow == EndFlow.CameraDemo then
+			if getSkipTrg("PostAnim") then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
-		elseif endFlow == EndFlow.CameraDemo and getSkipTrg("PostAnim") then
-			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+		else
+			if getQuestReturnTimerSec_method:call(QuestManager_obj) > 0.0 then
+				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+			end
 		end
     end
 	QuestManager_obj = nil;
