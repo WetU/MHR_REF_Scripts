@@ -9,8 +9,8 @@ local settings = Constants.JSON.load_file("NoKillCam+BTH.json") or {
 		disableKillCam = true,
 	},
 	BTH = {
-		autoSkipCountdown = false,
-		autoSkipPostAnim = true,
+		autoSkipWaitEndTimer = false,
+		autoSkipCameraDemo = true,
 		enableKeyboard = true,
 		kbCDSkipKey = 36,
 		kbAnimSkipKey = 35
@@ -19,11 +19,11 @@ local settings = Constants.JSON.load_file("NoKillCam+BTH.json") or {
 if settings.NoKillCam.disableKillCam == nil then
 	settings.NoKillCam.disableKillCam = true;
 end
-if settings.BTH.autoSkipCountdown == nil then
-	settings.BTH.autoSkipCountdown = false;
+if settings.BTH.autoSkipWaitEndTimer == nil then
+	settings.BTH.autoSkipWaitEndTimer = false;
 end
-if settings.BTH.autoSkipPostAnim == nil then
-	settings.BTH.autoSkipPostAnim = true;
+if settings.BTH.autoSkipCameraDemo == nil then
+	settings.BTH.autoSkipCameraDemo = true;
 end
 if settings.BTH.enableKeyboard == nil then
 	settings.BTH.enableKeyboard = true;
@@ -34,7 +34,7 @@ end
 if settings.BTH.kbAnimSkipKey == nil then
 	settings.BTH.kbAnimSkipKey = 35;
 end
-local BTH_ENABLED = settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim or settings.BTH.enableKeyboard or false;
+local BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or false;
 -- Common Cache
 local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
 
@@ -97,10 +97,10 @@ Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method(
 
 -- BTH
 local function getSkipTrg(skipType)
-	if skipType == "Countdown" then
-		return settings.BTH.autoSkipCountdown or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) or false;
-	elseif skipType == "PostAnim" then
-		return settings.BTH.autoSkipPostAnim or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) or false;
+	if skipType == EndFlow.WaitEndTimer then
+		return settings.BTH.autoSkipWaitEndTimer or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) or false;
+	elseif skipType == EndFlow.CameraDemo then
+		return settings.BTH.autoSkipCameraDemo or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) or false;
 	end
 	return nil;
 end
@@ -115,19 +115,17 @@ local function PostHook_updateQuestEndFlow()
 	if QuestManager_obj then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer then
-			if getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg("Countdown") then
-				if settings.BTH.autoSkipPostAnim then
+			if settings.BTH.autoSkipCameraDemo then
+				if getQuestReturnTimerSec_method:call(QuestManager_obj) == 0.0 or (getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg(endFlow)) then
 					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
-				else
+				end
+			else
+				if getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg(endFlow) then
 					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			end
 		elseif endFlow == EndFlow.CameraDemo then
-			if getSkipTrg("PostAnim") then
-				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
-			end
-		else
-			if getQuestReturnTimerSec_method:call(QuestManager_obj) > 0.0 then
+			if getSkipTrg(endFlow) then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
 		end
@@ -172,9 +170,9 @@ Constants.RE.on_draw_ui(function()
 		if drawSettings then
 			if Constants.IMGUI.begin_window("Fast Return Settings", true, 64) then
 				if Constants.IMGUI.tree_node("~~Autoskip Settings~~") then
-					changed, settings.BTH.autoSkipCountdown = Constants.IMGUI.checkbox('Autoskip Carve Timer', settings.BTH.autoSkipCountdown);
+					changed, settings.BTH.autoSkipWaitEndTimer = Constants.IMGUI.checkbox('Autoskip Carve Timer', settings.BTH.autoSkipWaitEndTimer);
 					config_changed = config_changed or changed;
-					changed, settings.BTH.autoSkipPostAnim = Constants.IMGUI.checkbox('Autoskip Ending Anim.', settings.BTH.autoSkipPostAnim);
+					changed, settings.BTH.autoSkipCameraDemo = Constants.IMGUI.checkbox('Autoskip Ending Anim.', settings.BTH.autoSkipCameraDemo);
 					config_changed = config_changed or changed;
 					Constants.IMGUI.tree_pop();
 				end
@@ -230,7 +228,7 @@ Constants.RE.on_draw_ui(function()
 		end
 		if config_changed then
 			SaveSettings();
-			BTH_ENABLED = settings.BTH.autoSkipCountdown or settings.BTH.autoSkipPostAnim or settings.BTH.enableKeyboard or false;
+			BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or false;
 		end
         Constants.IMGUI.tree_pop();
     end
