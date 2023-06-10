@@ -205,7 +205,7 @@ Constants.RE.on_draw_ui(function()
 
 				if setCDSkipKey then
 					settings.BTH.kbCDSkipKey = 0;
-					for k, _ in Constants.LUA.pairs(KeyboardKeys) do
+					for k in Constants.LUA.pairs(KeyboardKeys) do
 						if getDown_method:call(nil, k) then
 							settings.BTH.kbCDSkipKey = k;
 							setCDSkipKey = false;
@@ -215,7 +215,7 @@ Constants.RE.on_draw_ui(function()
 					end
 				elseif setAnimSkipKey then
 					settings.BTH.kbAnimSkipKey = 0;
-					for k, _ in Constants.LUA.pairs(KeyboardKeys) do
+					for k in Constants.LUA.pairs(KeyboardKeys) do
 						if getDown_method:call(nil, k) then
 							settings.BTH.kbAnimSkipKey = k;
 							setAnimSkipKey = false;
