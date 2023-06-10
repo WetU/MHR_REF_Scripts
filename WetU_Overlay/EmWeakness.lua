@@ -233,7 +233,7 @@ Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("
     TerminateMonsterHud();
     QuestManager = Constants.SDK.to_managed_object(args[2]);
 end, function()
-    if QuestManager and Constants.checkStatus_None(QuestManager) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
+    if QuestManager and Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.None) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
             local listCount = QuestTargetEmTypeList_get_Count_method:call(QuestTargetEmTypeList);
