@@ -49,12 +49,9 @@ local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("Cap
 
 local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
-local getStatus_method = Constants.type_definitions.QuestManager_type_def:get_method("getStatus");
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
-local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
 local isSingleQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isSingleQuest");
-local UpdateFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_UpdateFlow");
 
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
