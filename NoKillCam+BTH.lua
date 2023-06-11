@@ -51,7 +51,7 @@ local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraMan
 -- BTH Cache
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
 local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
-local isSingleQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isSingleQuest");
+local isSingleQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isSingleQuest"); -- retval
 
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
@@ -130,10 +130,8 @@ local function PostHook_updateQuestEndFlow()
 					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			end
-		elseif endFlow == EndFlow.CameraDemo then
-			if getSkipTrg(endFlow) then
-				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
-			end
+		elseif endFlow == EndFlow.CameraDemo and getSkipTrg(endFlow) then
+			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 		end
     end
 	QuestManager_obj = nil;

@@ -3,15 +3,10 @@ local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
-
 local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
-
-
---==--==--==--==--==--
-
-
+--
 local LocalizedMeatAttr = {
     "절단",
     "타격",
@@ -49,11 +44,7 @@ local BirdTypeToColor = {
     ["Vital"] = 4278222848,
     ["Stamina"] = 4278255615
 };
-
-
---==--==--==--==--==--
-
-
+--
 local function testAttribute(attribute, value, highest)
     Constants.IMGUI.table_next_column();
     Constants.IMGUI.text_colored(" " .. Constants.LUA.tostring(value), Constants.LUA.string_find(highest, attribute) and 4278190335 or 4294901760);
