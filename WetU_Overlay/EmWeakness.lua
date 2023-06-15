@@ -44,7 +44,6 @@ local PartTableData_get_Item_method = PartTableData_field:get_type():get_method(
 local PartData_type_def = PartTableData_get_Item_method:get_return_type();
 local Part_field = PartData_type_def:get_field("_Part");
 local EmPart_field = PartData_type_def:get_field("_EmPart");
-local EmMeatGroupIdx_field = PartData_type_def:get_field("_EmMeatGroupIdx");
 
 local MeatAttr_type_def = Constants.SDK.find_type_definition("snow.enemy.EnemyDef.MeatAttr");
 local MeatAttr = {
@@ -127,7 +126,7 @@ local function CreateDataList()
                                                         };
                                                         for _, attrType in Constants.LUA.pairs(MeatAttr) do
                                                             for k, v in Constants.LUA.pairs(attrType) do
-                                                                PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, EmMeatGroupIdx_field:get_data(part) or 0, v);
+                                                                PartDataTable.MeatValues[k] = getMeatValue_method:call(meatData, meatType, 0, v);
                                                             end
                                                         end
 

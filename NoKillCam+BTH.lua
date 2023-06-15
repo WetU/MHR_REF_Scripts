@@ -50,8 +50,8 @@ local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("Cap
 local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
+local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
 local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
-local isSingleQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isSingleQuest"); -- retval
 
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
@@ -116,14 +116,13 @@ local function PostHook_updateQuestEndFlow()
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer then
 			if Constants.checkQuestStatus(QuestManager_obj, Constants.QuestStatus.Success) then
-				if isSingleQuest_method:call(QuestManager_obj) and getSkipTrg(endFlow) then
-					if settings.BTH.autoSkipCameraDemo then
+				local isSkipTrg = getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg(endFlow);
+				if settings.BTH.autoSkipCameraDemo then
+					if isSkipTrg or getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 then
 						nextEndFlowToCameraDemo_method:call(QuestManager_obj);
-					else
-						QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 					end
-				elseif getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 and settings.BTH.autoSkipCameraDemo then
-					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
+				elseif isSkipTrg then
+					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			else
 				if getSkipTrg(endFlow) then
