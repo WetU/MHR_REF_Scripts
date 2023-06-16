@@ -7,17 +7,6 @@ local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 --
-local LocalizedMeatAttr = {
-    "절단",
-    "타격",
-    "탄",
-    "불",
-    "물",
-    "얼음",
-    "번개",
-    "용"
-};
-
 local LocalizedConditionType = {
     "독",
     "기절",
@@ -45,11 +34,6 @@ local BirdTypeToColor = {
     ["Stamina"] = 4278255615
 };
 --
-local function testAttribute(attribute, value, highest)
-    Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text_colored(" " .. Constants.LUA.tostring(value), Constants.LUA.string_find(highest, attribute) and 4278190335 or 4294901760);
-end
-
 local function buildBirdTypeToTable(type)
     Constants.IMGUI.table_next_row();
     Constants.IMGUI.table_next_column();
@@ -61,67 +45,39 @@ local function buildBirdTypeToTable(type)
 end
 
 Constants.RE.on_frame(function()
-    if EmWeakness.currentQuestMonsterTypes then
+    if EmWeakness.EmAilmentData then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
-            local curQuestTargetMonsterNum = #EmWeakness.currentQuestMonsterTypes;
-            for i = 1, curQuestTargetMonsterNum, 1 do
-                local curMonsterData = EmWeakness.MonsterListData[EmWeakness.currentQuestMonsterTypes[i]];
-                if Constants.IMGUI.begin_table("속성", 9, 2097152) then
-                    Constants.IMGUI.table_setup_column(curMonsterData.Name, 8, 20.0);
-
-                    for j = 1, #LocalizedMeatAttr, 1 do
-                        if (j >= 3 and j <= 5) or j == 8 then
-                            Constants.IMGUI.table_setup_column(" " .. LocalizedMeatAttr[j], 8, 3.0);
-                        else
-                            Constants.IMGUI.table_setup_column(LocalizedMeatAttr[j], 8, 3.0);
-                        end
-                    end
-                    
-                    Constants.IMGUI.table_headers_row();
-
-                    for _, part in Constants.LUA.pairs(curMonsterData.PartData) do
-                        Constants.IMGUI.table_next_row();
-                        Constants.IMGUI.table_next_column();
-                        Constants.IMGUI.text(part.PartName);
-
-                        testAttribute("Slash", part.MeatValues.Slash, part.HighestMeat);
-                        testAttribute("Strike", part.MeatValues.Strike, part.HighestMeat);
-                        testAttribute("Shell", part.MeatValues.Shell, part.HighestMeat);
-                        testAttribute("Fire", part.MeatValues.Fire, part.HighestMeat);
-                        testAttribute("Water", part.MeatValues.Water, part.HighestMeat);
-                        testAttribute("Ice", part.MeatValues.Ice, part.HighestMeat);
-                        testAttribute("Elect", part.MeatValues.Elect, part.HighestMeat);
-                        testAttribute("Dragon", part.MeatValues.Dragon, part.HighestMeat);
-                    end
-                    Constants.IMGUI.end_table();
-                end
+            local curEmNum = #EmWeakness.EmAilmentData;
+            for i = 1, curEmNum, 1 do
+                local curEmData = EmWeakness.EmAilmentData[i];
+                Constants.IMGUI.text(curEmData.Name);
                 if Constants.IMGUI.begin_table("상태 이상", 10, 2097152) then
-                    for k = 1, 10, 1 do
-                        if k == 6 then
-                            Constants.IMGUI.table_setup_column(LocalizedConditionType[k], 8, 5.0);
-                        elseif k == 1 or k == 7 or k == 8 then
-                            Constants.IMGUI.table_setup_column("   " .. LocalizedConditionType[k], 8, 3.0);
+                    for j = 1, #LocalizedConditionType, 1 do
+                        if j == 6 then
+                            Constants.IMGUI.table_setup_column(LocalizedConditionType[j], 8, 5.0);
+                        elseif j == 1 or j == 7 or j == 8 then
+                            Constants.IMGUI.table_setup_column("   " .. LocalizedConditionType[j], 8, 3.0);
                         else
-                            Constants.IMGUI.table_setup_column(" " .. LocalizedConditionType[k], 8, 3.0);
+                            Constants.IMGUI.table_setup_column(" " .. LocalizedConditionType[j], 8, 3.0);
                         end
                     end
 
                     Constants.IMGUI.table_headers_row();
                     Constants.IMGUI.table_next_row();
 
-                    for m = 1, 10, 1 do
-                        local value = curMonsterData.ConditionData[m];
+                    for k = 1, #curEmData.ConditionData, 1 do
+                        local value = curEmData.ConditionData[k];
                         Constants.IMGUI.table_next_column();
-                        if m == 6 then
-                            Constants.IMGUI.text_colored("       " .. Constants.LUA.tostring(value), value == curMonsterData.ConditionData.HighestCondition and 4278190335 or 4294901760);
+                        if k == 6 then
+                            Constants.IMGUI.text_colored("       " .. Constants.LUA.tostring(value), value == curEmData.ConditionData.HighestCondition and 4278190335 or 4294901760);
                         else
-                            Constants.IMGUI.text_colored("    " .. Constants.LUA.tostring(value), value == curMonsterData.ConditionData.HighestCondition and 4278190335 or 4294901760);
+                            Constants.IMGUI.text_colored("    " .. Constants.LUA.tostring(value), value == curEmData.ConditionData.HighestCondition and 4278190335 or 4294901760);
                         end
                     end
                     Constants.IMGUI.end_table();
                 end
-                if i < curQuestTargetMonsterNum then
+                if i < curEmNum then
                     Constants.IMGUI.spacing();
                 end
             end
