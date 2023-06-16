@@ -29,10 +29,8 @@ local sdk = sdk;
 local sdk_func = {
     is_managed_object = sdk.is_managed_object,
     find_type_definition = sdk.find_type_definition,
-    get_native_singleton = sdk.get_native_singleton,
     get_managed_singleton = sdk.get_managed_singleton,
     to_managed_object = sdk.to_managed_object,
-    call_native_func = sdk.call_native_func,
     hook = sdk.hook,
     hook_vtable = sdk.hook_vtable,
     to_ptr = sdk.to_ptr,
@@ -108,7 +106,6 @@ local this = {
     RE = re_func,
     MasterPlayerIndex = nil,
     type_definitions = {},
-    methods = {},
     QuestStatus = {}
 };
 
@@ -135,7 +132,6 @@ this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow
 this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
 this.type_definitions.PlayerQuestBase_type_def = this.SDK.find_type_definition("snow.player.PlayerQuestBase");
 
-this.methods.notifyActionEnd_method = this.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval
 
