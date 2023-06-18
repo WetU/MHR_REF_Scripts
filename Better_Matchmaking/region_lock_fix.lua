@@ -13,13 +13,13 @@ local setLobbyDistanceFilter_method = session_steam_type_def:get_method("setLobb
 local last_session_steam_object = nil;
 local function on_set_is_invisible(args)
 	local session_steam = Constants.SDK.to_managed_object(args[1]);
-	if session_steam ~= nil then
+	if session_steam then
 		if config.current_config.region_lock_fix.enabled then
-			local distance = config.current_config.region_lock_fix.distance_filter == "Worldwide" and 3
-						  or config.current_config.region_lock_fix.distance_filter == "Far" and 2
-						  or config.current_config.region_lock_fix.distance_filter == "Close" and 0
-						  or 1;
-			setLobbyDistanceFilter_method:call(session_steam, distance);
+			setLobbyDistanceFilter_method:call(session_steam,
+				config.current_config.region_lock_fix.distance_filter == "Worldwide" and 3 or
+				config.current_config.region_lock_fix.distance_filter == "Far" and 2 or
+				config.current_config.region_lock_fix.distance_filter == "Close" and 0 or
+				1);
 		else
 			if session_steam ~= last_session_steam_object then
 				setLobbyDistanceFilter_method:call(session_steam, 1);

@@ -34,7 +34,7 @@ end
 if settings.BTH.kbAnimSkipKey == nil then
 	settings.BTH.kbAnimSkipKey = 35;
 end
-local BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or false;
+local BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or nil;
 -- Common Cache
 local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
 
@@ -45,8 +45,8 @@ local EndFlow = {
 };
 -- No Kill Cam Cache
 local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
-local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 
+local EndCaptureFlag_CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
 local CameraType_DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- BTH Cache
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
@@ -98,9 +98,9 @@ Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method(
 -- BTH
 local function getSkipTrg(skipType)
 	if skipType == EndFlow.WaitEndTimer then
-		return settings.BTH.autoSkipWaitEndTimer or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) or false;
+		return settings.BTH.autoSkipWaitEndTimer or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbCDSkipKey)) or nil;
 	elseif skipType == EndFlow.CameraDemo then
-		return settings.BTH.autoSkipCameraDemo or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) or false;
+		return settings.BTH.autoSkipCameraDemo or (settings.BTH.enableKeyboard and getTrg_method:call(nil, settings.BTH.kbAnimSkipKey)) or nil;
 	end
 	return nil;
 end
@@ -116,18 +116,17 @@ local function PostHook_updateQuestEndFlow()
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer then
 			if Constants.checkQuestStatus(QuestManager_obj, Constants.QuestStatus.Success) then
-				local isSkipTrg = getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg(endFlow);
-				if settings.BTH.autoSkipCameraDemo then
-					if isSkipTrg or getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 then
+				if getTotalJoinNum_method:call(QuestManager_obj) == 1 and getSkipTrg(endFlow) then
+					if settings.BTH.autoSkipCameraDemo then
 						nextEndFlowToCameraDemo_method:call(QuestManager_obj);
+					else
+						QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 					end
-				elseif isSkipTrg then
-					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
+				elseif settings.BTH.autoSkipCameraDemo and getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 then
+					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
 				end
-			else
-				if getSkipTrg(endFlow) then
-					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
-				end
+			elseif getSkipTrg(endFlow) then
+				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
 		elseif endFlow == EndFlow.CameraDemo and getSkipTrg(endFlow) then
 			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
@@ -231,7 +230,7 @@ Constants.RE.on_draw_ui(function()
 		end
 		if config_changed then
 			SaveSettings();
-			BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or false;
+			BTH_ENABLED = settings.BTH.autoSkipWaitEndTimer or settings.BTH.autoSkipCameraDemo or settings.BTH.enableKeyboard or nil;
 		end
         Constants.IMGUI.tree_pop();
     end
