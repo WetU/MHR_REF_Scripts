@@ -3,7 +3,7 @@ if not Constants then
     return;
 end
 --
-local config = Constants.JSON.load_file("AutoFreeSide.json") or { RemoveDelay = true, AutoReceive = true };
+local config = Constants.JSON.load_file("AutoFreeSide.json") or {RemoveDelay = true, AutoReceive = true};
 if config.RemoveDelay == nil then
     config.RemoveDelay = true;
 end

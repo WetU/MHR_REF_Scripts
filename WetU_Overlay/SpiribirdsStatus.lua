@@ -73,8 +73,10 @@ end
 
 local function PostHook_onDestroy()
     TerminateSpiribirdsHud();
-    HarvestMoonTimer.TerminateHarvestMoon();
     Constants.MasterPlayerIndex = nil;
+    if HarvestMoonTimer then
+        HarvestMoonTimer.TerminateHarvestMoon();
+    end
 end
 
 local function getCountsAndValues(playerManager, equipDataManager, buffType)

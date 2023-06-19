@@ -1,13 +1,10 @@
-local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
-
-local utils = require("Better_Matchmaking.utils");
 -- Config
 local SendType = {"Good", "NotGood"};
-local config = Constants.JSON.load_file("AutoLikes.json") or {enable = true, autosend = true, sendtype = "Good"};
+local config = Constants.JSON.load_file("AutoLikes.json") or {enable = true, autosend = true, sendtype = SendType[1]};
 if config.enable == nil then
 	config.enable = true;
 end
@@ -15,7 +12,7 @@ if config.autosend == nil then
 	config.autosend = true;
 end
 if config.sendtype == nil then
-	config.sendtype = "Good";
+	config.sendtype = SendType[1];
 end
 -- Cache
 local GoodRelationship_type_def = Constants.SDK.find_type_definition("snow.gui.GuiHud_GoodRelationship");
@@ -56,7 +53,7 @@ end
 
 local function PostHook_updatePlayerInfo()
 	if GoodRelationshipHud then
-		if config.sendtype == "Good" then
+		if config.sendtype == SendType[1] then
 			local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 			if OtherPlayerInfos then
 				local isChanged = false;
@@ -105,7 +102,7 @@ Constants.RE.on_draw_ui(function()
 			local changed = false;
 			changed, config.autosend = Constants.IMGUI.checkbox("Auto Send", config.autosend);
 			config_changed = config_changed or changed;
-			local indexChanged, index = Constants.IMGUI.combo("Send Type", utils.table.find_index(SendType, config.sendtype, false), SendType);
+			local indexChanged, index = Constants.IMGUI.combo("Send Type", Constants.FindIndex(SendType, config.sendtype), SendType);
 			config_changed = config_changed or indexChanged;
 			if indexChanged then
 				config.sendtype = SendType[index];

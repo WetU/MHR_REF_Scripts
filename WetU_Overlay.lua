@@ -1,11 +1,11 @@
 local require = require;
 local Constants = require("Constants.Constants");
-if not Constants then
-	return;
-end
 local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
+if not Constants or not EmWeakness or not SpiribirdsStatus or not HarvestMoonTimer then
+	return;
+end
 --
 local LocalizedConditionType = {
     "독",
@@ -34,14 +34,14 @@ local BirdTypeToColor = {
     ["Stamina"] = 4278255615
 };
 --
-local function buildBirdTypeToTable(type)
+local function buildBirdTypeToTable(buffType)
     Constants.IMGUI.table_next_row();
     Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text_colored(LocalizedBirdTypes[type] .. ": ", BirdTypeToColor[type]);
+    Constants.IMGUI.text_colored(LocalizedBirdTypes[buffType] .. ": ", BirdTypeToColor[buffType]);
     Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[type]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[type]));
+    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[buffType]));
     Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[type]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[type]));
+    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[buffType]));
 end
 
 Constants.RE.on_frame(function()
