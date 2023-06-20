@@ -25,7 +25,16 @@ end
 local mealFunc_type_def = Constants.SDK.find_type_definition("snow.facility.kitchen.MealFunc");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
-local get_refGuiKichen_BBQ_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refGuiKichen_BBQ"); -- retval
+local GuiKitchen_BBQ_type_def = Constants.SDK.find_type_definition("snow.gui.GuiKitchen_BBQ");
+local getDemoState_method = GuiKitchen_BBQ_type_def:get_method("getDemoState");
+local BBQ_DemoHandler_field = GuiKitchen_BBQ_type_def:get_field("_DemoHandler");
+
+local BBQ_DemoState_type_def = getDemoState_method:get_return_type();
+local BBQ_DemoState = {
+	["Update"] = BBQ_DemoState_type_def:get_field("Update"):get_data(nil),
+	["ResultDemoUpdate"] = BBQ_DemoState_type_def:get_field("ResultDemoUpdate"):get_data(nil)
+};
+
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
@@ -34,14 +43,15 @@ local get_KitchenEatDemoHandler_method = kitchenFsm_type_def:get_method("get_Kit
 local set_IsCookDemoSkip_method = kitchenFsm_type_def:get_method("set_IsCookDemoSkip(System.Boolean)");
 local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam"); -- retval
 
-local BBQ_DemoHandler_field = get_refGuiKichen_BBQ_method:get_return_type():get_field("_DemoHandler");
+local reqFinish_method = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler"):get_method("reqFinish(System.Single)");
 
-local EventcutHandler_type_def = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler");
-local get_LoadState_method = EventcutHandler_type_def:get_method("get_LoadState"); -- retval
-local get_Playing_method = EventcutHandler_type_def:get_method("get_Playing"); -- retval
-local reqFinish_method = EventcutHandler_type_def:get_method("reqFinish(System.Single)");
+local GuiKitchenCookingEventDemoFsmAction_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenCookingEventDemoFsmAction");
+local CookingDemoState_field = GuiKitchenCookingEventDemoFsmAction_type_def:get_field("_DemoState");
+local CookingDemoState_Demo_Update = CookingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 
-local LoadState_ACTIVE = get_LoadState_method:get_return_type():get_field("Active"):get_data(nil);
+local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenEatingEventDemoFsmAction");
+local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
+local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 -- VIP Dango Ticket Main Function
 local MealFunc = nil;
 local function PreHook_updateList(args)
@@ -59,12 +69,19 @@ Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), P
 -- Skip Dango Song Main Function
 --CookDemo
 local GuiKitchenFsmManager = nil;
-local function PostHook_CookingDemoUpdate()
+
+local GuiKitchenCookingEventDemoFsmAction = nil;
+local function PreHook_CookingDemoUpdate(args)
 	if settings.skipDangoSong then
+		GuiKitchenCookingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
+	end
+end
+local function PostHook_CookingDemoUpdate()
+	if GuiKitchenCookingEventDemoFsmAction and CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) == CookingDemoState_Demo_Update then
 		GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 		if GuiKitchenFsmManager then
 			local CookDemoHandler = get_KitchenCookDemoHandler_method:call(GuiKitchenFsmManager);
-			if CookDemoHandler and get_LoadState_method:call(CookDemoHandler) == LoadState_ACTIVE and get_Playing_method:call(CookDemoHandler) then
+			if CookDemoHandler then
 				reqFinish_method:call(CookDemoHandler, 0.0);
 				if not settings.skipEating then
 					set_IsCookDemoSkip_method:call(kitchenFsm, true);
@@ -73,21 +90,32 @@ local function PostHook_CookingDemoUpdate()
 			end
 		end
 	end
+	GuiKitchenCookingEventDemoFsmAction = nil;
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenCookingEventDemoFsmAction"):get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_CookingDemoUpdate);
+Constants.SDK.hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate, PostHook_CookingDemoUpdate);
 --EatDemo
 local showDangoLog = nil;
-local function PostHook_EatingDemoUpdate()
-	GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-	if GuiKitchenFsmManager then
-		local EatDemoHandler = get_KitchenEatDemoHandler_method:call(GuiKitchenFsmManager);
-		if EatDemoHandler and get_LoadState_method:call(EatDemoHandler) == LoadState_ACTIVE and get_Playing_method:call(EatDemoHandler) then
-			reqFinish_method:call(EatDemoHandler, 0.0);
-			showDangoLog = true;
-		end
+
+local GuiKitchenEatingEventDemoFsmAction = nil;
+local function PreHook_EatingDemoUpdate(args)
+	if settings.skipEating then
+		GuiKitchenEatingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
 	end
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenEatingEventDemoFsmAction"):get_method("update(via.behaviortree.ActionArg)"), nil, PostHook_EatingDemoUpdate);
+local function PostHook_EatingDemoUpdate()
+	if GuiKitchenEatingEventDemoFsmAction and EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) == EatingDemoState_Demo_Update then
+		GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+		if GuiKitchenFsmManager then
+			local EatDemoHandler = get_KitchenEatDemoHandler_method:call(GuiKitchenFsmManager);
+			if EatDemoHandler then
+				reqFinish_method:call(EatDemoHandler, 0.0);
+				showDangoLog = true;
+			end
+		end
+	end
+	GuiKitchenEatingEventDemoFsmAction = nil;
+end
+Constants.SDK.hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate, PostHook_EatingDemoUpdate);
 
 local function PostHook_requestAutoSaveAll()
 	if showDangoLog then
@@ -110,9 +138,12 @@ local function PreHook_BBQ_updatePlayDemo(args)
 end
 local function PostHook_BBQ_updatePlayDemo()
 	if GuiKichen_BBQ then
-		local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKichen_BBQ);
-		if BBQ_DemoHandler and get_LoadState_method:call(BBQ_DemoHandler) == LoadState_ACTIVE and get_Playing_method:call(BBQ_DemoHandler) then
-			reqFinish_method:call(BBQ_DemoHandler, 0.0);
+		local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
+		if DemoState == BBQ_DemoState.Update or DemoState == BBQ_DemoState.ResultDemoUpdate then
+			local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKichen_BBQ);
+			if BBQ_DemoHandler then
+				reqFinish_method:call(BBQ_DemoHandler, 0.0);
+			end
 		end
 	end
 	GuiKichen_BBQ = nil;

@@ -10,6 +10,9 @@ local config = Constants.JSON.load_file("AutoSupply.json") or {
     Enabled = true,
     EnableNotification = true,
     EnableCohoot = true,
+    EnableGoodReward = true,
+    EnableOtomoTicket = true,
+    EnableTicket = true,
     EnableArgosy = true,
     DefaultSet = 1,
     WeaponTypeConfig = {},
@@ -25,6 +28,15 @@ if config.EnableNotification == nil then
 end
 if config.EnableCohoot == nil then
     config.EnableCohoot = true;
+end
+if config.EnableGoodReward == nil then
+    config.EnableGoodReward = true;
+end
+if config.EnableOtomoTicket == nil then
+    config.EnableOtomoTicket = true;
+end
+if config.EnableTicket == nil then
+    config.EnableTicket = true;
 end
 if config.EnableArgosy == nil then
     config.EnableArgosy = true;
@@ -55,15 +67,14 @@ if config.Language == nil or Constants.FindIndex(Languages, config.Language) == 
     config.Language = "ko-KR";
 end
 --
+local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
+local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
+
 local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local DataManager_type_def = Constants.SDK.find_type_definition("snow.data.DataManager");
 local getItemMySet_method = DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
-
-local VillagePoint_type_def = Constants.SDK.find_type_definition("snow.data.VillagePoint");
-local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static, retval
-local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
 local ItemMySet_type_def = getItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
@@ -102,26 +113,10 @@ local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type
 local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
 
 local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
-
-local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
-local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
-local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
-
-local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
-local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
-local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
-
-local owlNestManagerSingleton_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
-local supply_method = owlNestManagerSingleton_type_def:get_method("supply");
-local get_SaveData_method = owlNestManagerSingleton_type_def:get_method("get_SaveData"); -- retval
-
-local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
-local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
-local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
-
-local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
-
-local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
+--
+local VillagePoint_type_def = Constants.SDK.find_type_definition("snow.data.VillagePoint");
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static, retval
+local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
 local get_TradeFunc_method = Constants.SDK.find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc"); -- retval
 
@@ -154,6 +149,42 @@ local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count"); -
 local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)");
 
 local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
+--
+local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
+local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
+local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
+
+local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
+local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
+local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
+--
+local ProgressOwlNestManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
+local Owl_supply_method = ProgressOwlNestManager_type_def:get_method("supply");
+local get_SaveData_method = ProgressOwlNestManager_type_def:get_method("get_SaveData"); -- retval
+
+local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
+local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
+local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
+--
+local ProgressGoodRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressGoodRewardManager");
+local checkReward_method = ProgressGoodRewardManager_type_def:get_method("checkReward");
+local supplyReward_method = ProgressGoodRewardManager_type_def:get_method("supplyReward");
+--
+local ProgressOtomoTicketManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOtomoTicketManager");
+local isSupplyItem_method = ProgressOtomoTicketManager_type_def:get_method("isSupplyItem");
+local Otomo_supply_method = ProgressOtomoTicketManager_type_def:get_method("supply");
+--
+local ProgressTicketSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager");
+local isEnableSupply_method = ProgressTicketSupplyManager_type_def:get_method("isEnableSupply(snow.progress.ProgressTicketSupplyManager.TicketType)");
+local Ticket_supply_method = ProgressTicketSupplyManager_type_def:get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
+
+local TicketType_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
+local TicketTypes = {
+    Village = TicketType_type_def:get_field("Village"):get_data(nil),
+    Hall = TicketType_type_def:get_field("Hall"):get_data(nil),
+    V02Ticket = TicketType_type_def:get_field("V02Ticket"):get_data(nil),
+    MysteryTicket =TicketType_type_def:get_field("MysteryTicket"):get_data(nil)
+};
 --
 local function SendMessage(text)
     if config.EnableNotification then
@@ -487,53 +518,80 @@ local function Restock(equipDataManager, loadoutIndex)
 end
 
 local function Supply()
-    local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
-    if ProgressOwlNestManager then
-        local saveData = get_SaveData_method:call(ProgressOwlNestManager);
-        if saveData then
-            local kamuraStack = kamuraStackCount_field:get_data(saveData);
-            local elgadoStack = elgadoStackCount_field:get_data(saveData);
+    if config.EnableCohootSupply then
+        local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
+        if ProgressOwlNestManager then
+            local saveData = get_SaveData_method:call(ProgressOwlNestManager);
+            if saveData then
+                local kamuraStack = kamuraStackCount_field:get_data(saveData);
+                local elgadoStack = elgadoStackCount_field:get_data(saveData);
 
-            local tempNum = 0;
-            if kamuraStack >= config.CohootMaxStock then
-                tempNum = tempNum + 1;
-            end
-            if elgadoStack >= config.CohootMaxStock then
-                tempNum = tempNum + 2;
-            end
+                local tempNum = 0;
+                if kamuraStack >= config.CohootMaxStock then
+                    tempNum = tempNum + 1;
+                end
+                if elgadoStack >= config.CohootMaxStock then
+                    tempNum = tempNum + 2;
+                end
 
-            if tempNum > 0 then
-                local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-                if VillageAreaManager then
-                    local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-                    if tempNum == 1 then
-                        if savedAreaNo == BUDDY_PLAZA then
-                            supply_method:call(ProgressOwlNestManager);
+                if tempNum > 0 then
+                    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+                    if VillageAreaManager then
+                        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+                        if tempNum == 1 then
+                            if savedAreaNo == BUDDY_PLAZA then
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                            else
+                                set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                            end
+                        elseif tempNum == 2 then
+                            if savedAreaNo == OUTPOST then
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                            else
+                                set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                            end
                         else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
-                            supply_method:call(ProgressOwlNestManager);
+                            if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == BUDDY_PLAZA and OUTPOST or BUDDY_PLAZA);
+                            else
+                                set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
+                                Owl_supply_method:call(ProgressOwlNestManager);
+                                set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
+                            end
+                            Owl_supply_method:call(ProgressOwlNestManager);
                             set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                         end
-                    elseif tempNum == 2 then
-                        if savedAreaNo == OUTPOST then
-                            supply_method:call(ProgressOwlNestManager);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                        end
-                    else
-                        if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == BUDDY_PLAZA and OUTPOST or BUDDY_PLAZA);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
-                        end
-                        supply_method:call(ProgressOwlNestManager);
-                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                     end
+                end
+            end
+        end
+    end
+
+    if config.EnableGoodReward then
+        local ProgressGoodRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressGoodRewardManager");
+        if ProgressGoodRewardManager and checkReward_method:call(ProgressGoodRewardManager) then
+            supplyReward_method:call(ProgressGoodRewardManager);
+        end
+    end
+
+    if config.EnableOtomoTicket then
+        local ProgressOtomoTicketManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOtomoTicketManager");
+        if ProgressOtomoTicketManager and isSupplyItem_method:call(ProgressOtomoTicketManager) then
+            Otomo_supply_method:call(ProgressOtomoTicketManager);
+        end
+    end
+
+    if config.EnableTicket then
+        local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
+        if ProgressTicketSupplyManager then
+            for _, v in pairs(TicketTypes) do
+                if isEnableSupply_method:call(ProgressTicketSupplyManager, v) then
+                    Ticket_supply_method:call(ProgressTicketSupplyManager, v);
                 end
             end
         end
@@ -630,12 +688,10 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpa
     if config.EnableArgosy then
         autoArgosy();
     end
-    if config.EnableCohoot then
-        Supply();
-    end
     if config.Enabled then
         Restock(nil, nil);
     end
+    Supply();
 end);
 ----------------------------------------------
 local function save_config()
@@ -652,6 +708,12 @@ Constants.RE.on_draw_ui(function()
         changed, config.EnableNotification = Constants.IMGUI.checkbox("EnableNotification", config.EnableNotification);
         config_changed = config_changed or changed;
         changed, config.EnableCohoot = Constants.IMGUI.checkbox("EnableCohootSupply", config.EnableCohoot);
+        config_changed = config_changed or changed;
+        changed, config.EnableGoodReward = Constants.IMGUI.checkbox("EnableGoodRewardSupply", config.EnableGoodReward);
+        config_changed = config_changed or changed;
+        changed, config.EnableOtomoTicket = Constants.IMGUI.checkbox("EnableOtomoTicketSupply", config.EnableOtomoTicket);
+        config_changed = config_changed or changed;
+        changed, config.EnableTicket = Constants.IMGUI.checkbox("EnableTicketSupply", config.EnableTicket);
         config_changed = config_changed or changed;
         changed, config.EnableArgosy = Constants.IMGUI.checkbox("EnableArgosy", config.EnableArgosy);
         config_changed = config_changed or changed;
