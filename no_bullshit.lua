@@ -26,17 +26,10 @@ local TalkAttribute_NONE = Constants.SDK.find_type_definition("snow.npc.TalkAttr
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
     ["KAMURA"] = {
-        NpcId_type_def:get_field("nid001"):get_data(nil),  -- Fugen
-        NpcId_type_def:get_field("nid003"):get_data(nil),  -- Kagero
         NpcId_type_def:get_field("nid004"):get_data(nil),  -- Yomogi
-        NpcId_type_def:get_field("nid101"):get_data(nil),  -- Hojo
-        NpcId_type_def:get_field("nid302"):get_data(nil)   -- Iori
     },
     ["ELGADO"] = {
-        NpcId_type_def:get_field("nid502"):get_data(nil),  -- Galleus
         NpcId_type_def:get_field("nid503"):get_data(nil),  -- Bahari
-        NpcId_type_def:get_field("nid606"):get_data(nil),  -- Nagi
-        NpcId_type_def:get_field("nid607"):get_data(nil),  -- Oboro
         NpcId_type_def:get_field("nid608"):get_data(nil),  -- Azuki
         NpcId_type_def:get_field("nid715"):get_data(nil)   -- Pingarh
     }
