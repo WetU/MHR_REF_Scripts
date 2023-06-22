@@ -599,8 +599,6 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpa
     if config.Enabled then
         Restock(nil, nil);
     end
-end);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.progress.ProgressFacilityManager"):get_method("checkOwlNest"), nil, function()
     if config.EnableCohootSupply then
         local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
         if ProgressOwlNestManager then
