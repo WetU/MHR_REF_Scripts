@@ -52,6 +52,14 @@ local CookingDemoState_Demo_Update = CookingDemoState_field:get_type():get_field
 local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenEatingEventDemoFsmAction");
 local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
+-- Auto receive Kitchen tickets
+local get_Kitchen_method = Constants.SDK.find_type_definition("snow.data.FacilityDataManager"):get_method("get_Kitchen");
+
+local get_BbqFunc_method = get_Kitchen_method:get_return_type():get_method("get_BbqFunc");
+
+local BbqFunc_type_def = get_BbqFunc_method:get_return_type();
+local isExistOutputTicket_method = BbqFunc_type_def:get_method("isExistOutputTicket");
+local outputTicket_method = BbqFunc_type_def:get_method("outputTicket");
 -- VIP Dango Ticket Main Function
 local MealFunc = nil;
 local function PreHook_updateList(args)
@@ -130,25 +138,39 @@ local function PostHook_requestAutoSaveAll()
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
 --BBQ
-local GuiKichen_BBQ = nil;
+local GuiKitchen_BBQ = nil;
 local function PreHook_BBQ_updatePlayDemo(args)
 	if settings.skipMotley then
-		GuiKichen_BBQ = Constants.SDK.to_managed_object(args[2]);
+		GuiKitchen_BBQ = Constants.SDK.to_managed_object(args[2]);
 	end
 end
 local function PostHook_BBQ_updatePlayDemo()
-	if GuiKichen_BBQ then
+	if GuiKitchen_BBQ then
 		local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
 		if DemoState == BBQ_DemoState.Update or DemoState == BBQ_DemoState.ResultDemoUpdate then
-			local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKichen_BBQ);
+			local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ);
 			if BBQ_DemoHandler then
 				reqFinish_method:call(BBQ_DemoHandler, 0.0);
 			end
 		end
 	end
-	GuiKichen_BBQ = nil;
+	GuiKitchen_BBQ = nil;
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiKitchen_BBQ"):get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo, PostHook_BBQ_updatePlayDemo);
+Constants.SDK.hook(GuiKitchen_BBQ_type_def:get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo, PostHook_BBQ_updatePlayDemo);
+-- Auto receive Kitchen tickets
+local function PostHook_BBQ_doClose()
+	local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
+	if FacilityDataManager then
+		local Kitchen = get_Kitchen_method:call(FacilityDataManager);
+		if Kitchen then
+			local BbqFunc = get_BbqFunc_method:call(Kitchen);
+			if BbqFunc and isExistOutputTicket_method:call(BbqFunc) then
+				outputTicket_method:call(BbqFunc);
+			end
+		end
+	end
+end
+Constants.SDK.hook(GuiKitchen_BBQ_type_def:get_method("doClose"), nil, PostHook_BBQ_doClose);
 
 ---- re Callbacks ----
 local function save_config()

@@ -2,11 +2,6 @@ local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
-
-local settings = Constants.JSON.load_file("Nearest_camp_revive.json") or {enable = true};
-if settings.enable == nil then
-    settings.enable = true
-end
 --
 local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
@@ -161,19 +156,17 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
 end
 --
 local function PreHook_startToPlayPlayerDieMusic()
-    if settings.enable then
-        local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
-        local mapNo = getCurrentMapNo();
-        if StagePointManager and mapNo ~= nil then
-            local camps = getCampList(StagePointManager);
-            local nekoTakuItem = nekoTakuList[mapNo];
-            if camps ~= nil and nekoTakuItem ~= nil then
-                skipCreateNeko = false;
-                skipWarpNeko = false;
-                reviveCamp = nil;
-                nekoTaku = nil;
-                findNearestCamp(StagePointManager, camps, nekoTakuItem);
-            end
+    local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
+    local mapNo = getCurrentMapNo();
+    if StagePointManager and mapNo ~= nil then
+        local camps = getCampList(StagePointManager);
+        local nekoTakuItem = nekoTakuList[mapNo];
+        if camps ~= nil and nekoTakuItem ~= nil then
+            skipCreateNeko = false;
+            skipWarpNeko = false;
+            reviveCamp = nil;
+            nekoTaku = nil;
+            findNearestCamp(StagePointManager, camps, nekoTakuItem);
         end
     end
 end
@@ -209,19 +202,3 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), PreHook_startToPlayPlayerDieMusic);
 Constants.SDK.hook(createNekotaku_method, PreHook_createNekotaku);
 Constants.SDK.hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);
---
-local function SaveSettings()
-    Constants.JSON.dump_file("Nearest_camp_revive.json", settings);
-end
-
-Constants.RE.on_config_save(SaveSettings);
-Constants.RE.on_draw_ui(function()
-	if Constants.IMGUI.tree_node("Nearest Camp Revive") then
-        local changed = false;
-		changed, settings.enable = Constants.IMGUI.checkbox("Enabled", settings.enable);
-        if changed then
-            SaveSettings();
-        end
-		Constants.IMGUI.tree_pop();
-	end
-end);
