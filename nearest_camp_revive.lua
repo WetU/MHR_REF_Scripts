@@ -67,10 +67,7 @@ local nekoTaku = nil;
 local function getCurrentMapNo()
     local QuestMapManager = Constants.SDK.get_managed_singleton("snow.QuestMapManager");
     if QuestMapManager then
-        local CurrentMapNo = get_CurrentMapNo_method:call(QuestMapManager);
-        if CurrentMapNo ~= nil then
-            return CurrentMapNo;
-        end
+        return get_CurrentMapNo_method:call(QuestMapManager);
     end
     return nil;
 end
@@ -80,19 +77,8 @@ local function getCurrentPosition()
     if CameraManager then
         local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
         if Transform then
-            local Position = get_Position_method:call(Transform);
-            if Position then
-                return Position;
-            end
+            return get_Position_method:call(Transform);
         end
-    end
-    return nil;
-end
-
-local function getCampList(stagePointManager)
-    local TentPositionList = tentPositionList_field:get_data(stagePointManager);
-    if TentPositionList then
-        return TentPositionList;
     end
     return nil;
 end
@@ -106,10 +92,7 @@ local function getFastTravelPt(stagePointManager, index)
             if FastTravelPoint then
                 local Points = get_Points_method:call(FastTravelPoint);
                 if Points then
-                    local Point = Points_get_Item_method:call(Points, 0);
-                    if Point then
-                        return Point;
-                    end
+                    return Points_get_Item_method:call(Points, 0);
                 end
             end
         end
@@ -159,7 +142,7 @@ local function PreHook_startToPlayPlayerDieMusic()
     local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
     local mapNo = getCurrentMapNo();
     if StagePointManager and mapNo ~= nil then
-        local camps = getCampList(StagePointManager);
+        local camps = tentPositionList_field:get_data(StagePointManager);
         local nekoTakuItem = nekoTakuList[mapNo];
         if camps ~= nil and nekoTakuItem ~= nil then
             skipCreateNeko = false;

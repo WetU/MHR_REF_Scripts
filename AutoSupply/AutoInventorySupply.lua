@@ -1,9 +1,12 @@
 local require = require;
 local Constants = require("Constants.Constants");
-local config = require("AutoSupply.config");
-if not Constants or not config then
+local Config = require("AutoSupply.Config");
+if not Constants
+or not Config then
     return;
 end
+
+local settings = Config.config;
 --
 local this = {};
 --
@@ -81,9 +84,11 @@ local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
     if not equipDataManager then
         equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
     end
-    local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
-    if PlEquipMySetList then
-        return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
+    if equipDataManager and loadoutIndex ~= nil then
+        local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
+        if PlEquipMySetList then
+            return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
+        end
     end
     return nil;
 end
@@ -195,7 +200,7 @@ local LocalizedStrings = {
 };
 
 local function Localized()
-    return LocalizedStrings[config.config.Language];
+    return LocalizedStrings[settings.Language];
 end
 
 function this.GetWeaponName(weaponType)
@@ -259,7 +264,7 @@ end
 
 ---------------      CORE      ----------------
 function this.GetWeaponTypeItemLoadoutName(weaponType)
-    local got = config.config.WeaponTypeConfig[weaponType + 1];
+    local got = settings.WeaponTypeConfig[weaponType + 1];
     if got == nil or got == -1 then
         return UseDefaultItemSet();
     end
@@ -267,12 +272,12 @@ function this.GetWeaponTypeItemLoadoutName(weaponType)
 end
 
 function this.GetLoadoutItemLoadoutIndex(loadoutIndex)
-    local got = config.config.EquipLoadoutConfig[loadoutIndex + 1];
+    local got = settings.EquipLoadoutConfig[loadoutIndex + 1];
     if got == nil or got == -1 then
         local weaponType = GetEquipmentLoadoutWeaponType(loadoutIndex);
-        got = config.config.WeaponTypeConfig[weaponType + 1];
+        got = settings.WeaponTypeConfig[weaponType + 1];
         if got == nil or got == -1 then
-            return WeaponTypeNotSetUseDefault(this.GetWeaponName(weaponType), this.GetItemLoadoutName(config.config.DefaultSet));
+            return WeaponTypeNotSetUseDefault(this.GetWeaponName(weaponType), this.GetItemLoadoutName(settings.DefaultSet));
         end
         return UseWeaponTypeItemSet(this.GetWeaponName(weaponType), this.GetItemLoadoutName(got));
     end
@@ -285,7 +290,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     if expectedLoadoutIndex then
         cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
-        local got = config.config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
+        local got = settings.EquipLoadoutConfig[expectedLoadoutIndex + 1];
         if got ~= nil and got ~= -1 then
             return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
         end
@@ -295,7 +300,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
             if this.EquipmentLoadoutIsEquipped(equipDataManager, cachedLoadoutIndex) then
                 lastHitLoadoutIndex = cachedLoadoutIndex;
                 cacheHit = true;
-                local got = config.config.EquipLoadoutConfig[cachedLoadoutIndex + 1];
+                local got = settings.EquipLoadoutConfig[cachedLoadoutIndex + 1];
                 if got ~= nil and got ~= -1 then
                     return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, cachedLoadoutIndex);
                 end
@@ -309,7 +314,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
                     found = true;
                     expectedLoadoutIndex = loadoutIndex;
                     lastHitLoadoutIndex = loadoutIndex;
-                    local got = config.config.EquipLoadoutConfig[i];
+                    local got = settings.EquipLoadoutConfig[i];
                     if got ~= nil and got ~= -1 then
                         return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, loadoutIndex);
                     end
@@ -321,12 +326,13 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
             end
         end
     end
+
     local weaponType = expectedLoadoutIndex and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
-    local got = config.config.WeaponTypeConfig[weaponType + 1];
+    local got = settings.WeaponTypeConfig[weaponType + 1];
     if got ~= nil and got ~= -1 then
         return got, "WeaponType", this.GetWeaponName(weaponType), loadoutMismatch;
     end
-    return config.config.DefaultSet, "Default", "", loadoutMismatch;
+    return settings.DefaultSet, "Default", "", loadoutMismatch;
 end
 
 ------------------------
