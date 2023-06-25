@@ -77,17 +77,21 @@ local function PostHook_updatePlayerInfo()
 	GoodRelationshipHud = nil;
 end
 
-local function sendGood(retval)
+local function PreHook_isOperationOn(args)
+	if sendReady then
+		return Constants.SDK.SKIP_ORIGINAL;
+	end
+end
+local function PostHook_isOperationOn(retval)
 	if sendReady then
 		sendReady = nil;
 		return Constants.TRUE_POINTER;
 	end
 	return retval;
 end
-
 Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
-Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), nil, sendGood);
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
 --
 local function SaveConfig()
 	Constants.JSON.dump_file("AutoLikes.json", config);

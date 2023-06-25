@@ -1,24 +1,26 @@
 local require = require;
 local Constants = require("Constants.Constants");
-if not Constants then
-	return;
-end
-
-local reframework = reframework;
-
 local utils = require("Better_Matchmaking.utils");
 local config = require("Better_Matchmaking.config");
-
 local customization_menu = require("Better_Matchmaking.customization_menu");
-
 local timeout_fix = require("Better_Matchmaking.timeout_fix");
 local region_lock_fix = require("Better_Matchmaking.region_lock_fix");
 local misc_fixes = require("Better_Matchmaking.misc_fixes");
 
+if not Constants
+or not utils
+or not config
+or not customization_menu
+or not timeout_fix
+or not region_lock_fix
+or not misc_fixes then
+	return;
+end
+--
+local reframework = reframework;
+
 config.init_module();
-
 customization_menu.init_module();
-
 timeout_fix.init_module();
 region_lock_fix.init_module();
 misc_fixes.init_module();

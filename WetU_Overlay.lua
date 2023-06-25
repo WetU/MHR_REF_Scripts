@@ -3,9 +3,16 @@ local Constants = require("Constants.Constants");
 local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
-if not Constants or not EmWeakness or not SpiribirdsStatus or not HarvestMoonTimer then
+if not Constants
+or not EmWeakness
+or not SpiribirdsStatus
+or not HarvestMoonTimer then
 	return;
 end
+
+EmWeakness.init();
+SpiribirdsStatus.init();
+HarvestMoonTimer.init();
 --
 local LocalizedConditionType = {
     "독",

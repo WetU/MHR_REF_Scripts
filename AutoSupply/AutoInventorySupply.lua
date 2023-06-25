@@ -1,12 +1,38 @@
 local require = require;
 local Constants = require("Constants.Constants");
-local Config = require("AutoSupply.Config");
-if not Constants
-or not Config then
+if not Constants then
     return;
 end
 
-local settings = Config.config;
+local config = Constants.JSON.load_file("AutoSupply.json") or {
+    DefaultSet = 1,
+    WeaponTypeConfig = {},
+    EquipLoadoutConfig = {}
+};
+
+if config.DefaultSet == nil then
+    config.DefaultSet = 1;
+end
+if config.WeaponTypeConfig == nil then
+    config.WeaponTypeConfig = {};
+end
+for i = 1, 14, 1 do
+    if config.WeaponTypeConfig[i] == nil then
+        config.WeaponTypeConfig[i] = -1;
+    end
+end
+if config.EquipLoadoutConfig == nil then
+    config.EquipLoadoutConfig = {};
+end
+for i = 1, 224, 1 do
+    if config.EquipLoadoutConfig[i] == nil then
+        config.EquipLoadoutConfig[i] = -1;
+    end
+end
+--
+local function save_config()
+    Constants.JSON.dump_file("AutoSupply.json", config);
+end
 --
 local this = {};
 --
@@ -61,7 +87,7 @@ local function ApplyItemLoadout(loadoutIndex)
     return nil;
 end
 
-function this.GetItemLoadoutName(loadoutIndex)
+local function GetItemLoadoutName(loadoutIndex)
 	local ItemLoadout = getData_method:call(getItemMySet_method:call(nil), loadoutIndex);
 	if ItemLoadout then
 		return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
@@ -104,7 +130,7 @@ local function GetEquipmentLoadoutWeaponType(loadoutIndex)
     return nil;
 end
 
-function this.GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
+local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
 	if EquipmentLoadout then
 		return get_Name_method:call(EquipmentLoadout);
@@ -112,7 +138,7 @@ function this.GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
     return nil;
 end
 
-function this.EquipmentLoadoutIsNotEmpty(loadoutIndex)
+local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
 	if EquipmentLoadout then
 		return get_IsUsing_method:call(EquipmentLoadout);
@@ -120,7 +146,7 @@ function this.EquipmentLoadoutIsNotEmpty(loadoutIndex)
     return nil;
 end
 
-function this.EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
+local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
 	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
 	if EquipmentLoadout then
 		return isSamePlEquipPack_method:call(EquipmentLoadout);
@@ -133,77 +159,43 @@ local lastHitLoadoutIndex = -1;
 
 ---------------  Localization  ----------------
 local LocalizedStrings = {
-    ["en-US"] = {
-        WeaponNames = {
-            [0] = "Great Sword",
-            [1] = "Swtich Axe",
-            [2] = "Long Sword",
-            [3] = "Light Bowgun",
-            [4] = "Heavy Bowgun",
-            [5] = "Hammer",
-            [6] = "Gunlance",
-            [7] = "Lance",
-            [8] = "Sword & Shield",
-            [9] = "Dual Blades",
-            [10] = "Hunting Horn",
-            [11] = "Charge Blade",
-            [12] = "Insect Glaive",
-            [13] = "Bow",
-        },
-        UseDefaultItemSet = "Use Default Setting",
-        WeaponTypeNotSetUseDefault = "%s not set, use default setting %s",
-        UseWeaponTypeItemSet = "Use %s setting: %s",
-
-        FromLoadout = "Restock for equipment loadout [<COL YEL>%s</COL>] from item loadout [<COL YEL>%s</COL>]",
-        MismatchLoadout = "Current equipment doesn't match any equipment loadout.\n",
-        FromWeaponType = "Restock for weapon type [<COL YEL>%s</COL>] from item loadout [<COL YEL>%s</COL>].",
-        MismatchWeaponType = "Current equipment doesn't match any equipment loadout, and weapon type [<COL YEL>%s</COL>] has no settings.\n",
-        FromDefault = "Restock from default item loadout [<COL YEL>%s</COL>].",
-        OutOfStock = "Restock [<COL YEL>%s</COL>] cancelled due to <COL RED>out of stock</COL>.",
-
-        PaletteNilError = "<COL RED>ERROR</COL>: Radial set is nil.",
-        PaletteApplied = "Radial set [<COL YEL>%s</COL>] applied.",
-        PaletteListEmpty = "Radial set list is empty, skipped."
+    WeaponNames = {
+        [0] = "대검",
+        [1] = "슬래시액스",
+        [2] = "태도",
+        [3] = "라이트보우건",
+        [4] = "헤비보우건",
+        [5] = "해머",
+        [6] = "건랜스",
+        [7] = "랜스",
+        [8] = "한손검",
+        [9] = "쌍검",
+        [10] = "수렵피리",
+        [11] = "차지액스",
+        [12] = "조충곤",
+        [13] = "활",
     },
-    ["ko-KR"] = {
-        WeaponNames = {
-            [0] = "대검",
-            [1] = "슬래시액스",
-            [2] = "태도",
-            [3] = "라이트보우건",
-            [4] = "헤비보우건",
-            [5] = "해머",
-            [6] = "건랜스",
-            [7] = "랜스",
-            [8] = "한손검",
-            [9] = "쌍검",
-            [10] = "수렵피리",
-            [11] = "차지액스",
-            [12] = "조충곤",
-            [13] = "활",
-        },
-        UseDefaultItemSet = "기본 설정 사용",
-        WeaponTypeNotSetUseDefault = "%s의 설정이 없으므로,\n기본 설정 %s을(를) 사용합니다\n",
-        UseWeaponTypeItemSet = "%s의 설정：%s",
+    UseDefaultItemSet = "기본 설정 사용",
+    WeaponTypeNotSetUseDefault = "%s의 설정이 없으므로,\n기본 설정 %s을(를) 사용합니다\n",
+    UseWeaponTypeItemSet = "%s의 설정：%s",
 
-        FromLoadout = "장비 프리셋 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
-        MismatchLoadout = "현재 장비와 일치하는 프리셋이 없습니다.\n",
-        FromWeaponType = "무기 유형 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
-        MismatchWeaponType = "현재 장비와 일치하는 프리셋이 없습니다\n무기 유형 [<COL YEL>%s</COL>]의 설정이 없습니다.\n",
-        FromDefault = "기본 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
-        OutOfStock = "아이템 프리셋 [<COL YEL>%s</COL>]의 <COL RED>물품이 부족</COL>하여 적용이 취소되었습니다.",
+    FromLoadout = "장비 프리셋 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
+    MismatchLoadout = "현재 장비와 일치하는 프리셋이 없습니다.\n",
+    FromWeaponType = "무기 유형 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
+    MismatchWeaponType = "현재 장비와 일치하는 프리셋이 없습니다\n무기 유형 [<COL YEL>%s</COL>]의 설정이 없습니다.\n",
+    FromDefault = "기본 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
+    OutOfStock = "아이템 프리셋 [<COL YEL>%s</COL>]의 <COL RED>물품이 부족</COL>하여 적용이 취소되었습니다.",
 
-        PaletteNilError = "<COL RED>오류</COL>：팔레트 미설정",
-        PaletteApplied = "팔레트 [<COL YEL>%s</COL>] 적용",
-        PaletteListEmpty = "팔레트 설정이 비어있습니다"
-    }
+    PaletteNilError = "<COL RED>오류</COL>：팔레트 미설정",
+    PaletteApplied = "팔레트 [<COL YEL>%s</COL>] 적용",
+    PaletteListEmpty = "팔레트 설정이 비어있습니다"
 };
 
 local function Localized()
-    return LocalizedStrings[settings.Language];
+    return LocalizedStrings;
 end
 
-function this.GetWeaponName(weaponType)
+local function GetWeaponName(weaponType)
     if weaponType == nil then
 		return "<ERROR>:GetWeaponName failed";
 	end
@@ -237,7 +229,7 @@ end
 local function FromDefault(itemName, mismatch)
     local msg = "";
     if mismatch then
-        msg = Constants.LUA.string_format(Localized().MismatchWeaponType, this.GetWeaponName(GetCurrentWeaponType()));
+        msg = Constants.LUA.string_format(Localized().MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
     end
     return msg .. Constants.LUA.string_format(Localized().FromDefault, itemName);
 end
@@ -263,25 +255,25 @@ local function EquipmentChanged()
 end
 
 ---------------      CORE      ----------------
-function this.GetWeaponTypeItemLoadoutName(weaponType)
-    local got = settings.WeaponTypeConfig[weaponType + 1];
+local function GetWeaponTypeItemLoadoutName(weaponType)
+    local got = config.WeaponTypeConfig[weaponType + 1];
     if got == nil or got == -1 then
         return UseDefaultItemSet();
     end
-    return this.GetItemLoadoutName(got);
+    return GetItemLoadoutName(got);
 end
 
-function this.GetLoadoutItemLoadoutIndex(loadoutIndex)
-    local got = settings.EquipLoadoutConfig[loadoutIndex + 1];
+local function GetLoadoutItemLoadoutIndex(loadoutIndex)
+    local got = config.EquipLoadoutConfig[loadoutIndex + 1];
     if got == nil or got == -1 then
         local weaponType = GetEquipmentLoadoutWeaponType(loadoutIndex);
-        got = settings.WeaponTypeConfig[weaponType + 1];
+        got = config.WeaponTypeConfig[weaponType + 1];
         if got == nil or got == -1 then
-            return WeaponTypeNotSetUseDefault(this.GetWeaponName(weaponType), this.GetItemLoadoutName(settings.DefaultSet));
+            return WeaponTypeNotSetUseDefault(GetWeaponName(weaponType), GetItemLoadoutName(config.DefaultSet));
         end
-        return UseWeaponTypeItemSet(this.GetWeaponName(weaponType), this.GetItemLoadoutName(got));
+        return UseWeaponTypeItemSet(GetWeaponName(weaponType), GetItemLoadoutName(got));
     end
-    return this.GetItemLoadoutName(got);
+    return GetItemLoadoutName(got);
 end
 
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
@@ -290,19 +282,19 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     if expectedLoadoutIndex then
         cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
-        local got = settings.EquipLoadoutConfig[expectedLoadoutIndex + 1];
+        local got = config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
         if got ~= nil and got ~= -1 then
-            return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
+            return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
         end
     else
 		if lastHitLoadoutIndex ~= -1 then
             local cachedLoadoutIndex = lastHitLoadoutIndex;
-            if this.EquipmentLoadoutIsEquipped(equipDataManager, cachedLoadoutIndex) then
+            if EquipmentLoadoutIsEquipped(equipDataManager, cachedLoadoutIndex) then
                 lastHitLoadoutIndex = cachedLoadoutIndex;
                 cacheHit = true;
-                local got = settings.EquipLoadoutConfig[cachedLoadoutIndex + 1];
+                local got = config.EquipLoadoutConfig[cachedLoadoutIndex + 1];
                 if got ~= nil and got ~= -1 then
-                    return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, cachedLoadoutIndex);
+                    return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, cachedLoadoutIndex);
                 end
             end
         end
@@ -310,13 +302,13 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
             local found = false;
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
-                if this.EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex) then
+                if EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex) then
                     found = true;
                     expectedLoadoutIndex = loadoutIndex;
                     lastHitLoadoutIndex = loadoutIndex;
-                    local got = settings.EquipLoadoutConfig[i];
+                    local got = config.EquipLoadoutConfig[i];
                     if got ~= nil and got ~= -1 then
-                        return got, "Loadout", this.GetEquipmentLoadoutName(equipDataManager, loadoutIndex);
+                        return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, loadoutIndex);
                     end
                     break;
                 end
@@ -328,11 +320,11 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     end
 
     local weaponType = expectedLoadoutIndex and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
-    local got = settings.WeaponTypeConfig[weaponType + 1];
+    local got = config.WeaponTypeConfig[weaponType + 1];
     if got ~= nil and got ~= -1 then
-        return got, "WeaponType", this.GetWeaponName(weaponType), loadoutMismatch;
+        return got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
     end
-    return settings.DefaultSet, "Default", "", loadoutMismatch;
+    return config.DefaultSet, "Default", "", loadoutMismatch;
 end
 
 ------------------------
@@ -373,5 +365,46 @@ function this.Restock(equipDataManager, loadoutIndex)
     end
     return msg;
 end
+--
+Constants.RE.on_config_save(save_config);
+Constants.RE.on_draw_ui(function()
+    if Constants.IMGUI.tree_node("AutoSupply") then
+        Constants.IMGUI.push_font(Constants.Font);
+        local config_changed = false;
+        local changed = false;
+        config_changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, InventorySupply.GetItemLoadoutName(config.DefaultSet));
+
+        if Constants.IMGUI.tree_node("WeaponType") then
+            for i = 1, 14, 1 do
+                local weaponType = i - 1;
+                changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(InventorySupply.GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, InventorySupply.GetWeaponTypeItemLoadoutName(weaponType));
+                config_changed = config_changed or changed;
+            end
+            Constants.IMGUI.tree_pop();
+        end
+
+        if Constants.IMGUI.tree_node("Loadout") then
+            for i = 1, 224, 1 do
+                local loadoutIndex = i - 1;
+                local name = InventorySupply.GetEquipmentLoadoutName(nil, loadoutIndex);
+                if name and InventorySupply.EquipmentLoadoutIsNotEmpty(loadoutIndex) then
+                    local msg = "";
+                    if InventorySupply.EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
+                        msg = " (현재)";
+                    end
+                    changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, InventorySupply.GetLoadoutItemLoadoutIndex(loadoutIndex));
+                    config_changed = config_changed or changed;
+                end
+            end
+            Constants.IMGUI.tree_pop();
+        end
+
+        if config_changed then
+            save_config();
+        end
+        Constants.IMGUI.pop_font();
+        Constants.IMGUI.tree_pop();
+    end
+end);
 
 return this;

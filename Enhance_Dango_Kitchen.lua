@@ -2,7 +2,7 @@ local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
-
+--
 local settings = Constants.JSON.load_file("Enhance_Dango_kitchen.json") or {
 	skipDangoSong = true,
 	skipEating = true,
@@ -53,7 +53,7 @@ local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_defi
 local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 -- Auto receive Kitchen tickets
-local get_Kitchen_method = Constants.SDK.find_type_definition("snow.data.FacilityDataManager"):get_method("get_Kitchen");
+local get_Kitchen_method = Constants.type_definitions.FacilityDataManager_type_def:get_method("get_Kitchen");
 
 local get_BbqFunc_method = get_Kitchen_method:get_return_type():get_method("get_BbqFunc");
 

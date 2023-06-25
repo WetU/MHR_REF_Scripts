@@ -41,7 +41,8 @@ local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
 	["WaitEndTimer"] = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
-	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil)
+	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
+	["WaitFadeOut"] = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
 -- No Kill Cam Cache
 local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
@@ -128,6 +129,8 @@ local function PostHook_updateQuestEndFlow()
 			elseif getSkipTrg(endFlow) then
 				QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 			end
+		elseif endFlow == EndFlow.WaitFadeOut then
+			Constants.ClearFade();
 		elseif endFlow == EndFlow.CameraDemo and getSkipTrg(endFlow) then
 			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 		end

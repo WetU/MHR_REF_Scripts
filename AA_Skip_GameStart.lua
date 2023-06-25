@@ -8,8 +8,6 @@ local get_DurationTime_method = viaMovie_type_def:get_method("get_DurationTime")
 local seek_method = viaMovie_type_def:get_method("seek(System.UInt64)");
 
 local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
-local set_FadeMode_method = Constants.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local FadeMode_FINISH = Constants.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 --
 local isReLogo = nil;
 local Movie = nil;
@@ -29,13 +27,6 @@ local function PostHook_play()
 	Movie = nil;
 end
 
-local function ClearFade()
-    local FadeManager = Constants.SDK.get_managed_singleton("snow.FadeManager");
-	if FadeManager then
-		set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
-	end
-end
-
 local function ClearAction(args)
     local Action = Constants.SDK.to_managed_object(args[3]);
     if Action then
@@ -51,19 +42,22 @@ end
 local function PreHook_OtherLogoFadeIn(args)
 	local OtherLogoFadeIn = Constants.SDK.to_managed_object(args[2]);
 	if OtherLogoFadeIn then
-		Constants.SDK.hook_vtable(OtherLogoFadeIn, OtherLogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, ClearFade);
+		Constants.SDK.hook_vtable(OtherLogoFadeIn, OtherLogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 	end
 end
 
-local function skipTitle()
+local function PreHook_getTitlePressAnyButton()
+	return Constants.SDK.SKIP_ORIGINAL;
+end
+local function PostHook_getTitlePressAnyButton()
     return Constants.TRUE_POINTER;
 end
 
 Constants.SDK.hook(viaMovie_type_def:get_method("play"), PreHook_play, PostHook_play);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, ClearFade);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, ClearFade);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), ReLogo_ClearAction, ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, Constants.ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, Constants.ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), ReLogo_ClearAction, Constants.ClearFade);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_OtherLogoFadeIn);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_AutoSaveCaution_Action"):get_method("start(via.behaviortree.ActionArg)"), ClearAction);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, ClearFade);
-Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, skipTitle);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, Constants.ClearFade);
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), PreHook_getTitlePressAnyButton, PostHook_getTitlePressAnyButton);

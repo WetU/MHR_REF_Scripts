@@ -20,29 +20,36 @@ local this = {
 local HarvestMoonTimer_String = "원월 타이머: %.f초";
 local LongSwordShell010 = nil;
 
-local function UpdateHarvestMoonTimer()
-    local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
-    this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
-end
-
 function this.TerminateHarvestMoon()
     this.CircleTimer = nil;
     LongSwordShell010 = nil;
 end
 
-Constants.SDK.hook(LongSwordShell010_type_def:get_method("start"), function(args)
+local function UpdateHarvestMoonTimer()
+    local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+    this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+end
+
+local function PreHook(args)
     LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
         Constants.GetMasterPlayerId(nil);
     end
-end, function()
-    if LongSwordShell010 and get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
-        UpdateHarvestMoonTimer();
-        Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
-        Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, this.TerminateHarvestMoon);
-    else
-        LongSwordShell010 = nil;
+end
+local function PostHook()
+    if LongSwordShell010 then
+        if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
+            UpdateHarvestMoonTimer();
+            Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
+            Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, this.TerminateHarvestMoon);
+        else
+            LongSwordShell010 = nil;
+        end
     end
-end);
+end
+
+function this.init()
+    Constants.SDK.hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
+end
 
 return this;

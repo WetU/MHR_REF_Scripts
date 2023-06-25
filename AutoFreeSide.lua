@@ -34,14 +34,19 @@ local function PostHook_getReaward()
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
 
-local function PostHook_DecideTrg(retval)
+local function PreHook_getDecideButtonTrg()
+    if isOpenRewardWindow then
+        return Constants.SDK.SKIP_ORIGINAL;
+    end
+end
+local function PostHook_getDecideButtonTrg(retval)
     if isOpenRewardWindow then
         isOpenRewardWindow = nil;
         return Constants.TRUE_POINTER;
     end
     return retval;
 end
-Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_DecideTrg);
+Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
 --
 local function SaveSettings()
     Constants.JSON.dump_file("AutoFreeSide.json", config);

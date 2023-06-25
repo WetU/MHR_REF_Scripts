@@ -104,8 +104,10 @@ local function PreHook_onChangedGameStatus(args)
     end
 end
 
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), PreHook_questActivate, PostHook_questActivate);
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), PreHook_onChangedGameStatus);
+function this.init()
+    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), PreHook_questActivate, PostHook_questActivate);
+    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
+    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), PreHook_onChangedGameStatus);
+end
 
 return this;

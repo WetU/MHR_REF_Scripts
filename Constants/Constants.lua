@@ -127,6 +127,7 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
 this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
 this.type_definitions.DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager");
+this.type_definitions.FacilityDataManager_type_def = this.SDK.find_type_definition("snow.data.FacilityDataManager");
 this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
 this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
@@ -135,6 +136,8 @@ this.type_definitions.PlayerQuestBase_type_def = this.SDK.find_type_definition("
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID"); -- retval
+local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
 local QuestStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
 this.QuestStatus.None = QuestStatus_type_def:get_field("None"):get_data(nil);
@@ -158,6 +161,13 @@ function this.FindIndex(table, value)
         end
     end
     return nil;
+end
+
+function this.ClearFade()
+    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
+    if FadeManager then
+        set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
+    end
 end
 
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
