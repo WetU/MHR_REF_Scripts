@@ -125,9 +125,12 @@ local function PreHook_checkReward(args)
 end
 local function PostHook_checkReward(retval)
     if ProgressGoodRewardManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
-        supplyReward_method:call(ProgressGoodRewardManager);
-        ProgressGoodRewardManager = nil;
-        return Constants.FALSE_POINTER;
+        --local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+        --if VillageAreaManager and get_CurrentVillageNo_method:call(VillageAreaManager) == ELGADO then
+            supplyReward_method:call(ProgressGoodRewardManager);
+            ProgressGoodRewardManager = nil;
+            return Constants.FALSE_POINTER;
+        --end
     end
     ProgressGoodRewardManager = nil;
     return retval;

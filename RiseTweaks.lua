@@ -36,7 +36,7 @@ local function getAutoFps()
 		local OptionDataContainer = StmOptionDataContainer_field:get_data(OptionManager);
 		if OptionDataContainer then
 			local FrameRateOption = getFrameRateOption_method:call(OptionDataContainer);
-			if FrameRateOption then
+			if FrameRateOption ~= nil then
 				config.desiredFPS = FrameRate[FrameRateOption];
 			end
 		end

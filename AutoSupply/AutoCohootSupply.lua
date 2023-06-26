@@ -8,10 +8,11 @@ local this = {};
 local ProgressOwlNestManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");
 local get_SaveData_method = ProgressOwlNestManager_type_def:get_method("get_SaveData"); -- retval
+local StackItemCount = ProgressOwlNestManager_type_def:get_field("StackItemCount"):get_data(nil);
 
-local progressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
-local kamuraStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount");
-local elgadoStackCount_field = progressOwlNestSaveData_type_def:get_field("_StackCount2");
+local ProgressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
+local kamuraStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_StackCount");
+local elgadoStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_StackCount2");
 --
 local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
 local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
@@ -23,52 +24,29 @@ local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
 --
 function this.Supply()
     local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
-    if ProgressOwlNestManager then
+    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+    if ProgressOwlNestManager and VillageAreaManager then
         local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
-        if SaveData then
+        local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
+        if SaveData and savedAreaNo ~= nil then
             local kamuraStack = kamuraStackCount_field:get_data(SaveData);
             local elgadoStack = elgadoStackCount_field:get_data(SaveData);
-
-            local tempNum = 0;
-            if kamuraStack == 5 then
-                tempNum = tempNum + 1;
+            if kamuraStack == StackItemCount then
+                if savedAreaNo == BUDDY_PLAZA then
+                    supply_method:call(ProgressOwlNestManager);
+                else
+                    set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
+                    supply_method:call(ProgressOwlNestManager);
+                    set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+                end
             end
-            if elgadoStack == 5 then
-                tempNum = tempNum + 2;
-            end
-
-            if tempNum > 0 then
-                local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-                if VillageAreaManager then
-                    local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-                    if tempNum == 1 then
-                        if savedAreaNo == BUDDY_PLAZA then
-                            supply_method:call(ProgressOwlNestManager);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                        end
-                    elseif tempNum == 2 then
-                        if savedAreaNo == OUTPOST then
-                            supply_method:call(ProgressOwlNestManager);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                        end
-                    else
-                        if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == BUDDY_PLAZA and OUTPOST or BUDDY_PLAZA);
-                        else
-                            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
-                            supply_method:call(ProgressOwlNestManager);
-                            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
-                        end
-                        supply_method:call(ProgressOwlNestManager);
-                        set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
-                    end
+            if elgadoStack == StackItemCount then
+                if savedAreaNo == OUTPOST then
+                    supply_method:call(ProgressOwlNestManager);
+                else
+                    set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
+                    supply_method:call(ProgressOwlNestManager);
+                    set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
                 end
             end
         end
