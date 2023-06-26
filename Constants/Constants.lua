@@ -90,6 +90,7 @@ local ValueType_func = {
 
 local re = re;
 local re_func = {
+    on_script_reset = re.on_script_reset,
     on_frame = re.on_frame,
     on_config_save = re.on_config_save,
     on_draw_ui = re.on_draw_ui

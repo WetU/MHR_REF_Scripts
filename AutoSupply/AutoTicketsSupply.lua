@@ -21,6 +21,9 @@ local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method
 local ProgressSwitchActionSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressSwitchActionSupplyManager");
 local SwitchAction_supply_method = ProgressSwitchActionSupplyManager_type_def:get_method("supply");
 --
+local ProgressNoteRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressNoteRewardManager");
+local Note_supply_method = ProgressNoteRewardManager_type_def:get_method("supply");
+--
 local NpcTalkMessageCtrl_type_def = Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId"); -- retval
 local resetTalkDispName_method = NpcTalkMessageCtrl_type_def:get_method("resetTalkDispName");
@@ -199,6 +202,20 @@ local function PostHook_SwitchAction_isEnableSupply(retval)
     return retval;
 end
 
+local ProgressNoteRewardManager = nil;
+local function PreHook_checkSupplyAnyFigurine(args)
+    ProgressNoteRewardManager = Constants.SDK.to_managed_object(args[2]);
+end
+local function PostHook_checkSupplyAnyFigurine(retval)
+    if ProgressNoteRewardManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
+        Note_supply_method:call(ProgressNoteRewardManager);
+        ProgressNoteRewardManager = nil;
+        return Constants.FALSE_POINTER;
+    end
+    ProgressNoteRewardManager = nil;
+    return retval;
+end
+
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method(".ctor"), PreHook_ctor, PostHook_ctor);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
@@ -210,6 +227,8 @@ function this.init()
     Constants.SDK.hook(ProgressEc019UnlockItemManager_type_def:get_method("isSupply"), PreHook_Ec019_isSupply, PostHook_Ec019_isSupply);
     Constants.SDK.hook(ProgressEc019UnlockItemManager_type_def:get_method("isSupplyMR"), PreHook_Ec019_isSupply, PostHook_Ec019_isSupplyMR);
     Constants.SDK.hook(ProgressSwitchActionSupplyManager_type_def:get_method("isEnableSupply"), PreHook_SwitchAction_isEnableSupply, PostHook_SwitchAction_isEnableSupply);
+    Constants.SDK.hook(ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine"), PreHook_checkSupplyAnyFigurine, PostHook_checkSupplyAnyFigurine);
+    Constants.SDK.hook(ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine_MR"), PreHook_checkSupplyAnyFigurine, PostHook_checkSupplyAnyFigurine);
 end
 
 return this;

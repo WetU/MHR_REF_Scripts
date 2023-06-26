@@ -372,12 +372,12 @@ Constants.RE.on_draw_ui(function()
         Constants.IMGUI.push_font(Constants.Font);
         local config_changed = false;
         local changed = false;
-        config_changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, InventorySupply.GetItemLoadoutName(config.DefaultSet));
+        config_changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
 
         if Constants.IMGUI.tree_node("WeaponType") then
             for i = 1, 14, 1 do
                 local weaponType = i - 1;
-                changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(InventorySupply.GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, InventorySupply.GetWeaponTypeItemLoadoutName(weaponType));
+                changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
                 config_changed = config_changed or changed;
             end
             Constants.IMGUI.tree_pop();
@@ -386,13 +386,13 @@ Constants.RE.on_draw_ui(function()
         if Constants.IMGUI.tree_node("Loadout") then
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
-                local name = InventorySupply.GetEquipmentLoadoutName(nil, loadoutIndex);
-                if name and InventorySupply.EquipmentLoadoutIsNotEmpty(loadoutIndex) then
+                local name = GetEquipmentLoadoutName(nil, loadoutIndex);
+                if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then
                     local msg = "";
-                    if InventorySupply.EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
+                    if EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
                         msg = " (현재)";
                     end
-                    changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, InventorySupply.GetLoadoutItemLoadoutIndex(loadoutIndex));
+                    changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
                     config_changed = config_changed or changed;
                 end
             end

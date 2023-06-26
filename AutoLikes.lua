@@ -39,7 +39,6 @@ local function PreHook_doOpen(args)
 		end
 	end
 end
-
 local function PostHook_doOpen()
 	if GoodRelationshipHud then
 		local gaugeAngleMax = gaugeAngleMax_field:get_data(GoodRelationshipHud);
@@ -89,6 +88,7 @@ local function PostHook_isOperationOn(retval)
 	end
 	return retval;
 end
+
 Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
