@@ -9,10 +9,6 @@ or not SpiribirdsStatus
 or not HarvestMoonTimer then
 	return;
 end
-
-EmWeakness.init();
-SpiribirdsStatus.init();
-HarvestMoonTimer.init();
 --
 local LocalizedConditionType = {
     "독",
@@ -52,7 +48,7 @@ local function buildBirdTypeToTable(buffType)
 end
 
 Constants.RE.on_frame(function()
-    if EmWeakness.EmAilmentData then
+    if EmWeakness.EmAilmentData ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("몬스터 약점", nil, 4096 + 64 + 512) then
             local curEmNum = #EmWeakness.EmAilmentData;
@@ -93,7 +89,7 @@ Constants.RE.on_frame(function()
         Constants.IMGUI.pop_font();
     end
 
-    if SpiribirdsStatus.SpiribirdsHudDataCreated then
+    if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) then
             if Constants.IMGUI.begin_table("종류", 3, 2097152) then
@@ -107,14 +103,14 @@ Constants.RE.on_frame(function()
                 buildBirdTypeToTable("Stamina");
                 Constants.IMGUI.end_table();
             end
-            if SpiribirdsStatus.SpiribirdsCall_Timer then
+            if SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
                 Constants.IMGUI.spacing();
                 Constants.IMGUI.text(SpiribirdsStatus.SpiribirdsCall_Timer);
             end
             Constants.IMGUI.end_window();
         end
         Constants.IMGUI.pop_font();
-    elseif SpiribirdsStatus.SpiribirdsCall_Timer then
+    elseif SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) then
             Constants.IMGUI.text(SpiribirdsStatus.SpiribirdsCall_Timer);
@@ -123,7 +119,7 @@ Constants.RE.on_frame(function()
         Constants.IMGUI.pop_font();
     end
 
-    if HarvestMoonTimer.CircleTimer then
+    if HarvestMoonTimer.CircleTimer ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) then
             Constants.IMGUI.text(HarvestMoonTimer.CircleTimer);
@@ -132,3 +128,7 @@ Constants.RE.on_frame(function()
         Constants.IMGUI.pop_font();
     end
 end);
+--
+EmWeakness.init();
+SpiribirdsStatus.init();
+HarvestMoonTimer.init();

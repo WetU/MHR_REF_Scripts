@@ -32,11 +32,11 @@ Constants.RE.on_draw_ui(function()
 end);
 
 Constants.RE.on_frame(function()
-	if not reframework:is_drawing_ui() then
-		customization_menu.is_opened = false;
-	end
-
-	if customization_menu.is_opened then
-		Constants.LUA.pcall(customization_menu.draw);
+	if customization_menu.is_opened == true then
+		if not reframework:is_drawing_ui() then
+			customization_menu.is_opened = false;
+		else
+			Constants.LUA.pcall(customization_menu.draw);
+		end
 	end
 end);

@@ -6,22 +6,38 @@ end
 local this = {};
 --
 local ProgressGoodRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressGoodRewardManager");
+local checkReward_method = ProgressGoodRewardManager_type_def:get_method("checkReward");
 local supplyReward_method = ProgressGoodRewardManager_type_def:get_method("supplyReward");
 --
 local ProgressOtomoTicketManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOtomoTicketManager");
+local isSupplyItem_method = ProgressOtomoTicketManager_type_def:get_method("isSupplyItem");
 local Otomo_supply_method = ProgressOtomoTicketManager_type_def:get_method("supply");
 --
 local ProgressTicketSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager");
+local Ticket_isEnableSupply_method = ProgressTicketSupplyManager_type_def:get_method("isEnableSupply(snow.progress.ProgressTicketSupplyManager.TicketType)");
 local Ticket_supply_method = ProgressTicketSupplyManager_type_def:get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
+
+local TicketType_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
+local TicketType = {
+    TicketType_type_def:get_field("Village"):get_data(nil),
+    TicketType_type_def:get_field("Hall"):get_data(nil),
+    TicketType_type_def:get_field("V02Ticket"):get_data(nil),
+    TicketType_type_def:get_field("MysteryTicket"):get_data(nil)
+};
 --
 local ProgressEc019UnlockItemManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressEc019UnlockItemManager");
+local isSupply_method = ProgressEc019UnlockItemManager_type_def:get_method("isSupply");
 local Ec019_supply_method = ProgressEc019UnlockItemManager_type_def:get_method("supply");
+local isSupplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method("isSupplyMR");
 local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method("supplyMR");
 --
 local ProgressSwitchActionSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressSwitchActionSupplyManager");
+local SwitchAction_isEnableSupply_method = ProgressSwitchActionSupplyManager_type_def:get_method("isEnableSupply");
 local SwitchAction_supply_method = ProgressSwitchActionSupplyManager_type_def:get_method("supply");
 --
 local ProgressNoteRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressNoteRewardManager");
+local checkSupplyAnyFigurine_method = ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine");
+local checkSupplyAnyFigurine_MR_method = ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine_MR");
 local Note_supply_method = ProgressNoteRewardManager_type_def:get_method("supply");
 --
 local NpcTalkMessageCtrl_type_def = Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageCtrl");
@@ -119,104 +135,45 @@ local function PostHook_getCurrentMapNo(retval)
     return retval;
 end
 
-local ProgressGoodRewardManager = nil;
-local function PreHook_checkReward(args)
-    ProgressGoodRewardManager = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_checkReward(retval)
-    if ProgressGoodRewardManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
-        --local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-        --if VillageAreaManager and get_CurrentVillageNo_method:call(VillageAreaManager) == ELGADO then
-            supplyReward_method:call(ProgressGoodRewardManager);
-            ProgressGoodRewardManager = nil;
-            return Constants.FALSE_POINTER;
-        --end
+function this.Supply()
+    local ProgressGoodRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressGoodRewardManager");
+    if ProgressGoodRewardManager ~= nil and checkReward_method:call(ProgressGoodRewardManager) == true then
+        supplyReward_method:call(ProgressGoodRewardManager);
     end
-    ProgressGoodRewardManager = nil;
-    return retval;
-end
 
-local ProgressOtomoTicketManager = nil;
-local function PreHook_isSupplyItem(args)
-    ProgressOtomoTicketManager = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_isSupplyItem(retval)
-    if ProgressOtomoTicketManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
+    local ProgressOtomoTicketManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOtomoTicketManager");
+    if ProgressOtomoTicketManager ~= nil and isSupplyItem_method:call(ProgressOtomoTicketManager) == true then
         Otomo_supply_method:call(ProgressOtomoTicketManager);
-        ProgressOtomoTicketManager = nil;
-        return Constants.FALSE_POINTER;
     end
-    ProgressOtomoTicketManager = nil;
-    return retval;
-end
 
-local ProgressTicketSupplyManager = nil;
-local ticketType = nil;
-local function PreHook_isEnableSupply(args)
-    ProgressTicketSupplyManager = Constants.SDK.to_managed_object(args[2]);
-    ticketType = Constants.SDK.to_int64(args[3]);
-end
-local function PostHook_isEnableSupply(retval)
-    if ProgressTicketSupplyManager and ticketType ~= nil and (Constants.SDK.to_int64(retval) & 1) == 1 then
-        Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
-        ProgressTicketSupplyManager = nil;
-        ticketType = nil;
-        return Constants.FALSE_POINTER;
+    local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
+    if ProgressTicketSupplyManager ~= nil then
+        for _, v in ipairs(TicketType) do
+            if Ticket_isEnableSupply_method:call(ProgressTicketSupplyManager, v) == true then
+                Ticket_supply_method:call(ProgressTicketSupplyManager, v);
+            end
+        end
     end
-    ProgressTicketSupplyManager = nil;
-    ticketType = nil;
-    return retval;
-end
 
-local ProgressEc019UnlockItemManager = nil;
-local function PreHook_Ec019_isSupply(args)
-    ProgressEc019UnlockItemManager = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_Ec019_isSupply(retval)
-    if ProgressEc019UnlockItemManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
-        Ec019_supply_method:call(ProgressEc019UnlockItemManager);
-        ProgressEc019UnlockItemManager = nil;
-        return Constants.FALSE_POINTER;
+    local ProgressEc019UnlockItemManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager");
+    if ProgressEc019UnlockItemManager ~= nil then
+        if isSupply_method:call(ProgressEc019UnlockItemManager) == true then
+            Ec019_supply_method:call(ProgressEc019UnlockItemManager);
+        end
+        if isSupplyMR_method:call(ProgressEc019UnlockItemManager) == true then
+            Ec019_supplyMR_method:call(ProgressEc019UnlockItemManager);
+        end
     end
-    ProgressEc019UnlockItemManager = nil;
-    return retval;
-end
-local function PostHook_Ec019_isSupplyMR(retval)
-    if ProgressEc019UnlockItemManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
-        Ec019_supplyMR_method:call(ProgressEc019UnlockItemManager);
-        ProgressEc019UnlockItemManager = nil;
-        return Constants.FALSE_POINTER;
-    end
-    ProgressEc019UnlockItemManager = nil;
-    return retval;
-end
 
-local ProgressSwitchActionSupplyManager = nil;
-local function PreHook_SwitchAction_isEnableSupply(args)
-    ProgressSwitchActionSupplyManager = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_SwitchAction_isEnableSupply(retval)
-    if ProgressSwitchActionSupplyManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
+    local ProgressSwitchActionSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressSwitchActionSupplyManager");
+    if ProgressSwitchActionSupplyManager ~= nil and SwitchAction_isEnableSupply_method:call(ProgressSwitchActionSupplyManager) == true then
         SwitchAction_supply_method:call(ProgressSwitchActionSupplyManager);
-        ProgressSwitchActionSupplyManager = nil;
-        return Constants.FALSE_POINTER;
     end
-    ProgressSwitchActionSupplyManager = nil;
-    return retval;
-end
 
-local ProgressNoteRewardManager = nil;
-local function PreHook_checkSupplyAnyFigurine(args)
-    ProgressNoteRewardManager = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_checkSupplyAnyFigurine(retval)
-    if ProgressNoteRewardManager and (Constants.SDK.to_int64(retval) & 1) == 1 then
+    local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
+    if ProgressNoteRewardManager ~= nil and (checkSupplyAnyFigurine_method:call(ProgressNoteRewardManager) == true or checkSupplyAnyFigurine_MR_method:call(ProgressNoteRewardManager) == true) then
         Note_supply_method:call(ProgressNoteRewardManager);
-        ProgressNoteRewardManager = nil;
-        return Constants.FALSE_POINTER;
     end
-    ProgressNoteRewardManager = nil;
-    return retval;
 end
 
 function this.init()
@@ -224,14 +181,6 @@ function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(Constants.SDK.find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"), nil, PostHook_getCurrentMapNo);
-    Constants.SDK.hook(ProgressGoodRewardManager_type_def:get_method("checkReward"), PreHook_checkReward, PostHook_checkReward);
-    Constants.SDK.hook(ProgressOtomoTicketManager_type_def:get_method("isSupplyItem"), PreHook_isSupplyItem, PostHook_isSupplyItem);
-    Constants.SDK.hook(ProgressTicketSupplyManager_type_def:get_method("isEnableSupply(snow.progress.ProgressTicketSupplyManager.TicketType)"), PreHook_isEnableSupply, PostHook_isEnableSupply);
-    Constants.SDK.hook(ProgressEc019UnlockItemManager_type_def:get_method("isSupply"), PreHook_Ec019_isSupply, PostHook_Ec019_isSupply);
-    Constants.SDK.hook(ProgressEc019UnlockItemManager_type_def:get_method("isSupplyMR"), PreHook_Ec019_isSupply, PostHook_Ec019_isSupplyMR);
-    Constants.SDK.hook(ProgressSwitchActionSupplyManager_type_def:get_method("isEnableSupply"), PreHook_SwitchAction_isEnableSupply, PostHook_SwitchAction_isEnableSupply);
-    Constants.SDK.hook(ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine"), PreHook_checkSupplyAnyFigurine, PostHook_checkSupplyAnyFigurine);
-    Constants.SDK.hook(ProgressNoteRewardManager_type_def:get_method("checkSupplyAnyFigurine_MR"), PreHook_checkSupplyAnyFigurine, PostHook_checkSupplyAnyFigurine);
 end
 
 return this;

@@ -46,6 +46,7 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpa
     end
     SendMessage(InventorySupply.Restock(nil, nil));
     CohootSupply.Supply();
+    AutoTicketsSupply.Supply();
 end);
 
 AutoTicketsSupply.init();
