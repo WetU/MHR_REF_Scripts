@@ -49,93 +49,60 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 
 local get_CurrentVillageNo_method = Constants.SDK.find_type_definition("snow.VillageAreaManager"):get_method("get_CurrentVillageNo");
 
-local ELGADO = get_CurrentVillageNo_method:get_return_type():get_field("Village02"):get_data(nil);
+local VillageNo_type_def = get_CurrentVillageNo_method:get_return_type();
+local KAMURA = VillageNo_type_def:get_field("Village01"):get_data(nil);
+local ELGADO = VillageNo_type_def:get_field("Village02"):get_data(nil);
 
 local TalkAttribute_NONE = Constants.SDK.find_type_definition("snow.npc.TalkAttribute"):get_field("TALK_ATTR_NONE"):get_data(nil);
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
-local Bahari_Id = NpcId_type_def:get_field("nid503"):get_data(nil);
-local Pingarh_Id = NpcId_type_def:get_field("nid715"):get_data(nil);
+local npcList = {
+    ["KAMURA"] = {
+        NpcId_type_def:get_field("nid001"):get_data(nil),  -- Fugen
+        NpcId_type_def:get_field("nid003"):get_data(nil),  -- Kagero
+        NpcId_type_def:get_field("nid004"):get_data(nil),  -- Yomogi
+        NpcId_type_def:get_field("nid101"):get_data(nil),  -- Hojo
+        NpcId_type_def:get_field("nid302"):get_data(nil)   -- Iori
+    },
+    ["ELGADO"] = {
+        NpcId_type_def:get_field("nid502"):get_data(nil),  -- Galleus
+        NpcId_type_def:get_field("nid503"):get_data(nil),  -- Bahari
+        NpcId_type_def:get_field("nid606"):get_data(nil),  -- Nagi
+        NpcId_type_def:get_field("nid607"):get_data(nil),  -- Oboro
+        NpcId_type_def:get_field("nid608"):get_data(nil),  -- Azuki
+        NpcId_type_def:get_field("nid715"):get_data(nil)   -- Pingarh
+    }
+};
+--
+local function hasNpcId(NpcId)
+    if NpcId == nil then
+        return nil;
+    end
+
+    for village, ids in Constants.LUA.pairs(npcList) do
+        for _, id in Constants.LUA.ipairs(ids) do
+            if NpcId == id then
+                return village;
+            end
+        end
+    end
+    return nil;
+end
 --
 local ctorObjList = nil;
 local npcTalkMessageList = nil;
 
-local function talkAction(npcTalkMessageCtrl, isCtorObj)
-    if isCtorObj then
-        npcTalkMessageCtrl:call("resetTalkDispName");
-        npcTalkMessageCtrl:call("executeTalkAction");
-        npcTalkMessageCtrl:call("set_DetermineSpeechBalloonMessage(System.String)", nil);
-        npcTalkMessageCtrl:call("set_SpeechBalloonAttr(snow.npc.TalkAttribute)", TalkAttribute_NONE);
-    else
-        resetTalkDispName_method:call(npcTalkMessageCtrl);
-        executeTalkAction_method:call(npcTalkMessageCtrl);
-        set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
-        set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TalkAttribute_NONE);
-    end
-end
-
-local ctorObj = nil;
-local function PreHook_ctor(args)
-    ctorObj = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_ctor()
-    if ctorObj then
-        if not ctorObjList then
-            ctorObjList = {ctorObj};
-        else
-            Constants.LUA.table_insert(ctorObjList, ctorObj);
+local function isListValid(objList)
+    local valid = nil;
+    for k, v in Constants.LUA.pairs(objList) do
+        if v ~= nil and Constants.SDK.is_managed_object(v) == true then
+            valid = true;
         end
     end
-    ctorObj = nil;
+    return valid;
 end
 
-local NpcTalkMessageCtrl = nil;
-local function PreHook_getTalkTarget(args)
-    NpcTalkMessageCtrl = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_getTalkTarget()
-    if NpcTalkMessageCtrl then
-        local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-        if NpcId == Pingarh_Id or NpcId == Bahari_Id then
-            if not npcTalkMessageList then
-                npcTalkMessageList = {NpcTalkMessageCtrl};
-            else
-                Constants.LUA.table_insert(npcTalkMessageList, NpcTalkMessageCtrl);
-            end
-        end
-    end
-    NpcTalkMessageCtrl = nil;
-end
-
-local function PostHook_getCurrentMapNo(retval)
-    if ctorObjList or npcTalkMessageList then
-        local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-        if VillageAreaManager and get_CurrentVillageNo_method:call(VillageAreaManager) == ELGADO then
-            if ctorObjList then
-                for _, v in Constants.LUA.pairs(ctorObjList) do
-                    if v ~= nil and Constants.SDK.is_managed_object(v) then
-                        local NpcId = v:call("get_NpcId");
-                        if NpcId == Pingarh_Id or NpcId == Bahari_Id then
-                            talkAction(v, true);
-                        end
-                    end
-                end
-            end
-            if npcTalkMessageList then
-                for _, v in Constants.LUA.pairs(npcTalkMessageList) do
-                    if v ~= nil and Constants.SDK.is_managed_object(v) then
-                        talkAction(v, false);
-                    end
-                end
-            end
-            ctorObjList = nil;
-            npcTalkMessageList = nil;
-        end
-    end
-    return retval;
-end
-
-function this.Supply()
+local function SupplyRewards()
     local ProgressGoodRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressGoodRewardManager");
     if ProgressGoodRewardManager ~= nil and checkReward_method:call(ProgressGoodRewardManager) == true then
         supplyReward_method:call(ProgressGoodRewardManager);
@@ -176,11 +143,120 @@ function this.Supply()
     end
 end
 
+local function talkAction(npcTalkMessageCtrl, isCtorObj)
+    if isCtorObj == true then
+        npcTalkMessageCtrl:call("resetTalkDispName");
+        npcTalkMessageCtrl:call("executeTalkAction");
+        npcTalkMessageCtrl:call("set_DetermineSpeechBalloonMessage(System.String)", nil);
+        npcTalkMessageCtrl:call("set_SpeechBalloonAttr(snow.npc.TalkAttribute)", TalkAttribute_NONE);
+    else
+        resetTalkDispName_method:call(npcTalkMessageCtrl);
+        executeTalkAction_method:call(npcTalkMessageCtrl);
+        set_DetermineSpeechBalloonMessage_method:call(npcTalkMessageCtrl, nil);
+        set_SpeechBalloonAttr_method:call(npcTalkMessageCtrl, TalkAttribute_NONE);
+    end
+end
+
+local ctorObj = nil;
+local function PreHook_ctor(args)
+    ctorObj = Constants.SDK.to_managed_object(args[2]);
+end
+local function PostHook_ctor()
+    if ctorObj == nil then
+        return;
+    end
+
+    if ctorObjList == nil then
+        ctorObjList = {ctorObj};
+    else
+        Constants.LUA.table_insert(ctorObjList, ctorObj);
+    end
+    ctorObj = nil;
+end
+
+local NpcTalkMessageCtrl = nil;
+local function PreHook_getTalkTarget(args)
+    NpcTalkMessageCtrl = Constants.SDK.to_managed_object(args[2]);
+end
+local function PostHook_getTalkTarget()
+    if NpcTalkMessageCtrl == nil then
+        return;
+    end
+    local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
+    if hasNpcId(NpcId) ~= nil then
+        if npcTalkMessageList == nil then
+            npcTalkMessageList = {};
+        end
+        if npcTalkMessageList[NpcId] == nil then
+            npcTalkMessageList[NpcId] = NpcTalkMessageCtrl;
+        end
+    end
+    NpcTalkMessageCtrl = nil;
+end
+
+function this.Supply()
+    SupplyRewards();
+    if ctorObjList == nil and npcTalkMessageList == nil then
+        return;
+    end
+    
+    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+    if VillageAreaManager == nil then
+        return;
+    end
+    
+    local CurrentVillageNo = get_CurrentVillageNo_method:call(VillageAreaManager);
+    if CurrentVillageNo == nil then
+        return;
+    end
+    
+    if ctorObjList ~= nil then
+        for i = 1, #ctorObjList, 1 do
+            local obj = ctorObjList[i];
+            if obj ~= nil and Constants.SDK.is_managed_object(obj) == true then
+                local NpcId = obj:call("get_NpcId");
+                if NpcId ~= nil then
+                    local npcVillage = hasNpcId(NpcId);
+                    if npcVillage ~= nil then
+                        if (npcVillage == "KAMURA" and CurrentVillageNo == KAMURA) or (npcVillage == "ELGADO" and CurrentVillageNo == ELGADO) then
+                            talkAction(obj, true);
+                            ctorObjList[i] = nil;
+                        end
+                    end
+                end
+            else
+                ctorObjList[i] = nil;
+            end
+        end
+        if isListValid(ctorObjList) ~= true then
+            ctorObjList = nil;
+        end
+    end
+
+    if npcTalkMessageList ~= nil then
+        for npcid, obj in Constants.LUA.pairs(npcTalkMessageList) do
+            if obj ~= nil and Constants.SDK.is_managed_object(obj) == true then
+                local npcVillage = hasNpcId(npcid);
+                if npcVillage ~= nil then
+                    if (npcVillage == "KAMURA" and CurrentVillageNo == KAMURA) or (npcVillage == "ELGADO" and CurrentVillageNo == ELGADO) then
+                        talkAction(obj);
+                        npcTalkMessageList[npcid] = nil;
+                    end
+                end
+            else
+                npcTalkMessageList[npcid] = nil;
+            end
+        end
+        if isListValid(npcTalkMessageList) ~= true then
+            npcTalkMessageList = nil;
+        end
+    end
+end
+
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method(".ctor"), PreHook_ctor, PostHook_ctor);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
-    Constants.SDK.hook(Constants.SDK.find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"), nil, PostHook_getCurrentMapNo);
 end
 
 return this;

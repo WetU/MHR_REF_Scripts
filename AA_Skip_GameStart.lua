@@ -10,7 +10,7 @@ local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviort
 --
 local function ClearAction(args)
     local Action = Constants.SDK.to_managed_object(args[3]);
-    if Action then
+    if Action ~= nil then
         notifyActionEnd_method:call(Action);
     end
 end
@@ -20,7 +20,7 @@ local function PreHook_reqPlayReLogoMovie(args)
     GuiGameStart = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_reqPlayReLogoMovie()
-    if GuiGameStart then
+    if GuiGameStart ~= nil then
         stopReLogoMovie_method:call(GuiGameStart);
     end
     GuiGameStart = nil;
@@ -28,7 +28,7 @@ end
 
 local function PreHook_OtherLogoFadeIn(args)
 	local OtherLogoFadeIn = Constants.SDK.to_managed_object(args[2]);
-	if OtherLogoFadeIn then
+	if OtherLogoFadeIn ~= nil then
 		Constants.SDK.hook_vtable(OtherLogoFadeIn, OtherLogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 	end
 end

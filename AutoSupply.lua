@@ -17,7 +17,7 @@ local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui
 --
 local function SendMessage(text)
     local ChatManager = Constants.SDK.get_managed_singleton("snow.gui.ChatManager");
-    if ChatManager then
+    if ChatManager ~= nil then
         reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
     end
 end
@@ -28,9 +28,7 @@ Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_meth
     EquipDataManager = Constants.SDK.to_managed_object(args[2]);
     setIdx = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
 end, function(retval)
-    if EquipDataManager and setIdx ~= nil then
-        SendMessage(InventorySupply.Restock(EquipDataManager, setIdx));
-    end
+    SendMessage(InventorySupply.Restock(EquipDataManager, setIdx));
     EquipDataManager = nil;
     setIdx = nil;
     return retval;
