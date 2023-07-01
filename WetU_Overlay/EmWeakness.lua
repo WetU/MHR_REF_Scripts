@@ -4,8 +4,6 @@ if not Constants then
 end
 --
 local getEnemyNameMessage_method = Constants.SDK.find_type_definition("snow.gui.MessageManager"):get_method("getEnemyNameMessage(snow.enemy.EnemyDef.EmTypes)"); -- retval
-
-local GameStatusType_Village = Constants.SDK.find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 --
 local monsterListParam_field = Constants.type_definitions.GuiManager_type_def:get_field("monsterListParam");
 
@@ -28,16 +26,16 @@ local this = {
     EmAilmentData = nil
 };
 --
-local function TerminateMonsterHud()
+function this.TerminateMonsterHud()
     this.EmAilmentData = nil;
 end
 
 local QuestManager = nil;
-local function PreHook_questActivate(args)
-    TerminateMonsterHud();
+function this.PreHook_questActivate(args)
+    this.TerminateMonsterHud();
     QuestManager = Constants.SDK.to_managed_object(args[2]);
 end
-local function PostHook_questActivate()
+function this.PostHook_questActivate()
     if QuestManager and Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.None) and getQuestTargetTotalBossEmNum_method:call(QuestManager) > 0 then
         local QuestTargetEmTypeList = getQuestTargetEmTypeList_method:call(QuestManager);
         if QuestTargetEmTypeList then
@@ -96,18 +94,6 @@ local function PostHook_questActivate()
         end
     end
     QuestManager = nil;
-end
-
-local function PreHook_onChangedGameStatus(args)
-    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= GameStatusType_Village then
-        TerminateMonsterHud();
-    end
-end
-
-function this.init()
-    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), PreHook_questActivate, PostHook_questActivate);
-    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, TerminateMonsterHud);
-    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), PreHook_onChangedGameStatus);
 end
 
 return this;

@@ -3,10 +3,12 @@ local Constants = require("Constants.Constants");
 local EmWeakness = require("WetU_Overlay.EmWeakness");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
+local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
 if not Constants
 or not EmWeakness
 or not SpiribirdsStatus
-or not HarvestMoonTimer then
+or not HarvestMoonTimer
+or not OtomoSpyUnit then
 	return;
 end
 --
@@ -127,8 +129,28 @@ Constants.RE.on_frame(function()
         end
         Constants.IMGUI.pop_font();
     end
+
+    if OtomoSpyUnit.currentStep ~= nil then
+        Constants.IMGUI.push_font(Constants.Font);
+        if Constants.IMGUI.begin_window("동반자 활동", nil, 4096 + 64 + 512) then
+            Constants.IMGUI.text("조사 단계: " .. Constants.LUA.tostring(OtomoSpyUnit.currentStep) .. " / 5");
+            Constants.IMGUI.end_window();
+        end
+        Constants.IMGUI.pop_font();
+    end
 end);
 --
-EmWeakness.init();
 SpiribirdsStatus.init();
 HarvestMoonTimer.init();
+OtomoSpyUnit.init();
+--
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questActivate(snow.LobbyManager.QuestIdentifier)"), EmWeakness.PreHook_questActivate, EmWeakness.PostHook_questActivate);
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questCancel"), nil, EmWeakness.TerminateMonsterHud);
+Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
+    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType_Village then
+        EmWeakness.TerminateMonsterHud();
+        OtomoSpyUnit.TerminateOtomoSpyUnit();
+    else
+        OtomoSpyUnit.get_currentStepCount();
+    end
+end);

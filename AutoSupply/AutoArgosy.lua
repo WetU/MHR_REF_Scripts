@@ -47,37 +47,39 @@ function this.autoArgosy()
     local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
     local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
     if TradeCenterFacility ~= nil and DataManager ~= nil then
-        local tradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
-        if tradeFunc ~= nil then
-            local tradeOrderList = get_TradeOrderList_method:call(tradeFunc);
-            if tradeOrderList ~= nil then
-                local tradeOrderList_count = TradeOrderList_get_Count_method:call(tradeOrderList);
-                if tradeOrderList_count > 0 then
+        local TradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
+        if TradeFunc ~= nil then
+            local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
+            if TradeOrderList ~= nil then
+                local TradeOrderList_count = TradeOrderList_get_Count_method:call(TradeOrderList);
+                if TradeOrderList_count > 0 then
                     local isReceived = false;
-                    for i = 0, tradeOrderList_count - 1, 1 do
-                        local tradeOrder = TradeOrderList_get_Item_method:call(tradeOrderList, i);
-                        if tradeOrder ~= nil then
-                            local negotiationCount = get_NegotiationCount_method:call(tradeOrder);
-                            if negotiationCount == 1 then
-                                local negotiationData = getNegotiationData_method:call(tradeFunc, get_NegotiationType_method:call(tradeOrder));
-                                if negotiationData ~= nil then
-                                    local negotiationCost = get_Cost_method:call(negotiationData);
-                                    if negotiationCost ~= nil and get_Point_method:call(nil) >= negotiationCost then
-                                        setNegotiationCount_method:call(tradeOrder, negotiationCount + NegotiationData_get_Count_method:call(negotiationData));
-                                        subPoint_method:call(nil, negotiationCost);
+                    for i = 0, TradeOrderList_count - 1, 1 do
+                        local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
+                        if TradeOrder ~= nil then
+                            local NegotiationCount = get_NegotiationCount_method:call(TradeOrder);
+                            local NegotiationType = get_NegotiationType_method:call(TradeOrder);
+                            if NegotiationCount == 1 and NegotiationType ~= nil then
+                                local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationType);
+                                if NegotiationData ~= nil then
+                                    local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
+                                    local Cost = get_Cost_method:call(NegotiationData);
+                                    if NegotiationData_count ~= nil and Cost ~= nil and get_Point_method:call(nil) >= Cost then
+                                        setNegotiationCount_method:call(TradeOrder, NegotiationCount + NegotiationData_count);
+                                        subPoint_method:call(nil, Cost);
                                     end
                                 end
                             end
 
-                            local inventoryList = get_InventoryList_method:call(tradeOrder);
-                            if inventoryList ~= nil then
-                                local inventoryList_count = InventoryList_get_Count_method:call(inventoryList);
-                                if inventoryList_count > 0 then
-                                    for j = 0, inventoryList_count - 1, 1 do
-                                        local inventory = InventoryList_get_Item_method:call(inventoryList, i);
-                                        if inventory ~= nil and not isEmpty_method:call(inventory) then
-                                            if sendInventory_method:call(inventory, inventory, inventory, 65536) ~= SendInventoryResult_AllSended then
-                                                trySellGameItem_method:call(DataManager, inventory, Inventory_get_Count_method:call(inventory));
+                            local InventoryList = get_InventoryList_method:call(TradeOrder);
+                            if InventoryList ~= nil then
+                                local InventoryList_count = InventoryList_get_Count_method:call(InventoryList);
+                                if InventoryList_count > 0 then
+                                    for j = 0, InventoryList_count - 1, 1 do
+                                        local Inventory = InventoryList_get_Item_method:call(InventoryList, i);
+                                        if Inventory ~= nil and not isEmpty_method:call(Inventory) then
+                                            if sendInventory_method:call(Inventory, Inventory, Inventory, 65536) ~= SendInventoryResult_AllSended then
+                                                trySellGameItem_method:call(DataManager, Inventory, Inventory_get_Count_method:call(Inventory));
                                             end
                                             isReceived = true;
                                         end
@@ -85,7 +87,7 @@ function this.autoArgosy()
                                 end
                             end
 
-                            initialize_method:call(tradeOrder);
+                            initialize_method:call(TradeOrder);
                         end
                     end
                     return isReceived;

@@ -127,6 +127,7 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
 });
 this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
+this.type_definitions.SnowGameManager_type_def = this.SDK.find_type_definition("snow.SnowGameManager");
 this.type_definitions.DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager");
 this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
@@ -141,6 +142,8 @@ local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):g
 local QuestStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
 this.QuestStatus.None = QuestStatus_type_def:get_field("None"):get_data(nil);
 this.QuestStatus.Success = QuestStatus_type_def:get_field("Success"):get_data(nil);
+
+this.GameStatusType_Village = this.SDK.find_type_definition("snow.SnowGameManager.StatusType"):get_field("Village"):get_data(nil);
 
 function this.GetMasterPlayerId(idx)
     this.MasterPlayerIndex = idx ~= nil and idx or getMasterPlayerID_method:call(this.SDK.get_managed_singleton("snow.player.PlayerManager"));
