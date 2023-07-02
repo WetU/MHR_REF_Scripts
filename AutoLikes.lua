@@ -17,11 +17,11 @@ local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(S
 local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field("_Enable");
 -- Main Function
 local GoodRelationshipHud = nil;
-local sendReady = nil;
+local sendReady = false;
 
 local function PreHook_doOpen(args)
 	GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
-	sendReady = nil;
+	sendReady = false;
 end
 local function PostHook_doOpen()
 	if GoodRelationshipHud ~= nil then
@@ -38,19 +38,22 @@ local function PostHook_updatePlayerInfo()
 	if GoodRelationshipHud ~= nil then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos ~= nil then
-			local isChanged = false;
-			for i = 0, PlInfos_get_Count_method:call(OtherPlayerInfos) - 1, 1 do
-				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
-				if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
-					OtherPlayerInfo:set_field("_good", true);
-					PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-					isChanged = true;
+			local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
+			if PlInfos_count ~= nil and PlInfos_count > 0 then
+				local isChanged = false;
+				for i = 0, PlInfos_count - 1, 1 do
+					local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+					if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
+						OtherPlayerInfo:set_field("_good", true);
+						PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+						isChanged = true;
+					end
 				end
+				if isChanged == true then
+					GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
+				end
+				sendReady = true;
 			end
-			if isChanged == true then
-				GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
-			end
-			sendReady = true;
 		end
 	end
 	GoodRelationshipHud = nil;
@@ -63,7 +66,7 @@ local function PreHook_isOperationOn(args)
 end
 local function PostHook_isOperationOn(retval)
 	if sendReady == true then
-		sendReady = nil;
+		sendReady = false;
 		return Constants.TRUE_POINTER;
 	end
 	return retval;

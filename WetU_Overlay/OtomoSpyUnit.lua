@@ -5,8 +5,6 @@ end
 --
 local this = {currentStep = nil};
 --
-local get_CurrentStatus_method = Constants.type_definitions.SnowGameManager_type_def:get_method("get_CurrentStatus");
-
 local OtomoSpyUnitManager_type_def = Constants.SDK.find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
 local get_NowStepCount_method = OtomoSpyUnitManager_type_def:get_method("get_NowStepCount");
@@ -33,8 +31,7 @@ local function get_currentStepCount()
 end
 
 function this.init()
-    local SnowGameManager = Constants.SDK.get_managed_singleton("snow.SnowGameManager");
-    if SnowGameManager ~= nil and get_CurrentStatus_method:call(SnowGameManager) == Constants.GameStatusType_Village then
+    if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
         get_currentStepCount();
     end
     Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
@@ -45,7 +42,7 @@ function this.init()
         end
     end);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
-        if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType_Village then
+        if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
             TerminateOtomoSpyUnit();
         else
             get_currentStepCount();

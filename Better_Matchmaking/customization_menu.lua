@@ -27,17 +27,17 @@ function this.draw()
 
 	this.is_opened = imgui.begin_window("Better Matchmaking v" .. config.current_config.version, this.is_opened, this.window_flags);
 
-	if not this.is_opened then
+	if this.is_opened == false then
 		Constants.IMGUI.end_window();
 		return;
 	end
 
-	Constants.IMGUI.text("Status: " .. Constants.LUA.tostring(this.status));
+	Constants.IMGUI.text("Status: " .. this.status);
 
-	if Constants.IMGUI.tree_node("Timeout Fix") then
+	if Constants.IMGUI.tree_node("Timeout Fix") == true then
 		local config_changed = false;
 		config_changed, config.current_config.timeout_fix.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.timeout_fix.enabled);
-		if Constants.IMGUI.tree_node("Quest Types") then
+		if Constants.IMGUI.tree_node("Quest Types") == true then
 			local changed = false;
 			changed, config.current_config.timeout_fix.quest_types.regular = Constants.IMGUI.checkbox("Regular", config.current_config.timeout_fix.quest_types.regular);
 			config_changed = config_changed or changed;
@@ -54,21 +54,21 @@ function this.draw()
 			Constants.IMGUI.tree_pop();
 		end
 		Constants.IMGUI.tree_pop();
-		if config_changed then
+		if config_changed == true then
 			config.save();
 		end
 	end
 
-	if Constants.IMGUI.tree_node("Region Lock Fix (Join Requests)") then
+	if Constants.IMGUI.tree_node("Region Lock Fix (Join Requests)") == true then
 		local config_changed = false;
 		config_changed, config.current_config.region_lock_fix.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.region_lock_fix.enabled);
 		local changed, index = Constants.IMGUI.combo("Distance Filter", utils.table.find_index(this.region_lock_filters, config.current_config.region_lock_fix.distance_filter), this.region_lock_filters);
 		config_changed = config_changed or changed;
-		if changed then
+		if changed == true then
 			config.current_config.region_lock_fix.distance_filter = this.region_lock_filters[index];
 		end
 
-		if Constants.IMGUI.tree_node("Explanation") then
+		if Constants.IMGUI.tree_node("Explanation") == true then
 			--k_ELobbyDistanceFilterClose	0	Only lobbies in the same immediate region will be returned.
 			--k_ELobbyDistanceFilterDefault	1	Only lobbies in the same region or nearby regions will be returned.
 			--k_ELobbyDistanceFilterFar	2	For games that don't have many latency requirements, will return lobbies about half-way around the globe.
@@ -82,15 +82,15 @@ function this.draw()
 			Constants.IMGUI.tree_pop();
 		end
 		Constants.IMGUI.tree_pop();
-		if config_changed then
+		if config_changed == true then
 			config.save();
 		end
 	end
 
-	if Constants.IMGUI.tree_node("Hide Network Errors") then
+	if Constants.IMGUI.tree_node("Hide Network Errors") == true then
 		local config_changed = false;
 		config_changed, config.current_config.hide_network_errors.enabled = Constants.IMGUI.checkbox("Enabled", config.current_config.hide_network_errors.enabled);
-		if Constants.IMGUI.tree_node("When to hide") then
+		if Constants.IMGUI.tree_node("When to hide") == true then
 			local changed = false;
 			changed, config.current_config.hide_network_errors.when_to_hide.on_quests = Constants.IMGUI.checkbox("On Quests", config.current_config.hide_network_errors.when_to_hide.on_quests);
 			config_changed = config_changed or changed;
@@ -99,16 +99,16 @@ function this.draw()
 			Constants.IMGUI.tree_pop();
 		end
 		Constants.IMGUI.tree_pop();
-		if config_changed then
+		if config_changed == true then
 			config.save();
 		end
 	end
 
-	if Constants.IMGUI.tree_node("Misc") then
+	if Constants.IMGUI.tree_node("Misc") == true then
 		local config_changed = false;
 		config_changed, config.current_config.hide_online_warning.enabled = Constants.IMGUI.checkbox("Hide Online Warning", config.current_config.hide_online_warning.enabled);
 		Constants.IMGUI.tree_pop();
-		if config_changed then
+		if config_changed == true then
 			config.save();
 		end
 	end

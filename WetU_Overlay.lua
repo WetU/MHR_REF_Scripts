@@ -10,19 +10,6 @@ or not OtomoSpyUnit then
 	return;
 end
 --
-local LocalizedConditionType = {
-    "독",
-    "기절",
-    "마비",
-    "수면",
-    "폭파",
-    "기력 감소",
-    "불",
-    "물",
-    "번개",
-    "얼음"
-};
-
 local LocalizedBirdTypes = {
     ["Atk"] = "공격력",
     ["Def"] = "방어력",
@@ -50,8 +37,8 @@ end
 Constants.RE.on_frame(function()
     if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) then
-            if Constants.IMGUI.begin_table("종류", 3, 2097152) then
+        if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
+            if Constants.IMGUI.begin_table("종류", 3, 2097152) == true then
                 Constants.IMGUI.table_setup_column("유형", 8, 25.0);
                 Constants.IMGUI.table_setup_column("횟수", 8, 20.0);
                 Constants.IMGUI.table_setup_column("수치", 8, 25.0);
@@ -71,7 +58,7 @@ Constants.RE.on_frame(function()
         Constants.IMGUI.pop_font();
     elseif SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) then
+        if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
             Constants.IMGUI.text(SpiribirdsStatus.SpiribirdsCall_Timer);
             Constants.IMGUI.end_window();
         end
@@ -80,7 +67,7 @@ Constants.RE.on_frame(function()
 
     if HarvestMoonTimer.CircleTimer ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) then
+        if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) == true then
             Constants.IMGUI.text(HarvestMoonTimer.CircleTimer);
             Constants.IMGUI.end_window();
         end
@@ -89,7 +76,7 @@ Constants.RE.on_frame(function()
 
     if OtomoSpyUnit.currentStep ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("동반자 활동", nil, 4096 + 64 + 512) then
+        if Constants.IMGUI.begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
             Constants.IMGUI.text(OtomoSpyUnit.currentStep);
             Constants.IMGUI.end_window();
         end

@@ -24,10 +24,10 @@ end
 Constants.RE.on_script_reset(applyFps);
 Constants.RE.on_config_save(save_config);
 Constants.RE.on_draw_ui(function()
-	if Constants.IMGUI.tree_node("RiseTweaks") then
+	if Constants.IMGUI.tree_node("RiseTweaks") == true then
 		local config_changed = false;
 		config_changed, config.desiredFPS = Constants.IMGUI.slider_float("Frame Rate", config.desiredFPS, 10.0, 600.0, "%.2f");
-		if config_changed then
+		if config_changed == true then
 			applyFps();
 			save_config();
 		end

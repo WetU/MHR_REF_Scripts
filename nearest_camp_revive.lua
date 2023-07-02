@@ -9,24 +9,24 @@ local GetTransform_method = Constants.type_definitions.CameraManager_type_def:ge
 
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
-local stagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
-local get_FastTravelPointList_method = stagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
-local tentPositionList_field = stagePointManager_type_def:get_field("_TentPositionList");
+local StagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
+local get_FastTravelPointList_method = StagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
+local TentPositionList_field = StagePointManager_type_def:get_field("_TentPositionList");
 
-local fastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
-local fastTravelPointList_get_Count_method = fastTravelPointList_type_def:get_method("get_Count"); -- retval
-local fastTravelPointList_get_Item_method = fastTravelPointList_type_def:get_method("get_Item(System.Int32)"); -- retval
+local FastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
+local FastTravelPointList_get_Count_method = FastTravelPointList_type_def:get_method("get_Count"); -- retval
+local FastTravelPointList_get_Item_method = FastTravelPointList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local get_Points_method = fastTravelPointList_get_Item_method:get_return_type():get_method("get_Points"); -- retval
+local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points"); -- retval
 
 local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
 
-local tentPositionList_type_def = tentPositionList_field:get_type();
-local tentPositionList_get_Count_method = tentPositionList_type_def:get_method("get_Count"); -- retval
-local tentPositionList_get_Item_method = tentPositionList_type_def:get_method("get_Item(System.Int32)"); -- retval
+local TentPositionList_type_def = TentPositionList_field:get_type();
+local TentPositionList_get_Count_method = TentPositionList_type_def:get_method("get_Count"); -- retval
+local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("get_Item(System.Int32)"); -- retval
 
-local stageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
-local setPlWarpInfo_method = stageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
+local StageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
+local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 
 local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 --
@@ -66,7 +66,7 @@ local nekoTaku = nil;
 
 local function getCurrentMapNo()
     local QuestMapManager = Constants.SDK.get_managed_singleton("snow.QuestMapManager");
-    if QuestMapManager then
+    if QuestMapManager ~= nil then
         return get_CurrentMapNo_method:call(QuestMapManager);
     end
     return nil;
@@ -74,9 +74,9 @@ end
 
 local function getCurrentPosition()
     local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
-    if CameraManager then
+    if CameraManager ~= nil then
         local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
-        if Transform then
+        if Transform ~= nil then
             return get_Position_method:call(Transform);
         end
     end
@@ -85,13 +85,13 @@ end
 
 local function getFastTravelPt(stagePointManager, index)
     local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
-    if FastTravelPointList then
-        local count = fastTravelPointList_get_Count_method:call(FastTravelPointList);
+    if FastTravelPointList ~= nil then
+        local count = FastTravelPointList_get_Count_method:call(FastTravelPointList);
         if count > 0 and (index >= 0 and index <= count - 1) then
-            local FastTravelPoint = fastTravelPointList_get_Item_method:call(FastTravelPointList, index);
-            if FastTravelPoint then
+            local FastTravelPoint = FastTravelPointList_get_Item_method:call(FastTravelPointList, index);
+            if FastTravelPoint ~= nil then
                 local Points = get_Points_method:call(FastTravelPoint);
-                if Points then
+                if Points ~= nil then
                     return Points_get_Item_method:call(Points, 0);
                 end
             end
@@ -101,18 +101,19 @@ local function getFastTravelPt(stagePointManager, index)
 end
 
 local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
-    local camps_count = tentPositionList_get_Count_method:call(camps);
-    if camps_count > 0 then
+    local camps_count = TentPositionList_get_Count_method:call(camps);
+    if camps_count ~= nil and camps_count > 0 then
         local currentPos = getCurrentPosition();
         if currentPos ~= nil then
             local nearestCamp = nil;
             local nearestDistance = nil;
             local nearestCampIndex = nil;
             for i = 0, camps_count - 1, 1 do
-                local camp = tentPositionList_get_Item_method:call(camps, i);
-                if camp then
-                    local distance = ((currentPos.x - camp.x) ^ 2 + (currentPos.z - camp.z) ^ 2) ^ 0.5;
-                    if (i == 0) or ((nearestDistance ~= nil and distance < nearestDistance) and camp.x ~= 0.0) then
+                local camp = TentPositionList_get_Item_method:call(camps, i);
+                if camp ~= nil then
+                    local camp_x = camp.x;
+                    local distance = ((currentPos.x - camp_x) ^ 2 + (currentPos.z - camp.z) ^ 2) ^ 0.5;
+                    if (i == 0) or ((nearestDistance ~= nil and distance < nearestDistance) and camp_x ~= 0.0) then
                         nearestCamp = camp;
                         nearestDistance = distance;
                         nearestCampIndex = i;
@@ -121,7 +122,7 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
             end
             if nearestCampIndex ~= nil then
                 local fastTravelPt = getFastTravelPt(stagePointManager, nearestCampIndex);
-                if not fastTravelPt and nearestCamp ~= nil then
+                if fastTravelPt == nil and nearestCamp ~= nil then
                     fastTravelPt = nearestCamp;
                 end
                 if nearestCampIndex ~= 0 and fastTravelPt ~= nil then
@@ -129,7 +130,7 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
                     skipWarpNeko = true;
                     reviveCamp = Constants.VECTOR3f.new(fastTravelPt.x, fastTravelPt.y, fastTravelPt.z);
                     nekoTaku = nekoTakuPos[nearestCampIndex];
-                    if not nekoTaku and reviveCamp ~= nil then
+                    if nekoTaku == nil and reviveCamp ~= nil then
                         nekoTaku = reviveCamp;
                     end
                 end
@@ -141,8 +142,8 @@ end
 local function PreHook_startToPlayPlayerDieMusic()
     local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
     local mapNo = getCurrentMapNo();
-    if StagePointManager and mapNo ~= nil then
-        local camps = tentPositionList_field:get_data(StagePointManager);
+    if StagePointManager ~= nil and mapNo ~= nil then
+        local camps = TentPositionList_field:get_data(StagePointManager);
         local nekoTakuItem = nekoTakuList[mapNo];
         if camps ~= nil and nekoTakuItem ~= nil then
             skipCreateNeko = false;
@@ -155,13 +156,13 @@ local function PreHook_startToPlayPlayerDieMusic()
 end
 
 local function PreHook_createNekotaku(args)
-    if skipCreateNeko then
+    if skipCreateNeko == true then
         skipCreateNeko = false;
         if nekoTaku ~= nil then
             local NekotakuManager = Constants.SDK.to_managed_object(args[2]);
             local PlIndex = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
             local AngleY = Constants.SDK.to_float(args[5]);
-            if NekotakuManager and PlIndex ~= nil and AngleY ~= nil then
+            if NekotakuManager ~= nil and PlIndex ~= nil and AngleY ~= nil then
                 createNekotaku_method:call(NekotakuManager, PlIndex, nekoTaku, AngleY);
                 return Constants.SDK.SKIP_ORIGINAL;
             end
@@ -170,11 +171,11 @@ local function PreHook_createNekotaku(args)
 end
 
 local function PreHook_setPlWarpInfo_Nekotaku(args)
-    if skipWarpNeko then
+    if skipWarpNeko == true then
         skipWarpNeko = false;
         if reviveCamp ~= nil then
             local StageManager = Constants.SDK.to_managed_object(args[2]);
-            if StageManager then
+            if StageManager ~= nil then
                 setPlWarpInfo_method:call(StageManager, reviveCamp, 0.0, AreaMoveQuest_Die);
                 return Constants.SDK.SKIP_ORIGINAL;
             end
@@ -184,4 +185,4 @@ end
 
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), PreHook_startToPlayPlayerDieMusic);
 Constants.SDK.hook(createNekotaku_method, PreHook_createNekotaku);
-Constants.SDK.hook(stageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);
+Constants.SDK.hook(StageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);

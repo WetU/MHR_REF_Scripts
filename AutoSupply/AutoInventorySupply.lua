@@ -39,9 +39,9 @@ local this = {};
 local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local getItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
+local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
 
-local ItemMySet_type_def = getItemMySet_method:get_return_type();
+local ItemMySet_type_def = get_ItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
 local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)"); -- retval
 
@@ -73,33 +73,30 @@ local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
 local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)"); -- retval
 
-local palletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
+local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
 
-local palletteSetData_get_Name_method = palletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
+local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
 
 local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 ----------- Equipment Loadout Managementt ----
-local function ApplyItemLoadout(loadoutIndex)
-    local ItemMySet = getItemMySet_method:call(nil);
-    if ItemMySet then
-        return applyItemMySet_method:call(ItemMySet, loadoutIndex);
-    end
-    return nil;
-end
-
 local function GetItemLoadoutName(loadoutIndex)
-	local ItemLoadout = getData_method:call(getItemMySet_method:call(nil), loadoutIndex);
-	if ItemLoadout then
-		return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
-	end
+    if loadoutIndex ~= nil then
+        local ItemMySet = get_ItemMySet_method:call(nil);
+        if ItemMySet ~= nil then
+            local ItemLoadout = getData_method:call(ItemMySet, loadoutIndex);
+            if ItemLoadout ~= nil then
+                return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
+            end
+        end
+    end
     return nil;
 end
 
 local function GetCurrentWeaponType()
     local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
-    if PlayerManager then
+    if PlayerManager ~= nil then
         local MasterPlayer = findMasterPlayer_method:call(PlayerManager);
-        if MasterPlayer then
+        if MasterPlayer ~= nil then
             return playerWeaponType_field:get_data(MasterPlayer);
         end
     end
@@ -107,12 +104,12 @@ local function GetCurrentWeaponType()
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
-    if not equipDataManager then
+    if equipDataManager == nil then
         equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
     end
-    if equipDataManager and loadoutIndex ~= nil then
+    if equipDataManager ~= nil and loadoutIndex ~= nil then
         local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
-        if PlEquipMySetList then
+        if PlEquipMySetList ~= nil then
             return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
         end
     end
@@ -120,37 +117,51 @@ local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
 end
 
 local function GetEquipmentLoadoutWeaponType(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
-	if EquipmentLoadout then
-		local WeaponData = getWeaponData_method:call(EquipmentLoadout);
-		if WeaponData then
-			return get_PlWeaponType_method:call(WeaponData);
-		end
-	end
+    if loadoutIndex ~= nil then
+        local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
+        if EquipmentLoadout ~= nil then
+            local WeaponData = getWeaponData_method:call(EquipmentLoadout);
+            if WeaponData ~= nil then
+                return get_PlWeaponType_method:call(WeaponData);
+            end
+        end
+    end
     return nil;
 end
 
 local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
-	if EquipmentLoadout then
-		return get_Name_method:call(EquipmentLoadout);
-	end
+    if equipDataManager == nil then
+        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+    end
+    if equipDataManager ~= nil and loadoutIndex ~= nil then
+        local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
+        if EquipmentLoadout ~= nil then
+            return get_Name_method:call(EquipmentLoadout);
+        end
+    end
     return nil;
 end
 
 local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
-	if EquipmentLoadout then
-		return get_IsUsing_method:call(EquipmentLoadout);
-	end
+    if loadoutIndex ~= nil then
+        local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
+        if EquipmentLoadout ~= nil then
+            return get_IsUsing_method:call(EquipmentLoadout);
+        end
+    end
     return nil;
 end
 
 local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
-	local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
-	if EquipmentLoadout then
-		return isSamePlEquipPack_method:call(EquipmentLoadout);
-	end
+    if equipDataManager == nil then
+        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+    end
+    if equipDataManager ~= nil and loadoutIndex ~= nil then
+        local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
+        if EquipmentLoadout ~= nil then
+            return isSamePlEquipPack_method:call(EquipmentLoadout);
+        end
+    end
     return nil;
 end
 
@@ -191,74 +202,34 @@ local LocalizedStrings = {
     PaletteListEmpty = "팔레트 설정이 비어있습니다"
 };
 
-local function Localized()
-    return LocalizedStrings;
-end
-
 local function GetWeaponName(weaponType)
     if weaponType == nil then
 		return "<ERROR>:GetWeaponName failed";
 	end
-	return Localized().WeaponNames[weaponType];
-end
-
-local function UseDefaultItemSet()
-    return Localized().UseDefaultItemSet;
-end
-
-local function WeaponTypeNotSetUseDefault(weaponName, itemName)
-    return Constants.LUA.string_format(Localized().WeaponTypeNotSetUseDefault, weaponName, itemName);
-end
-
-local function UseWeaponTypeItemSet(weaponName, itemName)
-    return Constants.LUA.string_format(Localized().UseWeaponTypeItemSet, weaponName, itemName);
-end
-
-local function FromLoadout(equipName, itemName)
-    return Constants.LUA.string_format(Localized().FromLoadout, equipName, itemName);
+	return LocalizedStrings.WeaponNames[weaponType];
 end
 
 local function FromWeaponType(equipName, itemName, mismatch)
     local msg = "";
     if mismatch then
-        msg = Localized().MismatchLoadout;
+        msg = LocalizedStrings.MismatchLoadout;
     end
-    return msg .. Constants.LUA.string_format(Localized().FromWeaponType, equipName, itemName);
+    return msg .. Constants.LUA.string_format(LocalizedStrings.FromWeaponType, equipName, itemName);
 end
 
 local function FromDefault(itemName, mismatch)
     local msg = "";
     if mismatch then
-        msg = Constants.LUA.string_format(Localized().MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
+        msg = Constants.LUA.string_format(LocalizedStrings.MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
     end
-    return msg .. Constants.LUA.string_format(Localized().FromDefault, itemName);
-end
-
-local function OutOfStock(itemName)
-    return Constants.LUA.string_format(Localized().OutOfStock, itemName);
-end
-
-local function PaletteNilError()
-    return Localized().PaletteNilError;
-end
-
-local function PaletteApplied(paletteName)
-    return Constants.LUA.string_format(Localized().PaletteApplied, paletteName);
-end
-
-local function PaletteListEmpty()
-    return Localized().PaletteListEmpty;
-end
-
-local function EquipmentChanged()
-    return "마지막 장비 프리셋 적용 이후 장비가 변경되었습니다.";
+    return msg .. Constants.LUA.string_format(LocalizedStrings.FromDefault, itemName);
 end
 
 ---------------      CORE      ----------------
 local function GetWeaponTypeItemLoadoutName(weaponType)
     local got = config.WeaponTypeConfig[weaponType + 1];
     if got == nil or got == -1 then
-        return UseDefaultItemSet();
+        return LocalizedStrings.UseDefaultItemSet;
     end
     return GetItemLoadoutName(got);
 end
@@ -267,11 +238,13 @@ local function GetLoadoutItemLoadoutIndex(loadoutIndex)
     local got = config.EquipLoadoutConfig[loadoutIndex + 1];
     if got == nil or got == -1 then
         local weaponType = GetEquipmentLoadoutWeaponType(loadoutIndex);
-        got = config.WeaponTypeConfig[weaponType + 1];
-        if got == nil or got == -1 then
-            return WeaponTypeNotSetUseDefault(GetWeaponName(weaponType), GetItemLoadoutName(config.DefaultSet));
+        if weaponType ~= nil then
+            got = config.WeaponTypeConfig[weaponType + 1];
+            if got == nil or got == -1 then
+                return Constants.LUA.string_format(LocalizedStrings.WeaponTypeNotSetUseDefault, GetWeaponName(weaponType), GetItemLoadoutName(config.DefaultSet));
+            end
+            return Constants.LUA.string_format(LocalizedStrings.UseWeaponTypeItemSet, GetWeaponName(weaponType), GetItemLoadoutName(got));
         end
-        return UseWeaponTypeItemSet(GetWeaponName(weaponType), GetItemLoadoutName(got));
     end
     return GetItemLoadoutName(got);
 end
@@ -279,7 +252,7 @@ end
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     local cacheHit = false;
     local loadoutMismatch = false;
-    if expectedLoadoutIndex then
+    if expectedLoadoutIndex ~= nil then
         cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
         local got = config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
@@ -287,39 +260,34 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
             return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
         end
     else
-		if lastHitLoadoutIndex ~= -1 then
-            local cachedLoadoutIndex = lastHitLoadoutIndex;
-            if EquipmentLoadoutIsEquipped(equipDataManager, cachedLoadoutIndex) then
-                lastHitLoadoutIndex = cachedLoadoutIndex;
-                cacheHit = true;
-                local got = config.EquipLoadoutConfig[cachedLoadoutIndex + 1];
-                if got ~= nil and got ~= -1 then
-                    return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, cachedLoadoutIndex);
-                end
+		if lastHitLoadoutIndex ~= -1 and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
+            cacheHit = true;
+            local got = config.EquipLoadoutConfig[lastHitLoadoutIndex + 1];
+            if got ~= nil and got ~= -1 then
+                return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex);
             end
         end
-        if not cacheHit then
+        if cacheHit == false then
             local found = false;
-            for i = 1, 224, 1 do
-                local loadoutIndex = i - 1;
-                if EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex) then
+            for i = 0, 223, 1 do
+                if EquipmentLoadoutIsEquipped(equipDataManager, i) == true then
                     found = true;
-                    expectedLoadoutIndex = loadoutIndex;
-                    lastHitLoadoutIndex = loadoutIndex;
-                    local got = config.EquipLoadoutConfig[i];
+                    expectedLoadoutIndex = i;
+                    lastHitLoadoutIndex = i;
+                    local got = config.EquipLoadoutConfig[i + 1];
                     if got ~= nil and got ~= -1 then
-                        return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, loadoutIndex);
+                        return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, i);
                     end
                     break;
                 end
             end
-            if not found then
+            if found == false then
                 loadoutMismatch = true;
             end
         end
     end
 
-    local weaponType = expectedLoadoutIndex and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
+    local weaponType = expectedLoadoutIndex ~= nil and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
     local got = config.WeaponTypeConfig[weaponType + 1];
     if got ~= nil and got ~= -1 then
         return got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
@@ -330,51 +298,61 @@ end
 ------------------------
 function this.Restock(equipDataManager, loadoutIndex)
     local itemLoadoutIndex, matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
-    local loadout = getData_method:call(getItemMySet_method:call(nil), itemLoadoutIndex);
-    local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+    local ItemMySet = get_ItemMySet_method:call(nil);
     local msg = "";
-    if isEnoughItem_method:call(loadout) then
-        ApplyItemLoadout(itemLoadoutIndex);
-        msg = matchedType == "Loadout" and FromLoadout(matchedName, itemLoadoutName)
-            or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
-            or FromDefault(itemLoadoutName, loadoutMismatch);
-
-        local paletteIndex = get_PaletteSetIndex_method:call(loadout);
-        if paletteIndex == nil then
-            msg = msg .. "\n" .. PaletteNilError();
-        else
-            local radialSetIndex = get_HasValue_method:call(paletteIndex) and get_Value_method:call(paletteIndex) or GetValueOrDefault_method:call(paletteIndex);
-            if radialSetIndex ~= nil then
-                local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-                if ShortcutManager then
-                    local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
-                    if paletteList then
-                        local palette = palletteSetData_get_Item_method:call(paletteList, radialSetIndex);
-                        if palette ~= nil then
-                            msg = msg .. "\n" .. PaletteApplied(palletteSetData_get_Name_method:call(palette));
-                        end
+    if ItemMySet ~= nil and itemLoadoutIndex ~= nil then
+        local loadout = getData_method:call(ItemMySet, itemLoadoutIndex);
+        if loadout ~= nil then
+            local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+            if itemLoadoutName ~= nil then
+                if isEnoughItem_method:call(loadout) == true then
+                    applyItemMySet_method:call(ItemMySet, itemLoadoutIndex);
+                    msg = matchedType == "Loadout" and Constants.LUA.string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
+                        or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
+                        or FromDefault(itemLoadoutName, loadoutMismatch);
+            
+                    local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+                    if paletteIndex == nil then
+                        msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
                     else
-                        msg = msg .. "\n" .. PaletteListEmpty();
+                        local radialSetIndex = get_HasValue_method:call(paletteIndex) and get_Value_method:call(paletteIndex) or GetValueOrDefault_method:call(paletteIndex);
+                        if radialSetIndex ~= nil then
+                            local ShortcutManager = getCustomShortcutSystem_method:call(nil);
+                            if ShortcutManager ~= nil then
+                                local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+                                if paletteList ~= nil then
+                                    local palette = paletteSetData_get_Item_method:call(paletteList, radialSetIndex);
+                                    if palette ~= nil then
+                                        local paletteName = paletteSetData_get_Name_method:call(palette);
+                                        if paletteName ~= nil then
+                                            msg = msg .. "\n" .. Constants.LUA.string_format(LocalizedStrings.PaletteApplied, paletteName);
+                                        end
+                                    end
+                                else
+                                    msg = msg .. "\n" .. LocalizedStrings.PaletteListEmpty;
+                                end
+                                setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
+                            end
+                        end
                     end
-                    setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
+                else
+                    msg = Constants.LUA.string_format(LocalizedStrings.OutOfStock, itemLoadoutName);
                 end
             end
         end
-    else
-        msg = OutOfStock(itemLoadoutName);
     end
     return msg;
 end
 --
 Constants.RE.on_config_save(save_config);
 Constants.RE.on_draw_ui(function()
-    if Constants.IMGUI.tree_node("AutoSupply") then
+    if Constants.IMGUI.tree_node("AutoSupply") == true then
         Constants.IMGUI.push_font(Constants.Font);
         local config_changed = false;
         local changed = false;
         config_changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
 
-        if Constants.IMGUI.tree_node("WeaponType") then
+        if Constants.IMGUI.tree_node("WeaponType") == true then
             for i = 1, 14, 1 do
                 local weaponType = i - 1;
                 changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
@@ -383,15 +361,12 @@ Constants.RE.on_draw_ui(function()
             Constants.IMGUI.tree_pop();
         end
 
-        if Constants.IMGUI.tree_node("Loadout") then
+        if Constants.IMGUI.tree_node("Loadout") == true then
             for i = 1, 224, 1 do
                 local loadoutIndex = i - 1;
                 local name = GetEquipmentLoadoutName(nil, loadoutIndex);
-                if name and EquipmentLoadoutIsNotEmpty(loadoutIndex) then
-                    local msg = "";
-                    if EquipmentLoadoutIsEquipped(nil, loadoutIndex) then 
-                        msg = " (현재)";
-                    end
+                if name ~= nil and EquipmentLoadoutIsNotEmpty(loadoutIndex) == true then
+                    local msg = EquipmentLoadoutIsEquipped(nil, loadoutIndex) == true and " (현재)" or "";
                     changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
                     config_changed = config_changed or changed;
                 end
@@ -399,7 +374,7 @@ Constants.RE.on_draw_ui(function()
             Constants.IMGUI.tree_pop();
         end
 
-        if config_changed then
+        if config_changed == true then
             save_config();
         end
         Constants.IMGUI.pop_font();

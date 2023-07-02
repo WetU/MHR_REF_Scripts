@@ -41,7 +41,7 @@ local function PreHook(args)
     end
 end
 local function PostHook()
-    if LongSwordShell010 then
+    if LongSwordShell010 ~= nil then
         if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
             UpdateHarvestMoonTimer();
             Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);

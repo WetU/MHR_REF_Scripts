@@ -33,17 +33,13 @@ local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_defi
 local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 -- VIP Dango Ticket Main Function
-local MealFunc = nil;
 local function PreHook_updateList(args)
-	MealFunc = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_updateList()
+	local MealFunc = Constants.SDK.to_managed_object(args[2]);
 	if MealFunc ~= nil then
 		setMealTicketFlag_method:call(MealFunc, true);
 	end
-	MealFunc = nil;
 end
-Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList, PostHook_updateList);
+Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);
 -- Skip Dango Song Main Function
 --CookDemo
 local GuiKitchenFsmManager = nil;
@@ -66,7 +62,7 @@ local function PostHook_CookingDemoUpdate()
 end
 Constants.SDK.hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate, PostHook_CookingDemoUpdate);
 --EatDemo
-local showDangoLog = nil;
+local showDangoLog = false;
 
 local GuiKitchenEatingEventDemoFsmAction = nil;
 local function PreHook_EatingDemoUpdate(args)
@@ -89,7 +85,7 @@ Constants.SDK.hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("updat
 
 local function PostHook_requestAutoSaveAll()
 	if showDangoLog == true then
-		showDangoLog = nil;
+		showDangoLog = false;
 		local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
 		local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(GuiKitchenFsmManager);
 		if GuiManager ~= nil and KitchenDangoLogParam ~= nil then

@@ -41,7 +41,7 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCamp
 end);
 
 Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
-    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType_Village then
+    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
         isVillageStarted = false;
         return;
     end

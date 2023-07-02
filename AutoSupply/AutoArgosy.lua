@@ -86,7 +86,6 @@ function this.autoArgosy()
                                     end
                                 end
                             end
-
                             initialize_method:call(TradeOrder);
                         end
                     end
