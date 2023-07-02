@@ -15,6 +15,8 @@ end
 --
 local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 --
+local isVillageStarted = false;
+
 local function SendMessage(text)
     local ChatManager = Constants.SDK.get_managed_singleton("snow.gui.ChatManager");
     if ChatManager ~= nil then
@@ -40,6 +42,7 @@ end);
 
 Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
     if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType_Village then
+        isVillageStarted = false;
         return;
     end
 
@@ -47,7 +50,13 @@ Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("o
         SendMessage("교역선 아이템을 받았습니다");
     end
     SendMessage(InventorySupply.Restock(nil, nil));
-    CohootSupply.Supply();
+end);
+
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
+    if isVillageStarted == false then
+        isVillageStarted = true;
+        CohootSupply.Supply();
+    end
 end);
 
 AutoTicketsSupply.init();
