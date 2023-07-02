@@ -93,8 +93,12 @@ local function getCallTimer(playerQuestBase)
     local masterPlayerData = get_PlayerData_method:call(playerQuestBase);
     if masterPlayerData then
         local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-        this.SpiribirdsCall_Timer = Timer ~= nil and Constants.LUA.string_format(TimerString.Enabled, 60.0 - (Timer / 60.0)) or nil;
+        if Timer ~= nil then
+            this.SpiribirdsCall_Timer = Constants.LUA.string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
+            return;
+        end
     end
+    this.SpiribirdsCall_Timer = nil;
 end
 
 local PlayerQuestBase = nil;

@@ -68,17 +68,22 @@ Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method(
 local QuestManager_obj = nil;
 local function PreHook_updateQuestEndFlow(args)
 	QuestManager_obj = Constants.SDK.to_managed_object(args[2]);
+	if QuestManager_obj ~= nil and EndFlow_field:get_data(QuestManager_obj) == EndFlow.WaitEndTimer then
+		if Constants.checkQuestStatus(QuestManager_obj, Constants.QuestStatus.Success) == true and getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 then
+			nextEndFlowToCameraDemo_method:call(QuestManager_obj);
+		end
+    end
 end
 local function PostHook_updateQuestEndFlow()
 	if QuestManager_obj ~= nil then
 		local endFlow = EndFlow_field:get_data(QuestManager_obj);
 		if endFlow == EndFlow.WaitEndTimer then
-			if Constants.checkQuestStatus(QuestManager_obj, Constants.QuestStatus.Success) == true then
-				if getQuestReturnTimerSec_method:call(QuestManager_obj) <= 0.005 or (getTotalJoinNum_method:call(QuestManager_obj) == 1 and getTrg_method:call(nil, 36) == true) then
-					nextEndFlowToCameraDemo_method:call(QuestManager_obj);
-				end
-			else
-				if getTrg_method:call(nil, 36) == true then
+			if getTrg_method:call(nil, 36) == true then
+				if Constants.checkQuestStatus(QuestManager_obj, Constants.QuestStatus.Success) == true then
+					if getTotalJoinNum_method:call(QuestManager_obj) == 1 then
+						nextEndFlowToCameraDemo_method:call(QuestManager_obj);
+					end
+				else
 					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			end
@@ -91,6 +96,10 @@ local function PostHook_updateQuestEndFlow()
 	QuestManager_obj = nil;
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
+
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, function()
+	return Constants.TRUE_POINTER;
+end);
 
 -- Remove Town Interaction Delay
 local function PreHook_changeAllMarkerEnable(args)

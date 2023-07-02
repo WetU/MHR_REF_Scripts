@@ -27,7 +27,11 @@ end
 
 local function UpdateHarvestMoonTimer()
     local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
-    this.CircleTimer = lifeTimer ~= nil and Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer) or nil;
+    if lifeTimer ~= nil then
+        this.CircleTimer = Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer);
+        return;
+    end
+    this.CircleTimer = nil;
 end
 
 local function PreHook(args)
