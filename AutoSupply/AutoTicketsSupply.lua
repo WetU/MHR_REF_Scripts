@@ -5,14 +5,11 @@ end
 --
 local this = {};
 --
-local ProgressGoodRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressGoodRewardManager");
-local supplyReward_method = ProgressGoodRewardManager_type_def:get_method("supplyReward");
+local supplyReward_method = Constants.SDK.find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
-local ProgressOtomoTicketManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOtomoTicketManager");
-local Otomo_supply_method = ProgressOtomoTicketManager_type_def:get_method("supply");
+local Otomo_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressOtomoTicketManager"):get_method("supply");
 --
-local ProgressTicketSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager");
-local Ticket_supply_method = ProgressTicketSupplyManager_type_def:get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
+local Ticket_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager"):get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
 
 local TicketType_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
 local TicketType = {
@@ -26,11 +23,9 @@ local ProgressEc019UnlockItemManager_type_def = Constants.SDK.find_type_definiti
 local Ec019_supply_method = ProgressEc019UnlockItemManager_type_def:get_method("supply");
 local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method("supplyMR");
 --
-local ProgressSwitchActionSupplyManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressSwitchActionSupplyManager");
-local SwitchAction_supply_method = ProgressSwitchActionSupplyManager_type_def:get_method("supply");
+local SwitchAction_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressSwitchActionSupplyManager"):get_method("supply");
 --
-local ProgressNoteRewardManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressNoteRewardManager");
-local Note_supply_method = ProgressNoteRewardManager_type_def:get_method("supply");
+local Note_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");
 --
 local FacilityDataManager_type_def = Constants.SDK.find_type_definition("snow.data.FacilityDataManager");
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
@@ -60,19 +55,19 @@ local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-    ["KAMURA"] = {
+    --[[["KAMURA"] = {
         ["Fugen"] = NpcId_type_def:get_field("nid001"):get_data(nil),
         ["Kagero"] = NpcId_type_def:get_field("nid003"):get_data(nil),
         ["Yomogi"] = NpcId_type_def:get_field("nid004"):get_data(nil),
         ["Hojo"] = NpcId_type_def:get_field("nid101"):get_data(nil),
         ["Iori"] = NpcId_type_def:get_field("nid302"):get_data(nil)
-    },
+    },]]
     ["ELGADO"] = {
-        ["Gallues"] = NpcId_type_def:get_field("nid502"):get_data(nil),
+        --["Gallues"] = NpcId_type_def:get_field("nid502"):get_data(nil),
         ["Bahari"] = NpcId_type_def:get_field("nid503"):get_data(nil),
-        ["Nagi"] = NpcId_type_def:get_field("nid606"):get_data(nil),
-        ["Oboro"] = NpcId_type_def:get_field("nid607"):get_data(nil),
-        ["Azuki"] = NpcId_type_def:get_field("nid608"):get_data(nil),
+        --["Nagi"] = NpcId_type_def:get_field("nid606"):get_data(nil),
+        --["Oboro"] = NpcId_type_def:get_field("nid607"):get_data(nil),
+        --["Azuki"] = NpcId_type_def:get_field("nid608"):get_data(nil),
         ["Pingarh"] = NpcId_type_def:get_field("nid715"):get_data(nil)
     }
 };
