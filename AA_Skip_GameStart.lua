@@ -12,6 +12,13 @@ local function ClearAction(args)
     end
 end
 
+local function PreHook_RELogoFadeIn(args)
+	local GuiGameStartFsm_RELogoFadeIn = Constants.SDK.to_managed_object(args[2]);
+	if GuiGameStartFsm_RELogoFadeIn ~= nil then
+		Constants.SDK.hook_vtable(GuiGameStartFsm_RELogoFadeIn, GuiGameStartFsm_RELogoFadeIn:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
+	end
+end
+
 local function PreHook_OtherLogoFadeIn(args)
 	local OtherLogoFadeIn = Constants.SDK.to_managed_object(args[2]);
 	if OtherLogoFadeIn ~= nil then
@@ -30,7 +37,7 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGam
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeOut"):get_method("start(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), nil, Constants.ClearFade);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeOut"):get_method("start(via.behaviortree.ActionArg)"), nil, Constants.ClearFade);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_RELogoFadeIn, Constants.ClearFade);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_RELogoFadeOut"):get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeIn"):get_method("start(via.behaviortree.ActionArg)"), PreHook_OtherLogoFadeIn);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_OtherLogoFadeOut"):get_method("start(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);

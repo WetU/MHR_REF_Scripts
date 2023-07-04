@@ -105,8 +105,7 @@ local this = {
     VECTOR3f = Vector3f_func,
     VALUETYPE = ValueType_func,
     RE = re_func,
-    MasterPlayerIndex = nil,
-    type_definitions = {}
+    MasterPlayerIndex = nil
 };
 
 this.TRUE_POINTER = this.SDK.to_ptr(1);
@@ -125,13 +124,15 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
     0
 });
 
-this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
-this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
-this.type_definitions.DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager");
-this.type_definitions.EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager");
-this.type_definitions.GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager");
-this.type_definitions.StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput");
-this.type_definitions.PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager");
+this.type_definitions = {
+    CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager"),
+    QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager"),
+    DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager"),
+    EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager"),
+    GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager"),
+    StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput"),
+    PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager")
+};
 
 local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus"); -- retval
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)"); -- retval
@@ -139,7 +140,7 @@ local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:ge
 local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
-local GameStatusType_type_def = this.SDK.find_type_definition("snow.SnowGameManager.StatusType");
+local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();
 this.GameStatusType = {
     Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
@@ -147,7 +148,6 @@ this.GameStatusType = {
 
 local QuestStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
 this.QuestStatus = {
-    None = QuestStatus_type_def:get_field("None"):get_data(nil),
     Play = QuestStatus_type_def:get_field("Play"):get_data(nil),
     Success = QuestStatus_type_def:get_field("Success"):get_data(nil)
 };
