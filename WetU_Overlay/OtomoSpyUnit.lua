@@ -11,8 +11,6 @@ local get_NowStepCount_method = OtomoSpyUnitManager_type_def:get_method("get_Now
 
 local GuiOtomoSpyUnitMainControll_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitMainControll");
 local setBoostItem_method = GuiOtomoSpyUnitMainControll_type_def:get_method("setBoostItem");
-
-local GuiOtomoSpyUnitReturn_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
 --
 local OtomoSpyStr = {
     NotActive = "활동 없음",
@@ -55,21 +53,6 @@ local function onChangedGameStatus(args)
     end
 end
 
-local GuiOtomoSpyUnitReturn = nil;
-local function PreHook_openReturnGui(args)
-    local GuiOtomoSpyUnitReturn = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_openReturnGui()
-    if GuiOtomoSpyUnitReturn ~= nil then
-        GuiOtomoSpyUnitReturn:set_field("skipFlag", true);
-    end
-    GuiOtomoSpyUnitReturn = nil;
-end
-
-local function PostHook_closeReturnGui()
-    this.currentStep = OtomoSpyStr.NotActive;
-end
-
 function this.init()
     if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
         get_currentStepCount();
@@ -77,8 +60,6 @@ function this.init()
     Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
-    Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("setOpenGui"), PreHook_openReturnGui, PostHook_openReturnGui);
-    Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("setCloseGui"), nil, PostHook_closeReturnGui);
 end
 --
 return this;

@@ -196,6 +196,7 @@ function this.ClearFade()
     local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
     if FadeManager ~= nil then
         set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
+        FadeManager:set_field("fadeOutInFlag", false);
     end
 end
 
