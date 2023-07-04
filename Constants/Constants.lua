@@ -106,9 +106,7 @@ local this = {
     VALUETYPE = ValueType_func,
     RE = re_func,
     MasterPlayerIndex = nil,
-    type_definitions = {},
-    GameStatusType = {},
-    QuestStatus = {}
+    type_definitions = {}
 };
 
 this.TRUE_POINTER = this.SDK.to_ptr(1);
@@ -126,6 +124,7 @@ this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
     0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
     0
 });
+
 this.type_definitions.CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager");
 this.type_definitions.DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager");
@@ -141,12 +140,17 @@ local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):ge
 local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
 local GameStatusType_type_def = this.SDK.find_type_definition("snow.SnowGameManager.StatusType");
-this.GameStatusType.Village = GameStatusType_type_def:get_field("Village"):get_data(nil);
-this.GameStatusType.Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil);
+this.GameStatusType = {
+    Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
+    Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
+};
 
 local QuestStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
-this.QuestStatus.None = QuestStatus_type_def:get_field("None"):get_data(nil);
-this.QuestStatus.Success = QuestStatus_type_def:get_field("Success"):get_data(nil);
+this.QuestStatus = {
+    None = QuestStatus_type_def:get_field("None"):get_data(nil),
+    Play = QuestStatus_type_def:get_field("Play"):get_data(nil),
+    Success = QuestStatus_type_def:get_field("Success"):get_data(nil)
+};
 
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then

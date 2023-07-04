@@ -146,7 +146,7 @@ local KeyboardKeys = {
     [191] = "Slash",
     [220] = "BackSlash",
     [254] = "DefinedEnter",
-    [255] = "DefinedCancel",
+    [255] = "DefinedCancel"
 }
 
 return KeyboardKeys;

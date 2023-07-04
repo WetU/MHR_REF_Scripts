@@ -184,7 +184,7 @@ local LocalizedStrings = {
         [10] = "수렵피리",
         [11] = "차지액스",
         [12] = "조충곤",
-        [13] = "활",
+        [13] = "활"
     },
     UseDefaultItemSet = "기본 설정 사용",
     WeaponTypeNotSetUseDefault = "%s의 설정이 없으므로,\n기본 설정 %s을(를) 사용합니다\n",
@@ -203,35 +203,23 @@ local LocalizedStrings = {
 };
 
 local function GetWeaponName(weaponType)
-    if weaponType == nil then
-		return "<ERROR>:GetWeaponName failed";
-	end
-	return LocalizedStrings.WeaponNames[weaponType];
+    return weaponType == nil and "<ERROR>:GetWeaponName failed" or LocalizedStrings.WeaponNames[weaponType];
 end
 
 local function FromWeaponType(equipName, itemName, mismatch)
-    local msg = "";
-    if mismatch then
-        msg = LocalizedStrings.MismatchLoadout;
-    end
+    local msg = mismatch == true and LocalizedStrings.MismatchLoadout or "";
     return msg .. Constants.LUA.string_format(LocalizedStrings.FromWeaponType, equipName, itemName);
 end
 
 local function FromDefault(itemName, mismatch)
-    local msg = "";
-    if mismatch then
-        msg = Constants.LUA.string_format(LocalizedStrings.MismatchWeaponType, GetWeaponName(GetCurrentWeaponType()));
-    end
+    local msg = mismatch == true and Constants.LUA.string_format(LocalizedStrings.MismatchWeaponType, GetWeaponName(GetCurrentWeaponType())) or "";
     return msg .. Constants.LUA.string_format(LocalizedStrings.FromDefault, itemName);
 end
 
 ---------------      CORE      ----------------
 local function GetWeaponTypeItemLoadoutName(weaponType)
     local got = config.WeaponTypeConfig[weaponType + 1];
-    if got == nil or got == -1 then
-        return LocalizedStrings.UseDefaultItemSet;
-    end
-    return GetItemLoadoutName(got);
+    return (got == nil or got == -1) and LocalizedStrings.UseDefaultItemSet or GetItemLoadoutName(got);
 end
 
 local function GetLoadoutItemLoadoutIndex(loadoutIndex)
@@ -289,10 +277,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 
     local weaponType = expectedLoadoutIndex ~= nil and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
     local got = config.WeaponTypeConfig[weaponType + 1];
-    if got ~= nil and got ~= -1 then
-        return got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
-    end
-    return config.DefaultSet, "Default", "", loadoutMismatch;
+    return (got ~= nil and got ~= -1) and got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch or config.DefaultSet, "Default", "", loadoutMismatch;
 end
 
 ------------------------

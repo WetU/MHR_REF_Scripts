@@ -23,24 +23,27 @@ local function SendMessage(text)
         reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
     end
 end
-
+--
 local EquipDataManager = nil;
 local setIdx = nil;
-Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), function(args)
+local function PreHook_applyEquipMySet(args)
     EquipDataManager = Constants.SDK.to_managed_object(args[2]);
     setIdx = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-end, function(retval)
+end
+local function PostHook_applyEquipMySet(retval)
     SendMessage(InventorySupply.Restock(EquipDataManager, setIdx));
     EquipDataManager = nil;
     setIdx = nil;
     return retval;
-end);
-
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, function()
+end
+Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet, PostHook_applyEquipMySet);
+--
+local function campStart()
     SendMessage(InventorySupply.Restock(nil, nil));
-end);
-
-Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
+--
+local function onChangedGameStatus(args)
     if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
         isVillageStarted = false;
         return;
@@ -50,13 +53,15 @@ Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("o
         SendMessage("교역선 아이템을 받았습니다");
     end
     SendMessage(InventorySupply.Restock(nil, nil));
-end);
-
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, function()
+end
+Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+--
+local function onVillageStart()
     if isVillageStarted == false then
         isVillageStarted = true;
         CohootSupply.Supply();
     end
-end);
-
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, onVillageStart);
+--
 AutoTicketsSupply.init();

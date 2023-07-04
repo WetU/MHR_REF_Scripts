@@ -30,7 +30,7 @@ function this.table.tostring(table_)
 
     while true do
         local size = 0;
-        for k, v in Constants.LUA.pairs(table_) do
+        for _ in Constants.LUA.pairs(table_) do
             size = size + 1;
         end
 

@@ -9,6 +9,7 @@ local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
 	["WaitEndTimer"] = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
+	["WaitFadeCameraDemo"] = EndFlow_type_def:get_field("WaitFadeCameraDemo"):get_data(nil),
 	["CameraDemo"] = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
 	["WaitFadeOut"] = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
@@ -25,8 +26,6 @@ local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_t
 local hardwareKeyboard_type_def = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard");
 local getTrg_method = hardwareKeyboard_type_def:get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
 local getDown_method = hardwareKeyboard_type_def:get_method("getDown(via.hid.KeyboardKey)"); -- static, retval
---
-local changeAllMarkerEnable_method = Constants.SDK.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 --[[
 QuestManager.EndFlow
  0 == Start;
@@ -55,11 +54,8 @@ QuestManager.CaptureStatus
 
 -- No Kill Cam
 local function PreHook_RequestActive(args)
-	if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera then
-		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
-		if QuestManager ~= nil and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == EndCaptureFlag_CaptureEnd then
-			return Constants.SDK.SKIP_ORIGINAL;
-		end
+	if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == CameraType_DemoCamera and Constants.checkQuestStatus(nil, Constants.QuestStatus.Play) == true then
+		return Constants.SDK.SKIP_ORIGINAL;
 	end
 end
 Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), PreHook_RequestActive);
@@ -87,7 +83,7 @@ local function PostHook_updateQuestEndFlow()
 					QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
 				end
 			end
-		elseif endFlow == EndFlow.WaitFadeOut then
+		elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
 			Constants.ClearFade();
 		elseif endFlow == EndFlow.CameraDemo then
 			QuestManager_obj:set_field("_QuestEndFlowTimer", 0.0);
@@ -97,18 +93,7 @@ local function PostHook_updateQuestEndFlow()
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
 
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, function()
+local function isEndQuestEndStamp()
 	return Constants.TRUE_POINTER;
-end);
-
--- Remove Town Interaction Delay
-local function PreHook_changeAllMarkerEnable(args)
-	if (Constants.SDK.to_int64(args[3]) & 1) == 0 and Constants.checkQuestStatus(nil, Constants.QuestStatus.None) == true then
-		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
-		if ObjectAccessManager ~= nil then
-			changeAllMarkerEnable_method:call(ObjectAccessManager, true);
-			return Constants.SDK.SKIP_ORIGINAL;
-		end
-	end
 end
-Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, isEndQuestEndStamp);

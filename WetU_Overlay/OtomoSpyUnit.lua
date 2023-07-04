@@ -30,24 +30,28 @@ local function get_currentStepCount()
     this.currentStep = nil;
 end
 
+local function setBoostItem(args)
+    local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
+    if GuiOtomoSpyUnitMainControll ~= nil then
+        setBoostItem_method:call(GuiOtomoSpyUnitMainControll);
+    end
+end
+
+local function onChangedGameStatus(args)
+    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
+        TerminateOtomoSpyUnit();
+    else
+        get_currentStepCount();
+    end
+end
+
 function this.init()
     if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
         get_currentStepCount();
     end
     Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
-    Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), function(args)
-        local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-        if GuiOtomoSpyUnitMainControll ~= nil then
-            setBoostItem_method:call(GuiOtomoSpyUnitMainControll);
-        end
-    end);
-    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), function(args)
-        if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
-            TerminateOtomoSpyUnit();
-        else
-            get_currentStepCount();
-        end
-    end);
+    Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
+    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
 --
 return this;
