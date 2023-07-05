@@ -72,17 +72,6 @@ local npcList = {
     }
 };
 --
-local function GetTicket(retval, ticketType)
-    if (Constants.SDK.to_int64(retval) & 1) == 1 then
-        local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
-        if ProgressTicketSupplyManager ~= nil then
-            Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
-            return Constants.FALSE_POINTER;
-        end
-    end
-    return retval;
-end
-
 local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
     NpcTalkMessageCtrl = Constants.SDK.to_managed_object(args[2]);
@@ -113,24 +102,46 @@ local function PostHook_getTalkTarget()
             end
         end
     end
-
     NpcTalkMessageCtrl = nil;
+end
+
+local function GetTicket(ticketType)
+    if ticketType ~= nil then
+        local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
+        if ProgressTicketSupplyManager ~= nil then
+            Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
+            return true;
+        end
+    end
+    return false;
 end
 
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_V02Ticket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        return GetTicket(retval, TicketType.V02Ticket);
+        if (Constants.SDK.to_int64(retval) & 1) == 1 and GetTicket(TicketType.V02Ticket) == true then
+            return Constants.FALSE_POINTER;
+        end
+        return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_MysteryTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        return GetTicket(retval, TicketType.MysteryTicket);
+        if (Constants.SDK.to_int64(retval) & 1) == 1 and GetTicket(TicketType.MysteryTicket) == true then
+            return Constants.FALSE_POINTER;
+        end
+        return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_VillageTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        return GetTicket(retval, TicketType.Village);
+        if (Constants.SDK.to_int64(retval) & 1) == 1 and GetTicket(TicketType.Village) == true then
+            return Constants.FALSE_POINTER;
+        end
+        return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_GuildTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        return GetTicket(retval, TicketType.Hall);
+        if (Constants.SDK.to_int64(retval) & 1) == 1 and GetTicket(TicketType.Hall) == true then
+            return Constants.FALSE_POINTER;
+        end
+        return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_OtomoTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if (Constants.SDK.to_int64(retval) & 1) == 1 then

@@ -108,8 +108,8 @@ local this = {
     MasterPlayerIndex = nil
 };
 
-this.TRUE_POINTER = this.SDK.to_ptr(1);
-this.FALSE_POINTER = this.SDK.to_ptr(0);
+this.TRUE_POINTER = this.SDK.to_ptr(true);
+this.FALSE_POINTER = this.SDK.to_ptr(false);
 this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
     0x2000, 0x206F, -- General Punctuation
@@ -198,6 +198,18 @@ function this.ClearFade()
         set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
         FadeManager:set_field("fadeOutInFlag", false);
     end
+end
+
+function this.SKIP_ORIGINAL()
+    return this.SDK.SKIP_ORIGINAL;
+end
+
+function this.Return_TRUE()
+    return this.TRUE_POINTER;
+end
+
+function this.Return_FALSE()
+    return this.FALSE_POINTER;
 end
 
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
