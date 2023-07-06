@@ -27,17 +27,11 @@ local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("g
 
 local StageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
 local get_CurrentWarpFlow_method = StageManager_type_def:get_method("get_CurrentWarpFlow");
+local notifyDemoCameraEnd_method = StageManager_type_def:get_method("notifyDemoCameraEnd");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 
+local WarpFlow_WaitDemo = get_CurrentWarpFlow_method:get_return_type():get_field("WaitDemo"):get_data(nil);
 local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
-local WarpFlow_type_def = get_CurrentWarpFlow_method:get_return_type();
-local WarpFlow = {
-    WaitFadeOut = WarpFlow_type_def:get_field("WaitFadeOut"):get_data(nil),
-    WaitWarp = WarpFlow_type_def:get_field("WaitWarp"):get_data(nil),
-    WaitFadeIn = WarpFlow_type_def:get_field("WaitFadeIn"):get_data(nil),
-    WaitDemo = WarpFlow_type_def:get_field("WaitDemo"):get_data(nil),
-    Idle = WarpFlow_type_def:get_field("Idle"):get_data(nil)
-};
 --
 local GameObjectType_MasterPlayer = Constants.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
 local MapNoType_type_def = get_CurrentMapNo_method:get_return_type();
@@ -197,7 +191,7 @@ Constants.SDK.hook(createNekotaku_method, PreHook_createNekotaku);
 Constants.SDK.hook(StageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);
 
 local StageManager_obj = nil;
-local function PreHook_updateWarpFlow(args)
+local function get_Instance(args)
     StageManager_obj = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_updateWarpFlow()
@@ -205,10 +199,9 @@ local function PostHook_updateWarpFlow()
         return;
     end
 
-    local CurrentWarpFlow = get_CurrentWarpFlow_method:call(StageManager_obj);
-    if CurrentWarpFlow == WarpFlow.WaitFadeOut or CurrentWarpFlow == WarpFlow.WaitFadeIn then
-        Constants.ClearFade();
+    if get_CurrentWarpFlow_method:call(StageManager_obj) == WarpFlow_WaitDemo then
+        notifyDemoCameraEnd_method:call(StageManager_obj);
     end
     StageManager_obj = nil;
 end
-Constants.SDK.hook(StageManager_type_def:get_method("updateWarpFlow"), PreHook_updateWarpFlow, PostHook_updateWarpFlow);
+Constants.SDK.hook(StageManager_type_def:get_method("updateWarpFlow"), get_Instance, PostHook_updateWarpFlow);
