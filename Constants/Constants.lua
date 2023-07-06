@@ -181,14 +181,6 @@ function this.checkQuestStatus(questManager, checkType)
     if questManager ~= nil then
         return checkStatus_method:call(questManager, checkType);
     end
-end
-
-function this.FindIndex(table, value)
-    for i = 1, #table, 1 do
-        if table[i] == value then
-            return i;
-        end
-    end
     return nil;
 end
 
@@ -206,10 +198,6 @@ end
 
 function this.Return_TRUE()
     return this.TRUE_POINTER;
-end
-
-function this.Return_FALSE()
-    return this.FALSE_POINTER;
 end
 
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)

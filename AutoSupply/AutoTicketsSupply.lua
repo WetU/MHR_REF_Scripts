@@ -55,21 +55,8 @@ local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-    --[[["KAMURA"] = {
-        ["Fugen"] = NpcId_type_def:get_field("nid001"):get_data(nil),
-        ["Kagero"] = NpcId_type_def:get_field("nid003"):get_data(nil),
-        ["Yomogi"] = NpcId_type_def:get_field("nid004"):get_data(nil),
-        ["Hojo"] = NpcId_type_def:get_field("nid101"):get_data(nil),
-        ["Iori"] = NpcId_type_def:get_field("nid302"):get_data(nil)
-    },]]
-    ["ELGADO"] = {
-        --["Gallues"] = NpcId_type_def:get_field("nid502"):get_data(nil),
-        ["Bahari"] = NpcId_type_def:get_field("nid503"):get_data(nil),
-        --["Nagi"] = NpcId_type_def:get_field("nid606"):get_data(nil),
-        --["Oboro"] = NpcId_type_def:get_field("nid607"):get_data(nil),
-        --["Azuki"] = NpcId_type_def:get_field("nid608"):get_data(nil),
-        ["Pingarh"] = NpcId_type_def:get_field("nid715"):get_data(nil)
-    }
+    Bahari = NpcId_type_def:get_field("nid503"):get_data(nil),
+    Pingarh = NpcId_type_def:get_field("nid715"):get_data(nil)
 };
 --
 local NpcTalkMessageCtrl = nil;
@@ -82,7 +69,7 @@ local function PostHook_getTalkTarget()
     end
 
     local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-    if NpcId == npcList.ELGADO.Pingarh then
+    if NpcId == npcList.Pingarh then
         local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
         if FacilityDataManager ~= nil then
             local CommercialStuffFacility = getCommercialStuffFacility_method:call(FacilityDataManager);
@@ -90,7 +77,7 @@ local function PostHook_getTalkTarget()
                 talkAction2_CommercialStuffItem_method:call(NpcTalkMessageCtrl, NpcId, 0, 0);
             end
         end
-    elseif NpcId == npcList.ELGADO.Bahari then
+    elseif NpcId == npcList.Bahari then
         local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
         if FacilityDataManager ~= nil then
             local MysteryLaboFacility = getMysteryLaboFacility_method:call(FacilityDataManager);
