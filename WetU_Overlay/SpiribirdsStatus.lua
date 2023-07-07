@@ -1,6 +1,5 @@
 local require = require;
 local Constants = require("Constants.Constants");
-
 if not Constants then
 	return;
 end
@@ -60,7 +59,7 @@ local hasRainbow = false;
 local firstHook = true;
 local skipUpdate = false;
 
-local function TerminateSpiribirdsHud()
+local function Terminate()
     this.SpiribirdsHudDataCreated = nil;
     this.SpiribirdsCall_Timer = nil;
     this.StatusBuffLimits = nil;
@@ -73,7 +72,7 @@ local function TerminateSpiribirdsHud()
 end
 
 local function PostHook_onDestroy()
-    TerminateSpiribirdsHud();
+    Terminate();
     Constants.MasterPlayerIndex = nil;
 end
 

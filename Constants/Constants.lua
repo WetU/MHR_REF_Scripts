@@ -148,7 +148,6 @@ this.GameStatusType = {
 
 local QuestStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
 this.QuestStatus = {
-    Play = QuestStatus_type_def:get_field("Play"):get_data(nil),
     Success = QuestStatus_type_def:get_field("Success"):get_data(nil)
 };
 

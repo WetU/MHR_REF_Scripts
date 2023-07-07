@@ -20,7 +20,7 @@ local this = {
 local HarvestMoonTimer_String = "원월 타이머: %.f초";
 local LongSwordShell010 = nil;
 
-function this.TerminateHarvestMoon()
+local function Terminate()
     this.CircleTimer = nil;
     LongSwordShell010 = nil;
 end
@@ -45,7 +45,7 @@ local function PostHook()
         if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
             UpdateHarvestMoonTimer();
             Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
-            Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, this.TerminateHarvestMoon);
+            Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
         else
             LongSwordShell010 = nil;
         end

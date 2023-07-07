@@ -17,7 +17,7 @@ local OtomoSpyStr = {
     Step = "조사 단계: %d / 5"
 };
 
-local function TerminateOtomoSpyUnit()
+local function Terminate()
     this.currentStep = nil;
 end
 
@@ -47,7 +47,7 @@ end
 
 local function onChangedGameStatus(args)
     if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
-        TerminateOtomoSpyUnit();
+        Terminate();
     else
         get_currentStepCount();
     end
