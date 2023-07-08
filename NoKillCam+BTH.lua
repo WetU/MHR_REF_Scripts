@@ -3,9 +3,10 @@ if not Constants then
 	return;
 end
 --
-local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec"); -- retval
-local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum"); -- retval
+local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec");
+local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum");
 local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
+local EndCaptureFlag_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndCaptureFlag");
 
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
@@ -14,6 +15,10 @@ local EndFlow = {
 	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
 	WaitFadeOut = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
+
+local CaptureEnd = EndCaptureFlag_field:get_type():get_field("CaptureEnd"):get_data(nil);
+
+local DemoCameraType = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 
 local getTrg_method = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static, retval
 --[[
@@ -38,7 +43,15 @@ QuestManager.EndFlow
 ]]--
 
 -- No Kill Cam
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), Constants.SKIP_ORIGINAL);
+local function skipKillCam(args)
+	if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == DemoCameraType then
+		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
+		if QuestManager ~= nil and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == CaptureEnd then
+			return Constants.SDK.SKIP_ORIGINAL;
+		end
+	end
+end
+Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), skipKillCam);
 
 -- BTH
 local function PreHook_updateQuestEndFlow(args)
@@ -58,17 +71,23 @@ local function PreHook_updateQuestEndFlow(args)
 				end
 			end
 
-		elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
+		elseif endFlow == EndFlow.WaitFadeCameraDemo then
 			Constants.ClearFade();
+			QuestManager:set_field("_EndFlow", EndFlow.WaitFadeOut);
+			QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 
 		elseif endFlow == EndFlow.CameraDemo then
 			QuestManager:set_field("_EndFlow", EndFlow.WaitFadeOut);
+			QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+
+		elseif endFlow == EndFlow.WaitFadeOut then
+			Constants.ClearFade();
 			QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 		end
     end
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
-
+--
 local function PreHook_nextEndFlowToCameraDemo(args)
 	local QuestManager = Constants.SDK.to_managed_object(args[2]);
 	if QuestManager ~= nil then
@@ -78,4 +97,5 @@ local function PreHook_nextEndFlowToCameraDemo(args)
 	end
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo"), PreHook_nextEndFlowToCameraDemo);
+--
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), Constants.SKIP_ORIGINAL, Constants.Return_TRUE);

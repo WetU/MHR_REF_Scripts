@@ -53,6 +53,10 @@ local function onChangedGameStatus(args)
     end
 end
 
+local function PostHook_endOtomoSpyUnitReturn()
+    this.currentStep = OtomoSpyStr.NotActive;
+end
+
 function this.init()
     if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
         get_currentStepCount();
@@ -60,6 +64,7 @@ function this.init()
     Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+    Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn"):get_method("endOtomoSpyUnitReturn"), nil, PostHook_endOtomoSpyUnitReturn);
 end
 --
 return this;

@@ -42,12 +42,6 @@ local get_CanObtainlItem_method = CommercialStuffFacility_type_def:get_method("g
 
 local CommercialStuff_None = get_CommercialStuffID_method:get_return_type():get_field("CommercialStuff_None"):get_data(nil);
 --
-local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
-
-local get_LaboReward_method = getMysteryLaboFacility_method:get_return_type():get_method("get_LaboReward");
-
-local get_IsClear_method = get_LaboReward_method:get_return_type():get_method("get_IsClear");
---
 local NpcTalkMessageCtrl_type_def = Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId");
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
@@ -55,10 +49,13 @@ local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-    Bahari = NpcId_type_def:get_field("nid503"):get_data(nil),
-    Pingarh = NpcId_type_def:get_field("nid715"):get_data(nil)
+    ["Bahari"] = NpcId_type_def:get_field("nid503"):get_data(nil),
+    ["Pingarh"] = NpcId_type_def:get_field("nid715"):get_data(nil)
 };
 --
+local isMysteryResearchRequestClear = false;
+local NpcTalkMessageCtrlList = nil;
+
 local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
     NpcTalkMessageCtrl = Constants.SDK.to_managed_object(args[2]);
@@ -74,22 +71,47 @@ local function PostHook_getTalkTarget()
         if FacilityDataManager ~= nil then
             local CommercialStuffFacility = getCommercialStuffFacility_method:call(FacilityDataManager);
             if CommercialStuffFacility ~= nil and get_CommercialStuffID_method:call(CommercialStuffFacility) ~= CommercialStuff_None and get_CanObtainlItem_method:call(CommercialStuffFacility) == true then
-                talkAction2_CommercialStuffItem_method:call(NpcTalkMessageCtrl, NpcId, 0, 0);
-            end
-        end
-    elseif NpcId == npcList.Bahari then
-        local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
-        if FacilityDataManager ~= nil then
-            local MysteryLaboFacility = getMysteryLaboFacility_method:call(FacilityDataManager);
-            if MysteryLaboFacility ~= nil then
-                local MysteryLaboReward = get_LaboReward_method:call(MysteryLaboFacility);
-                if MysteryLaboReward ~= nil and get_IsClear_method:call(MysteryLaboReward) == true then
-                    talkAction2_SupplyMysteryResearchRequestReward_method:call(NpcTalkMessageCtrl, NpcId, 0, 0);
+                if NpcTalkMessageCtrlList == nil then
+                    NpcTalkMessageCtrlList = {};
                 end
+                NpcTalkMessageCtrlList["Pingarh"] = NpcTalkMessageCtrl;
             end
         end
+    elseif NpcId == npcList.Bahari and isMysteryResearchRequestClear == true then
+        if NpcTalkMessageCtrlList == nil then
+            NpcTalkMessageCtrlList = {};
+        end
+        NpcTalkMessageCtrlList["Bahari"] = NpcTalkMessageCtrl;
     end
     NpcTalkMessageCtrl = nil;
+end
+
+local function talkHandler()
+    if NpcTalkMessageCtrlList ~= nil then
+        local dispose = true;
+        for k, v in Constants.LUA.pairs(NpcTalkMessageCtrlList) do
+            if k == "Pingarh" then
+                local success = talkAction2_CommercialStuffItem_method:call(v, npcList[k], 0, 0);
+                if success == true then
+                    NpcTalkMessageCtrlList[k] = nil;
+                end
+            elseif k == "Bahari" then
+                local success = talkAction2_SupplyMysteryResearchRequestReward_method:call(v, npcList[k], 0, 0);
+                if success then
+                    isMysteryResearchRequestClear = false;
+                    NpcTalkMessageCtrlList[k] = nil;
+                end
+            end
+
+            if v ~= nil then
+                dispose = false;
+            end
+        end
+
+        if dispose == true then
+            NpcTalkMessageCtrlList = nil;
+        end
+    end
 end
 
 local function GetTicket(ticketType)
@@ -106,6 +128,7 @@ end
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
+    Constants.SDK.hook(Constants.SDK.find_type_definition("snow.VillageMapManager"):get_method("getCurrentMapNo"), nil, talkHandler);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_V02Ticket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if (Constants.SDK.to_int64(retval) & 1) == 1 and GetTicket(TicketType.V02Ticket) == true then
             return Constants.FALSE_POINTER;
@@ -213,6 +236,14 @@ function this.init()
                 Note_supply_method:call(ProgressNoteRewardManager);
                 return Constants.FALSE_POINTER;
             end
+        end
+        return retval;
+    end);
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
+        local isEnd = (Constants.SDK.to_int64(retval) & 1) == 1;
+        if isEnd == true then
+            isMysteryResearchRequestClear = true;
+            return Constants.FALSE_POINTER;
         end
         return retval;
     end);

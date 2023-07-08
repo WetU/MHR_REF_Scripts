@@ -39,18 +39,13 @@ local function PostHook_updatePlayerInfo()
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 		if OtherPlayerInfos ~= nil then
 			local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
-			if PlInfos_count ~= nil and PlInfos_count > 0 then
-				local isChanged = false;
+			if PlInfos_count > 0 then
 				for i = 0, PlInfos_count - 1, 1 do
 					local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
 					if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
 						OtherPlayerInfo:set_field("_good", true);
 						PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-						isChanged = true;
 					end
-				end
-				if isChanged == true then
-					GoodRelationshipHud:set_field("_OtherPlayerInfos", OtherPlayerInfos);
 				end
 				sendReady = true;
 			end
@@ -66,12 +61,16 @@ local function PreHook_isOperationOn(args)
 end
 local function PostHook_isOperationOn(retval)
 	if sendReady == true then
-		sendReady = false;
 		return Constants.TRUE_POINTER;
 	end
 	return retval;
 end
 
+local function PostHook_sendGood()
+	sendReady = false;
+end
+
 Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
+Constants.SDK.hook(GoodRelationship_type_def:get_method("sendGood"), nil, PostHook_sendGood);
