@@ -240,9 +240,8 @@ function this.init()
         return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        local isEnd = (Constants.SDK.to_int64(retval) & 1) == 1;
-        if isEnd == true then
-            isMysteryResearchRequestClear = true;
+        isMysteryResearchRequestClear = (Constants.SDK.to_int64(retval) & 1) == 1;
+        if isMysteryResearchRequestClear == true then
             return Constants.FALSE_POINTER;
         end
         return retval;
