@@ -16,7 +16,7 @@ local function applyFps()
 end
 
 local function PreHook_changeAllMarkerEnable(args)
-	if (Constants.SDK.to_int64(args[3]) & 1) == 0 then
+	if Constants.to_bool(args[3]) == false then
 		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
 		if ObjectAccessManager ~= nil then
 			changeAllMarkerEnable_method:call(ObjectAccessManager, true);

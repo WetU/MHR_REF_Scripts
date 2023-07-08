@@ -199,6 +199,10 @@ function this.Return_TRUE()
     return this.TRUE_POINTER;
 end
 
+function this.to_bool(value)
+    return (this.SDK.to_int64(value) & 1) == 1;
+end
+
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
     this.GetMasterPlayerId(this.SDK.to_int64(args[3]) & 0xFF);
 end);

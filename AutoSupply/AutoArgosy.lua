@@ -76,7 +76,7 @@ function this.autoArgosy()
                                 local InventoryList_count = InventoryList_get_Count_method:call(InventoryList);
                                 if InventoryList_count > 0 then
                                     for j = 0, InventoryList_count - 1, 1 do
-                                        local Inventory = InventoryList_get_Item_method:call(InventoryList, i);
+                                        local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
                                         if Inventory ~= nil and not isEmpty_method:call(Inventory) then
                                             if sendInventory_method:call(Inventory, Inventory, Inventory, 65536) ~= SendInventoryResult_AllSended then
                                                 trySellGameItem_method:call(DataManager, Inventory, Inventory_get_Count_method:call(Inventory));
@@ -94,6 +94,7 @@ function this.autoArgosy()
             end
         end
     end
+    return nil;
 end
 
 return this;

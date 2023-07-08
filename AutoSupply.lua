@@ -49,7 +49,7 @@ local function onChangedGameStatus(args)
         return;
     end
 
-    if AutoArgosy.autoArgosy() then
+    if AutoArgosy.autoArgosy() == true then
         SendMessage("교역선 아이템을 받았습니다");
     end
     SendMessage(InventorySupply.Restock(nil, nil));

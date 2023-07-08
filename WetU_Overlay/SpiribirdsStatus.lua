@@ -144,7 +144,7 @@ local function PreHook_subLvBuffFromEnemy(args)
     end
 end
 local function PostHook_subLvBuffFromEnemy(retval)
-    if subBuffType ~= nil and (Constants.SDK.to_int64(retval) & 1) == 1 then
+    if subBuffType ~= nil and Constants.to_bool(retval) == true then
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
             for k in Constants.LUA.pairs(LvBuff) do

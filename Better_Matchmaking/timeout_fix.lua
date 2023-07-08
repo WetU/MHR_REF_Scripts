@@ -220,7 +220,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 		quest_type.max_level = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
 		quest_type.party_limit = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
 		quest_type.reward_item = Constants.SDK.to_int64(args[7]) & 0xFFFFFFFF;
-		quest_type.is_special_random_mystery = (Constants.SDK.to_int64(args[8]) & 1) == 1;
+		quest_type.is_special_random_mystery = Constants.to_bool(args[8]);
 
 		local enemy_id = Constants.SDK.to_int64(args[6]);
 		quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id);
