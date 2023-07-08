@@ -27,7 +27,6 @@ local lua_func = {
 
 local sdk = sdk;
 local sdk_func = {
-    is_managed_object = sdk.is_managed_object,
     find_type_definition = sdk.find_type_definition,
     get_managed_singleton = sdk.get_managed_singleton,
     to_managed_object = sdk.to_managed_object,
@@ -90,7 +89,6 @@ local ValueType_func = {
 
 local re = re;
 local re_func = {
-    on_script_reset = re.on_script_reset,
     on_frame = re.on_frame,
     on_config_save = re.on_config_save,
     on_draw_ui = re.on_draw_ui
@@ -203,8 +201,16 @@ function this.to_bool(value)
     return (this.SDK.to_int64(value) & 1) == 1;
 end
 
+function this.to_byte(value)
+    return this.SDK.to_int64(value) & 0xFF;
+end
+
+function this.to_uint(value)
+    return this.SDK.to_int64(value) & 0xFFFFFFFF;
+end
+
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
-    this.GetMasterPlayerId(this.SDK.to_int64(args[3]) & 0xFF);
+    this.GetMasterPlayerId(this.to_byte(args[3]));
 end);
 
 return this;

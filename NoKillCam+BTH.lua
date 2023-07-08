@@ -44,7 +44,7 @@ QuestManager.EndFlow
 
 -- No Kill Cam
 local function skipKillCam(args)
-	if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) == DemoCameraType then
+	if Constants.SDK.to_int64(args[3]) == DemoCameraType then
 		local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
 		if QuestManager ~= nil and EndFlow_field:get_data(QuestManager) <= EndFlow.WaitEndTimer and EndCaptureFlag_field:get_data(QuestManager) == CaptureEnd then
 			return Constants.SDK.SKIP_ORIGINAL;

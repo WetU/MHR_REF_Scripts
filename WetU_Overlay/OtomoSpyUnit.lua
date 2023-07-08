@@ -46,7 +46,7 @@ local function setBoostItem(args)
 end
 
 local function onChangedGameStatus(args)
-    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
+    if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
         Terminate();
     else
         get_currentStepCount();

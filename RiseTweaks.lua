@@ -33,7 +33,6 @@ local function save_config()
 	Constants.JSON.dump_file("RiseTweaks/config.json", config);
 end
 
-Constants.RE.on_script_reset(applyFps);
 Constants.RE.on_config_save(save_config);
 Constants.RE.on_draw_ui(function()
 	if Constants.IMGUI.tree_node("RiseTweaks") == true then

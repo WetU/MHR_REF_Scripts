@@ -44,7 +44,7 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local function onChangedGameStatus(args)
-    if (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) ~= Constants.GameStatusType.Village then
+    if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
         isVillageStarted = false;
         return;
     end

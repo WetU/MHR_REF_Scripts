@@ -15,7 +15,7 @@ local NotResetTypes = {
 local NotResetPtr = Constants.SDK.to_ptr(ResetState_None);
 -- Main
 local function SkipReset(retval)
-	if (Constants.SDK.to_int64(retval) & 0xFFFFFFFF) ~= ResetState_None then
+	if Constants.SDK.to_int64(retval) ~= ResetState_None then
 		local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
 		if CameraManager ~= nil then
 			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);

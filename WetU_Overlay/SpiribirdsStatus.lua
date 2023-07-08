@@ -139,7 +139,7 @@ local function PreHook_subLvBuffFromEnemy(args)
     if this.SpiribirdsHudDataCreated == true then
         local playerQuestBase = Constants.SDK.to_managed_object(args[2]);
         if playerQuestBase ~= nil and isMasterPlayer_method:call(playerQuestBase) == true then
-            subBuffType = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+            subBuffType = Constants.SDK.to_int64(args[3]);
         end
     end
 end
@@ -189,7 +189,7 @@ local addBuffType = nil;
 local PlayerManager_obj = nil;
 local function PreHook_addLvBuffCnt(args)
     if this.SpiribirdsHudDataCreated == true then
-        addBuffType = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
+        addBuffType = Constants.SDK.to_int64(args[4]);
         if addBuffType ~= nil and addBuffType ~= LvBuff.Rainbow then
             PlayerManager_obj = Constants.SDK.to_managed_object(args[2]);
         end
@@ -228,7 +228,7 @@ end
 
 local newPlayerIndex = nil;
 local function PreHook_changePlayerIndex(args)
-    newPlayerIndex = Constants.SDK.to_int64(args[4]) & 0xFF;
+    newPlayerIndex = Constants.SDK.to_int64(args[4]);
 end
 local function PostHook_changePlayerIndex(retval)
     if newPlayerIndex ~= nil then

@@ -77,7 +77,7 @@ local skip_next_hook = false;
 
 local session_manager = nil;
 local function prehook_on_timeout(args)
-	if quest_type ~= quest_types.invalid and (Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF) >= SessionAttr_Quest then
+	if quest_type ~= quest_types.invalid and Constants.SDK.to_int64(args[3]) >= SessionAttr_Quest then
 		session_manager = Constants.SDK.to_managed_object(args[2]);
 	end
 end
@@ -139,7 +139,7 @@ local function prehook_req_matchmaking(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.regular == true then
 		quest_type = quest_types.regular;
-		quest_type.quest_id = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+		quest_type.quest_id = Constants.to_uint(args[3]);
 	end
 end
 
@@ -151,7 +151,7 @@ local function prehook_req_matchmaking_random(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.random == true then
 		quest_type = quest_types.random;
-		quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+		quest_type.my_hunter_rank = Constants.to_uint(args[3]);
 	end
 end
 
@@ -163,7 +163,7 @@ local function prehook_req_matchmaking_hyakuryu(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.rampage == true then
 		quest_type = quest_types.rampage;
-		quest_type.difficulty = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+		quest_type.difficulty = Constants.to_uint(args[3]);
 
 		local quest_level = Constants.SDK.to_int64(args[4]);
 		local target_enemy = Constants.SDK.to_int64(args[5]);
@@ -189,8 +189,8 @@ local function prehook_req_matchmaking_random_master_rank(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.random_master_rank == true then
 		quest_type = quest_types.random_master_rank;
-		quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-		quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
+		quest_type.my_hunter_rank = Constants.to_uint(args[3]);
+		quest_type.my_master_rank = Constants.to_uint(args[4]);
 	end
 end
 
@@ -202,9 +202,9 @@ local function prehook_req_matchmaking_random_mystery(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.random_anomaly == true then
 		quest_type = quest_types.random_anomaly;
-		quest_type.my_hunter_rank = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-		quest_type.my_master_rank = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
-		quest_type.anomaly_research_level = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
+		quest_type.my_hunter_rank = Constants.to_uint(args[3]);
+		quest_type.my_master_rank = Constants.to_uint(args[4]);
+		quest_type.anomaly_research_level = Constants.to_uint(args[5]);
 	end
 end
 
@@ -216,10 +216,10 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 
 	if config.current_config.timeout_fix.enabled == true and config.current_config.timeout_fix.quest_types.anomaly_investigation == true then
 		quest_type = quest_types.anomaly_investigation;
-		quest_type.min_level = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
-		quest_type.max_level = Constants.SDK.to_int64(args[4]) & 0xFFFFFFFF;
-		quest_type.party_limit = Constants.SDK.to_int64(args[5]) & 0xFFFFFFFF;
-		quest_type.reward_item = Constants.SDK.to_int64(args[7]) & 0xFFFFFFFF;
+		quest_type.min_level = Constants.to_uint(args[3]);
+		quest_type.max_level = Constants.to_uint(args[4]);
+		quest_type.party_limit = Constants.to_uint(args[5]);
+		quest_type.reward_item = Constants.to_uint(args[7]);
 		quest_type.is_special_random_mystery = Constants.to_bool(args[8]);
 
 		local enemy_id = Constants.SDK.to_int64(args[6]);
