@@ -210,7 +210,7 @@ function this.to_uint(value)
 end
 
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), function(args)
-    this.GetMasterPlayerId(this.to_byte(args[3]));
+    this.GetMasterPlayerId(this.SDK.to_int64(args[3]));
 end);
 
 return this;
