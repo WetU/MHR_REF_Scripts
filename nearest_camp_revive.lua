@@ -189,19 +189,3 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), PreHook_startToPlayPlayerDieMusic);
 Constants.SDK.hook(createNekotaku_method, PreHook_createNekotaku);
 Constants.SDK.hook(StageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);
-
-local StageManager_obj = nil;
-local function get_Instance(args)
-    StageManager_obj = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_updateWarpFlow()
-    if StageManager_obj == nil then
-        return;
-    end
-
-    if get_CurrentWarpFlow_method:call(StageManager_obj) == WarpFlow_WaitDemo then
-        notifyDemoCameraEnd_method:call(StageManager_obj);
-    end
-    StageManager_obj = nil;
-end
-Constants.SDK.hook(StageManager_type_def:get_method("updateWarpFlow"), get_Instance, PostHook_updateWarpFlow);
