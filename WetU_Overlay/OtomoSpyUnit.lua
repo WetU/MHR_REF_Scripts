@@ -13,6 +13,7 @@ local GuiOtomoSpyUnitMainControll_type_def = Constants.SDK.find_type_definition(
 local setBoostItem_method = GuiOtomoSpyUnitMainControll_type_def:get_method("setBoostItem");
 local updateRewardList_method = GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardList");
 local RewardListCursor_field = GuiOtomoSpyUnitMainControll_type_def:get_field("RewardListCursor");
+local spyOpenType_field = GuiOtomoSpyUnitMainControll_type_def:get_field("spyOpenType");
 
 local RewardListCursor_type_def = RewardListCursor_field:get_type();
 local get__PageCursor_method = RewardListCursor_type_def:get_method("get__PageCursor");
@@ -24,6 +25,7 @@ local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
 
 local GuiOtomoSpyUnitReturn_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
 --
+local ItemReceive = spyOpenType_field:get_type():get_field("ItemReceive"):get_data(nil);
 local ReceiveAllButton_Index = Constants.VECTOR2f.new(0.0, 0.0);
 --
 local OtomoSpyStr = {
@@ -79,13 +81,13 @@ local function PostHook_getDecideButtonTrg(retval)
 end
 
 local function PostHook_endOtomoSpyUnitReturn()
-    this.currentStep = OtomoSpyStr.NotActive;
     isReturnAnimation = false;
+    this.currentStep = OtomoSpyStr.NotActive;
 end
 
 local function handleReward(args)
     local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-    if GuiOtomoSpyUnitMainControll ~= nil then
+    if GuiOtomoSpyUnitMainControll ~= nil and spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == ItemReceive then
         local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
         if RewardListCursor ~= nil then
             local PageCursor = get__PageCursor_method:call(RewardListCursor);

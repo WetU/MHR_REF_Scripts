@@ -35,6 +35,8 @@ local outputTicket_method = get_BbqFunc_method:get_return_type():get_method("out
 --
 local NpcTalkMessageCtrl_type_def = Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId");
+local checkCommercialStuff_method = NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"); -- static
+local checkMysteryResearchRequestEnd_method = NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"); -- static
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_SupplyMysteryResearchRequestReward(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 
@@ -75,9 +77,9 @@ local function talkHandler(retval)
         for k, v in Constants.LUA.pairs(NpcTalkMessageCtrlList) do
             if v ~= nil then
                 if k == npcList.Pingarh and talkAction2_CommercialStuffItem_method:call(v, k, 0, 0) == true then
-                    isCommercialStuff = false;
+                    checkCommercialStuff_method:call(nil);
                 elseif k == npcList.Bahari and talkAction2_SupplyMysteryResearchRequestReward_method:call(v, k, 0, 0) == true then
-                    isMysteryResearchRequestClear = false;
+                    checkMysteryResearchRequestEnd_method:call(nil);
                 end
             end
         end
@@ -214,13 +216,13 @@ function this.init()
         end
         return retval;
     end);
-    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
+    Constants.SDK.hook(checkCommercialStuff_method, nil, function(retval)
         isCommercialStuff = Constants.to_bool(retval);
-        return isCommercialStuff == true and Constants.FALSE_POINTER or retval;
+        return retval;
     end);
-    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
+    Constants.SDK.hook(checkMysteryResearchRequestEnd_method, nil, function(retval)
         isMysteryResearchRequestClear = Constants.to_bool(retval);
-        return isMysteryResearchRequestClear == true and Constants.FALSE_POINTER or retval;
+        return retval;
     end);
 end
 
