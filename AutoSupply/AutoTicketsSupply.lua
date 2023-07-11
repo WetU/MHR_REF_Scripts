@@ -35,10 +35,13 @@ local outputTicket_method = get_BbqFunc_method:get_return_type():get_method("out
 --
 local NpcTalkMessageCtrl_type_def = Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId");
-local checkCommercialStuff_method = NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"); -- static
-local checkMysteryResearchRequestEnd_method = NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"); -- static
+local resetTalkDispName_method = NpcTalkMessageCtrl_type_def:get_method("resetTalkDispName");
+local set_DetermineSpeechBalloonMessage_method = NpcTalkMessageCtrl_type_def:get_method("set_DetermineSpeechBalloonMessage(System.String)");
+local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set_SpeechBalloonAttr(snow.npc.TalkAttribute)");
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_SupplyMysteryResearchRequestReward(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
+
+local TalkAttribute_NONE = Constants.SDK.find_type_definition("snow.npc.TalkAttribute"):get_field("TALK_ATTR_NONE"):get_data(nil);
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
@@ -48,7 +51,8 @@ local npcList = {
 --
 local isCommercialStuff = false;
 local isMysteryResearchRequestClear = false;
-local NpcTalkMessageCtrlList = nil;
+local CommercialNpcTalkMessageCtrl = nil;
+local MysteryLaboNpcTalkMessageCtrl = nil;
 
 local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
@@ -62,32 +66,29 @@ local function PostHook_getTalkTarget()
     end
 
     local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-    if (NpcId == npcList.Pingarh and isCommercialStuff == true) or (NpcId == npcList.Bahari and isMysteryResearchRequestClear == true) then
-        if NpcTalkMessageCtrlList == nil then
-            NpcTalkMessageCtrlList = {};
-        end
-        NpcTalkMessageCtrlList[NpcId] = NpcTalkMessageCtrl;
+    if (isCommercialStuff == true and NpcId == npcList.Pingarh) then
+        CommercialNpcTalkMessageCtrl = NpcTalkMessageCtrl;
+    elseif (isMysteryResearchRequestClear == true and NpcId == npcList.Bahari) then
+        MysteryLaboNpcTalkMessageCtrl = NpcTalkMessageCtrl;
     end
 
     NpcTalkMessageCtrl = nil;
 end
 
 local function talkHandler(retval)
-    if NpcTalkMessageCtrlList ~= nil then
-        for k, v in Constants.LUA.pairs(NpcTalkMessageCtrlList) do
-            if v ~= nil then
-                if k == npcList.Pingarh and talkAction2_CommercialStuffItem_method:call(v, k, 0, 0) == true then
-                    checkCommercialStuff_method:call(nil);
-                elseif k == npcList.Bahari and talkAction2_SupplyMysteryResearchRequestReward_method:call(v, k, 0, 0) == true then
-                    checkMysteryResearchRequestEnd_method:call(nil);
-                end
-            end
-        end
-
-        if isCommercialStuff == false and isMysteryResearchRequestClear == false then
-            NpcTalkMessageCtrlList = nil;
-        end
+    if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
+        isCommercialStuff = false;
+        CommercialNpcTalkMessageCtrl = nil;
     end
+
+    if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+        isMysteryResearchRequestClear = false;
+        resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
+        set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
+        set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
+        MysteryLaboNpcTalkMessageCtrl = nil;
+    end
+
     return retval;
 end
 
@@ -216,11 +217,11 @@ function this.init()
         end
         return retval;
     end);
-    Constants.SDK.hook(checkCommercialStuff_method, nil, function(retval)
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         isCommercialStuff = Constants.to_bool(retval);
         return retval;
     end);
-    Constants.SDK.hook(checkMysteryResearchRequestEnd_method, nil, function(retval)
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         isMysteryResearchRequestClear = Constants.to_bool(retval);
         return retval;
     end);
