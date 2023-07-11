@@ -3,39 +3,35 @@ if not Constants then
 	return;
 end
 --
-local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo"); -- retval
+local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo");
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
 local StagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
-local get_FastTravelPointList_method = StagePointManager_type_def:get_method("get_FastTravelPointList"); -- retval
+local get_FastTravelPointList_method = StagePointManager_type_def:get_method("get_FastTravelPointList");
 local TentPositionList_field = StagePointManager_type_def:get_field("_TentPositionList");
 
 local FastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
-local FastTravelPointList_get_Count_method = FastTravelPointList_type_def:get_method("get_Count"); -- retval
-local FastTravelPointList_get_Item_method = FastTravelPointList_type_def:get_method("get_Item(System.Int32)"); -- retval
+local FastTravelPointList_get_Count_method = FastTravelPointList_type_def:get_method("get_Count");
+local FastTravelPointList_get_Item_method = FastTravelPointList_type_def:get_method("get_Item(System.Int32)");
 
-local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points"); -- retval
+local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points");
 
-local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
+local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)");
 
 local TentPositionList_type_def = TentPositionList_field:get_type();
-local TentPositionList_get_Count_method = TentPositionList_type_def:get_method("get_Count"); -- retval
-local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("get_Item(System.Int32)"); -- retval
+local TentPositionList_get_Count_method = TentPositionList_type_def:get_method("get_Count");
+local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("get_Item(System.Int32)");
 
 local StageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
-local get_CurrentWarpFlow_method = StageManager_type_def:get_method("get_CurrentWarpFlow");
-local notifyDemoCameraEnd_method = StageManager_type_def:get_method("notifyDemoCameraEnd");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
-
-local WarpFlow_WaitDemo = get_CurrentWarpFlow_method:get_return_type():get_field("WaitDemo"):get_data(nil);
-local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 --
+local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
 local GameObjectType_MasterPlayer = Constants.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
 local MapNoType_type_def = get_CurrentMapNo_method:get_return_type();
-local nekoTakuList = {
+local campList = {
     [MapNoType_type_def:get_field("No01"):get_data(nil)] = { -- 사원 폐허
         [1] = Constants.VECTOR3f.new(236.707, 174.37, -510.568)
     },
@@ -147,7 +143,7 @@ local function PreHook_startToPlayPlayerDieMusic()
     local mapNo = getCurrentMapNo();
     if StagePointManager ~= nil and mapNo ~= nil then
         local camps = TentPositionList_field:get_data(StagePointManager);
-        local nekoTakuItem = nekoTakuList[mapNo];
+        local nekoTakuItem = campList[mapNo];
         if camps ~= nil and nekoTakuItem ~= nil then
             skipCreateNeko = false;
             skipWarpNeko = false;

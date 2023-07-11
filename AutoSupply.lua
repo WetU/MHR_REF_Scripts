@@ -24,19 +24,10 @@ local function SendMessage(text)
     end
 end
 --
-local EquipDataManager = nil;
-local setIdx = nil;
 local function PreHook_applyEquipMySet(args)
-    EquipDataManager = Constants.SDK.to_managed_object(args[2]);
-    setIdx = Constants.SDK.to_int64(args[3]) & 0xFFFFFFFF;
+    SendMessage(InventorySupply.Restock(Constants.SDK.to_managed_object(args[2]), Constants.to_uint(args[3])));
 end
-local function PostHook_applyEquipMySet(retval)
-    SendMessage(InventorySupply.Restock(EquipDataManager, setIdx));
-    EquipDataManager = nil;
-    setIdx = nil;
-    return retval;
-end
-Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet, PostHook_applyEquipMySet);
+Constants.SDK.hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet);
 --
 local function campStart()
     SendMessage(InventorySupply.Restock(nil, nil));

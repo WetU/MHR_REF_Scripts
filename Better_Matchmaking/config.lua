@@ -49,9 +49,9 @@ function this.load()
 	local loaded_config = Constants.JSON.load_file(this.config_file_name);
 	if loaded_config ~= nil then
 		this.current_config = utils.table.merge(this.default_config, loaded_config);
-	else
-		this.current_config = utils.table.deep_copy(this.default_config);
+		return;
 	end
+	this.current_config = utils.table.deep_copy(this.default_config);
 end
 
 function this.save()

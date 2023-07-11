@@ -36,46 +36,46 @@ end
 --
 local this = {};
 --
-local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer"); -- retval
+local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer");
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static, retval
+local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static
 
 local ItemMySet_type_def = get_ItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
-local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)"); -- retval
+local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
 
 local PlItemPouchMySetData_type_def = getData_method:get_return_type();
-local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name"); -- retval
-local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem"); -- retval
-local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex"); -- retval
+local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name");
+local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
+local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
 
 local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type();
-local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue"); -- retval
-local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value"); -- retval
-local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault"); -- retval
+local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
+local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
+local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault");
 
 local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
-local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");  -- retval
+local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
 
 local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
-local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name"); -- retval
-local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing"); -- retval
-local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack"); -- retval
-local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData"); -- retval
+local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
+local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing");
+local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
+local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
 
-local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType"); -- retval
+local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
 
-local getCustomShortcutSystem_method = Constants.SDK.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static, retval
+local getCustomShortcutSystem_method = Constants.SDK.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static
 
 local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
-local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)"); -- retval
+local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
 
-local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)"); -- retval
+local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
 
-local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name"); -- retval
+local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 ----------- Equipment Loadout Managementt ----

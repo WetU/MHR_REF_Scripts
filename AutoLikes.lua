@@ -10,9 +10,9 @@ local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayer
 local gauge_set_Item_method = gaugeAngleMax_field:get_type():get_method("set_Item(System.Int32, System.Single)");
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
-local PlInfos_get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count"); -- retval
+local PlInfos_get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count");
 local PlInfos_set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
-local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)"); -- retval
+local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
 
 local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field("_Enable");
 -- Main Function

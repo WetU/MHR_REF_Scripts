@@ -9,7 +9,7 @@ local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
-local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId"); -- retval
+local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId");
 
 local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
@@ -18,22 +18,31 @@ local this = {
 };
 --
 local HarvestMoonTimer_String = "원월 타이머: %.f초";
-local LongSwordShell010 = nil;
 
 local function Terminate()
     this.CircleTimer = nil;
-    LongSwordShell010 = nil;
 end
 
-local function UpdateHarvestMoonTimer()
-    local lifeTimer = lifeTimer_field:get_data(LongSwordShell010);
+local function UpdateHarvestMoonTimer(longSwordShell010)
+    local lifeTimer = lifeTimer_field:get_data(longSwordShell010);
     if lifeTimer ~= nil then
         this.CircleTimer = Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer);
         return;
     end
-    this.CircleTimer = nil;
+    Terminate();
 end
 
+local function PreHook_update(args)
+    local LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
+    if LongSwordShell010 == nil then
+        Terminate();
+        return;
+    end
+
+    UpdateHarvestMoonTimer(LongSwordShell010);
+end
+
+local LongSwordShell010 = nil;
 local function PreHook(args)
     LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
     if Constants.MasterPlayerIndex == nil then
@@ -41,15 +50,17 @@ local function PreHook(args)
     end
 end
 local function PostHook()
-    if LongSwordShell010 ~= nil then
-        if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
-            UpdateHarvestMoonTimer();
-            Constants.SDK.hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
-            Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
-        else
-            LongSwordShell010 = nil;
-        end
+    if LongSwordShell010 == nil then
+        return;
     end
+
+    if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
+        UpdateHarvestMoonTimer(LongSwordShell010);
+        Constants.SDK.hook_vtable(LongSwordShell010, update_method, PreHook_update);
+        Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
+    end
+
+    LongSwordShell010 = nil;
 end
 
 function this.init()

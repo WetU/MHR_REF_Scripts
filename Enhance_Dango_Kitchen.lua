@@ -2,7 +2,7 @@ local Constants = require("Constants.Constants");
 if not Constants then
 	return;
 end
--- VIP Dango Ticket Cache
+-- Auto Dango Ticket
 local mealFunc_type_def = Constants.SDK.find_type_definition("snow.facility.kitchen.MealFunc");
 local setMealTicketFlag_method = mealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 -- Skip Dango Song cache
@@ -19,11 +19,9 @@ local BBQ_DemoState = {
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local kitchenFsm_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-local get_KitchenCookDemoHandler_method = kitchenFsm_type_def:get_method("get_KitchenCookDemoHandler"); -- retval
-local get_KitchenEatDemoHandler_method = kitchenFsm_type_def:get_method("get_KitchenEatDemoHandler"); -- retval
-local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam"); -- retval
-
-local reqFinish_method = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler"):get_method("reqFinish(System.Single)");
+local get_KitchenCookDemoHandler_method = kitchenFsm_type_def:get_method("get_KitchenCookDemoHandler");
+local get_KitchenEatDemoHandler_method = kitchenFsm_type_def:get_method("get_KitchenEatDemoHandler");
+local get_KitchenDangoLogParam_method = kitchenFsm_type_def:get_method("get_KitchenDangoLogParam");
 
 local GuiKitchenCookingEventDemoFsmAction_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenCookingEventDemoFsmAction");
 local CookingDemoState_field = GuiKitchenCookingEventDemoFsmAction_type_def:get_field("_DemoState");
@@ -32,7 +30,9 @@ local CookingDemoState_Demo_Update = CookingDemoState_field:get_type():get_field
 local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_definition("snow.gui.fsm.kitchen.GuiKitchenEatingEventDemoFsmAction");
 local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
--- VIP Dango Ticket Main Function
+
+local reqFinish_method = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler"):get_method("reqFinish(System.Single)");
+-- Auto Dango Ticket
 local function PreHook_updateList(args)
 	local MealFunc = Constants.SDK.to_managed_object(args[2]);
 	if MealFunc ~= nil then

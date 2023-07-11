@@ -1,4 +1,3 @@
-local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;
@@ -13,23 +12,23 @@ local this = {
     AcquiredCounts = nil
 };
 --
-local calcLvBuffNumToMax_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)"); -- retval
-local calcLvBuffValue_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
-local getEquippingLvBuffcageData_method = Constants.type_definitions.EquipDataManager_type_def:get_method("getEquippingLvBuffcageData"); -- retval
+local calcLvBuffNumToMax_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
+local calcLvBuffValue_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)");
+local getEquippingLvBuffcageData_method = Constants.type_definitions.EquipDataManager_type_def:get_method("getEquippingLvBuffcageData");
 
-local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)"); -- retval
+local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 
-local getLvBuffCnt_method = Constants.type_definitions.PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)"); -- retval
+local getLvBuffCnt_method = Constants.type_definitions.PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 
 local PlayerQuestBase_type_def = Constants.SDK.find_type_definition("snow.player.PlayerQuestBase");
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
-local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea"); -- retval
+local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
 local PlayerBase_type_def = PlayerQuestBase_type_def:get_parent_type();
-local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer"); -- retval
-local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex"); -- retval
-local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData"); -- retval
+local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer");
+local getPlayerIndex_method = PlayerBase_type_def:get_method("getPlayerIndex");
+local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
 local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
 
@@ -54,7 +53,7 @@ local TimerString = {
     Disabled = "향응 비활성 지역",
     Enabled = "향응 타이머: %.f초"
 };
-
+--
 local hasRainbow = false;
 local firstHook = true;
 local skipUpdate = false;
@@ -163,26 +162,23 @@ local function PostHook_subLvBuffFromEnemy(retval)
     return retval;
 end
 
-local EquipSkill211_PlayerQuestBase = nil;
 local function PreHook_updateEquipSkill211(args)
-    if firstHook == true or skipUpdate == false then
-        EquipSkill211_PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
+    if firstHook == false and skipUpdate == true then
+        return;
     end
-end
-local function PostHook_updateEquipSkill211()
+
+    local EquipSkill211_PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
     if EquipSkill211_PlayerQuestBase ~= nil and isMasterPlayer_method:call(EquipSkill211_PlayerQuestBase) == true then
         if firstHook == true then
             firstHook = false;
             if get_IsInTrainingArea_method:call(EquipSkill211_PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(EquipSkill211_PlayerQuestBase) ~= true then
                 skipUpdate = true;
                 this.SpiribirdsCall_Timer = TimerString.Disabled;
-                EquipSkill211_PlayerQuestBase = nil;
                 return;
             end
         end
         getCallTimer(EquipSkill211_PlayerQuestBase);
     end
-    EquipSkill211_PlayerQuestBase = nil;
 end
 
 local addBuffType = nil;
@@ -244,7 +240,7 @@ end
 function this.init()
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
-    Constants.SDK.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211, PostHook_updateEquipSkill211);
+    Constants.SDK.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
     Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
     Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, PostHook_clearLvBuffCnt);
     Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changePlayerIndex(snow.player.PlayerIndex, snow.player.PlayerIndex)"), PreHook_changePlayerIndex, PostHook_changePlayerIndex);

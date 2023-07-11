@@ -99,6 +99,7 @@ local function handleReward(args)
             end
         end
     end
+    isReceiveReady = false;
 end
 
 local function PreHook_getDecideButtonRep()
@@ -108,7 +109,6 @@ local function PreHook_getDecideButtonRep()
 end
 local function PostHook_getDecideButtonRep(retval)
     if isReceiveReady == true then
-        isReceiveReady = false;
         return Constants.TRUE_POINTER;
     end
     return retval;

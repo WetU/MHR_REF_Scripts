@@ -7,7 +7,7 @@ local this = {};
 --
 local ProgressOwlNestManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");
-local get_SaveData_method = ProgressOwlNestManager_type_def:get_method("get_SaveData"); -- retval
+local get_SaveData_method = ProgressOwlNestManager_type_def:get_method("get_SaveData");
 local StackItemCount = ProgressOwlNestManager_type_def:get_field("StackItemCount"):get_data(nil);
 
 local ProgressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
@@ -15,7 +15,7 @@ local kamuraStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_Stac
 local elgadoStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_StackCount2");
 --
 local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
-local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo"); -- retval
+local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
 local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();

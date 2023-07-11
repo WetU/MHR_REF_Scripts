@@ -17,8 +17,8 @@ local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get
 
 local nullable_uint32_type_def = Constants.SDK.find_type_definition("System.Nullable`1<System.UInt32>");
 local nullable_uint32_constructor_method = nullable_uint32_type_def:get_method(".ctor(System.UInt32)");
-local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue"); -- retval
-local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault"); -- retval
+local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue");
+local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault");
 --
 local SessionAttr_Quest = Constants.SDK.find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
 --
