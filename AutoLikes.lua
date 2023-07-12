@@ -24,33 +24,38 @@ local function PreHook_doOpen(args)
 	sendReady = false;
 end
 local function PostHook_doOpen()
-	if GoodRelationshipHud ~= nil then
-		local gaugeAngleMax = gaugeAngleMax_field:get_data(GoodRelationshipHud);
-		if gaugeAngleMax ~= nil then
-			gauge_set_Item_method:call(gaugeAngleMax, 1, 0.0);
-			GoodRelationshipHud:set_field("_gaugeAngleMax", gaugeAngleMax);
-		end
-		GoodRelationshipHud:set_field("WaitTime", 0.0);
+	if GoodRelationshipHud == nil then
+		return;
 	end
+
+	local gaugeAngleMax = gaugeAngleMax_field:get_data(GoodRelationshipHud);
+	if gaugeAngleMax ~= nil then
+		gauge_set_Item_method:call(gaugeAngleMax, 1, 0.0);
+		GoodRelationshipHud:set_field("_gaugeAngleMax", gaugeAngleMax);
+	end
+	GoodRelationshipHud:set_field("WaitTime", 0.0);
 end
 
 local function PostHook_updatePlayerInfo()
-	if GoodRelationshipHud ~= nil then
-		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
-		if OtherPlayerInfos ~= nil then
-			local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
-			if PlInfos_count > 0 then
-				for i = 0, PlInfos_count - 1, 1 do
-					local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
-					if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
-						OtherPlayerInfo:set_field("_good", true);
-						PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-					end
+	if GoodRelationshipHud == nil then
+		return;
+	end
+
+	local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
+	if OtherPlayerInfos ~= nil then
+		local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
+		if PlInfos_count > 0 then
+			for i = 0, PlInfos_count - 1, 1 do
+				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+				if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
+					OtherPlayerInfo:set_field("_good", true);
+					PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
 				end
-				sendReady = true;
 			end
+			sendReady = true;
 		end
 	end
+
 	GoodRelationshipHud = nil;
 end
 

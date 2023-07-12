@@ -18,10 +18,16 @@ local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui
 local isVillageStarted = false;
 
 local function SendMessage(text)
-    local ChatManager = Constants.SDK.get_managed_singleton("snow.gui.ChatManager");
-    if ChatManager ~= nil then
-        reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
+    if Constants.LUA.type(text) ~= "string" then
+        return;
     end
+
+    local ChatManager = Constants.SDK.get_managed_singleton("snow.gui.ChatManager");
+    if ChatManager == nil then
+        return;
+    end
+
+    reqAddChatInfomation_method:call(ChatManager, text, 2289944406);
 end
 --
 local function PreHook_applyEquipMySet(args)

@@ -26,27 +26,34 @@ local function PreHook_play(args)
 	Movie = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_play()
-	if Movie ~= nil then
-		local DurationTime = get_DurationTime_method:call(Movie);
-		if DurationTime ~= nil then
-			seek_method:call(Movie, DurationTime);
-		end
+	if Movie == nil then
+		return;
 	end
+
+	local DurationTime = get_DurationTime_method:call(Movie);
+	if DurationTime ~= nil then
+		seek_method:call(Movie, DurationTime);
+	end
+
 	Movie = nil;
 end
 
 local function ClearAction(args)
-    local Action = Constants.SDK.to_managed_object(args[3]);
-    if Action ~= nil then
-        notifyActionEnd_method:call(Action);
-    end
+	local Action = Constants.SDK.to_managed_object(args[3]);
+	if Action == nil then
+		return;
+	end
+
+	notifyActionEnd_method:call(Action);
 end
 
 local function Create_hook_vtable(args)
 	local obj = Constants.SDK.to_managed_object(args[2]);
-	if obj ~= nil then
-		Constants.SDK.hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
+	if obj == nil then
+		return;
 	end
+
+	Constants.SDK.hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 end
 
 Constants.SDK.hook(Movie_type_def:get_method("play"), PreHook_play, PostHook_play);

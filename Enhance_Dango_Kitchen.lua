@@ -49,7 +49,11 @@ local function PreHook_CookingDemoUpdate(args)
 	GuiKitchenCookingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_CookingDemoUpdate()
-	if GuiKitchenCookingEventDemoFsmAction ~= nil and CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) == CookingDemoState_Demo_Update then
+	if GuiKitchenCookingEventDemoFsmAction == nil then
+		return;
+	end
+
+	if CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) == CookingDemoState_Demo_Update then
 		GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 		if GuiKitchenFsmManager ~= nil then
 			local CookDemoHandler = get_KitchenCookDemoHandler_method:call(GuiKitchenFsmManager);
@@ -69,7 +73,11 @@ local function PreHook_EatingDemoUpdate(args)
 	GuiKitchenEatingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_EatingDemoUpdate()
-	if GuiKitchenEatingEventDemoFsmAction ~= nil and EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) == EatingDemoState_Demo_Update then
+	if GuiKitchenEatingEventDemoFsmAction == nil then
+		return;
+	end
+
+	if EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) == EatingDemoState_Demo_Update then
 		GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 		if GuiKitchenFsmManager ~= nil then
 			local EatDemoHandler = get_KitchenEatDemoHandler_method:call(GuiKitchenFsmManager);
@@ -84,15 +92,22 @@ end
 Constants.SDK.hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate, PostHook_EatingDemoUpdate);
 
 local function PostHook_requestAutoSaveAll()
-	if showDangoLog == true then
-		showDangoLog = false;
-		local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
-		local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(GuiKitchenFsmManager);
-		if GuiManager ~= nil and KitchenDangoLogParam ~= nil then
-			reqDangoLogStart_method:call(GuiManager, KitchenDangoLogParam, 5.0);
-		end
-		GuiKitchenFsmManager = nil;
+	if showDangoLog ~= true then
+		return;
 	end
+
+	showDangoLog = false;
+	GuiKitchenFsmManager = GuiKitchenFsmManager or Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
+	if GuiKitchenFsmManager == nil then
+		return;
+	end
+
+	local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
+	local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(GuiKitchenFsmManager);
+	if GuiManager ~= nil and KitchenDangoLogParam ~= nil then
+		reqDangoLogStart_method:call(GuiManager, KitchenDangoLogParam, 5.0);
+	end
+	GuiKitchenFsmManager = nil;
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
 --BBQ
@@ -101,13 +116,15 @@ local function PreHook_BBQ_updatePlayDemo(args)
 	GuiKitchen_BBQ = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_BBQ_updatePlayDemo()
-	if GuiKitchen_BBQ ~= nil then
-		local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
-		if DemoState == BBQ_DemoState.Update or DemoState == BBQ_DemoState.ResultDemoUpdate then
-			local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ);
-			if BBQ_DemoHandler ~= nil then
-				reqFinish_method:call(BBQ_DemoHandler, 0.0);
-			end
+	if GuiKitchen_BBQ == nil then
+		return;
+	end
+
+	local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
+	if DemoState == BBQ_DemoState.Update or DemoState == BBQ_DemoState.ResultDemoUpdate then
+		local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ);
+		if BBQ_DemoHandler ~= nil then
+			reqFinish_method:call(BBQ_DemoHandler, 0.0);
 		end
 	end
 	GuiKitchen_BBQ = nil;

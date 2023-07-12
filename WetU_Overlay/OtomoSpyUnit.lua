@@ -42,9 +42,11 @@ end
 
 local function setBoostItem(args)
     local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-    if GuiOtomoSpyUnitMainControll ~= nil then
-        setBoostItem_method:call(GuiOtomoSpyUnitMainControll);
+    if GuiOtomoSpyUnitMainControll == nil then
+        return;
     end
+
+    setBoostItem_method:call(GuiOtomoSpyUnitMainControll);
 end
 
 local function get_currentStepCount()
@@ -99,7 +101,6 @@ local function handleReward(args)
             end
         end
     end
-    isReceiveReady = false;
 end
 
 local function PreHook_getDecideButtonRep()
@@ -109,16 +110,17 @@ local function PreHook_getDecideButtonRep()
 end
 local function PostHook_getDecideButtonRep(retval)
     if isReceiveReady == true then
+        isReceiveReady = false;
         return Constants.TRUE_POINTER;
     end
     return retval;
 end
 
 local function onChangedGameStatus(args)
-    if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
-        Terminate();
-    else
+    if Constants.SDK.to_int64(args[3]) == Constants.GameStatusType.Village then
         get_currentStepCount();
+    else
+        Terminate();
     end
 end
 

@@ -173,19 +173,22 @@ end
 function this.checkQuestStatus(questManager, checkType)
     if questManager == nil then
         questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        if questManager == nil then
+            return nil;
+        end
     end
-    if questManager ~= nil then
-        return checkStatus_method:call(questManager, checkType);
-    end
-    return nil;
+
+    return checkStatus_method:call(questManager, checkType);
 end
 
 function this.ClearFade()
     local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
-    if FadeManager ~= nil then
-        set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
-        FadeManager:set_field("fadeOutInFlag", false);
+    if FadeManager == nil then
+        return;
     end
+
+    set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
+    FadeManager:set_field("fadeOutInFlag", false);
 end
 
 function this.SKIP_ORIGINAL()

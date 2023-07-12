@@ -16,17 +16,21 @@ local function applyFps()
 end
 
 local function PreHook_changeAllMarkerEnable(args)
-	if Constants.to_bool(args[3]) == false then
-		local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
-		if ObjectAccessManager ~= nil then
-			changeAllMarkerEnable_method:call(ObjectAccessManager, true);
-			return Constants.SDK.SKIP_ORIGINAL;
-		end
+	if Constants.to_bool(args[3]) == true then
+		return;
 	end
+
+	local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
+	if ObjectAccessManager == nil then
+		return;
+	end
+
+	changeAllMarkerEnable_method:call(ObjectAccessManager, true);
+	return Constants.SDK.SKIP_ORIGINAL;
 end
 --
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("start"), nil, applyFps);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("start"), applyFps);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), applyFps);
 Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
 --
 local function save_config()

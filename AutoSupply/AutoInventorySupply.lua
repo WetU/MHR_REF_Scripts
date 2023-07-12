@@ -104,13 +104,16 @@ local function GetCurrentWeaponType()
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
-    if equipDataManager == nil then
-        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-    end
-    if equipDataManager ~= nil and loadoutIndex ~= nil then
-        local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
-        if PlEquipMySetList ~= nil then
-            return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
+    if loadoutIndex ~= nil then
+        if equipDataManager == nil then
+            equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+        end
+
+        if equipDataManager ~= nil then
+            local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
+            if PlEquipMySetList ~= nil then
+                return PlEquipMySetList_get_Item_method:call(PlEquipMySetList, loadoutIndex);
+            end
         end
     end
     return nil;
@@ -130,13 +133,16 @@ local function GetEquipmentLoadoutWeaponType(loadoutIndex)
 end
 
 local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
-    if equipDataManager == nil then
-        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-    end
-    if equipDataManager ~= nil and loadoutIndex ~= nil then
-        local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
-        if EquipmentLoadout ~= nil then
-            return get_Name_method:call(EquipmentLoadout);
+    if loadoutIndex ~= nil then
+        if equipDataManager == nil then
+            equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+        end
+
+        if equipDataManager ~= nil then
+            local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
+            if EquipmentLoadout ~= nil then
+                return get_Name_method:call(EquipmentLoadout);
+            end
         end
     end
     return nil;
@@ -153,13 +159,16 @@ local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
 end
 
 local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
-    if equipDataManager == nil then
-        equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-    end
-    if equipDataManager ~= nil and loadoutIndex ~= nil then
-        local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
-        if EquipmentLoadout ~= nil then
-            return isSamePlEquipPack_method:call(EquipmentLoadout);
+    if loadoutIndex ~= nil then
+        if equipDataManager == nil then
+            equipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+        end
+
+        if equipDataManager ~= nil then
+            local EquipmentLoadout = GetEquipmentLoadout(equipDataManager, loadoutIndex);
+            if EquipmentLoadout ~= nil then
+                return isSamePlEquipPack_method:call(EquipmentLoadout);
+            end
         end
     end
     return nil;

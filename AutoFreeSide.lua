@@ -7,10 +7,12 @@ local isOpenRewardWindow = false;
 
 local function PreHook_doOpen(args)
     local GuiSideQuestOrder = Constants.SDK.to_managed_object(args[2]);
-    if GuiSideQuestOrder ~= nil then
-        GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
-        GuiSideQuestOrder:set_field("DecideDelay", 0.0);
+    if GuiSideQuestOrder == nil then
+        return;
     end
+
+    GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
+    GuiSideQuestOrder:set_field("DecideDelay", 0.0);
     isOpenRewardWindow = false;
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);

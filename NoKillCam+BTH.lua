@@ -19,50 +19,40 @@ local EndFlow = {
 };
 --
 local HOME_key = 36;
-local DemoCamera = Constants.SDK.find_type_definition("snow.CameraManager.CameraType"):get_field("DemoCamera"):get_data(nil);
 -- No Kill Cam
-local isEnemyDie = false;
-
-local function onEnemyDie()
-	isEnemyDie = true;
-end
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questEnemyDie(snow.enemy.EnemyCharacterBase, snow.quest.EmEndType)"), nil, onEnemyDie);
-
-local function skipKillCam(args)
-	if Constants.SDK.to_int64(args[3]) ~= DemoCamera then
-		return;
-	end
-
-	if isEnemyDie == true then
-		isEnemyDie = false;
-		return Constants.SDK.SKIP_ORIGINAL;
-	end
-end
-Constants.SDK.hook(Constants.type_definitions.CameraManager_type_def:get_method("RequestActive(snow.CameraManager.CameraType)"), skipKillCam);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), Constants.SKIP_ORIGINAL);
 
 -- BTH
 local function PreHook_updateQuestEndFlow(args)
 	local QuestManager = Constants.SDK.to_managed_object(args[2]);
-	if QuestManager ~= nil then
-		local endFlow = EndFlow_field:get_data(QuestManager);
-		if endFlow == EndFlow.WaitEndTimer then
-			if Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.Success) == true then
-				if (getTrg_method:call(nil, HOME_key) == true and getTotalJoinNum_method:call(QuestManager) == 1) or getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 then
-					nextEndFlowToCameraDemo_method:call(QuestManager);
-				end
-			else
-				if getTrg_method:call(nil, HOME_key) == true then
-					QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-				end
+
+	if QuestManager == nil then
+		return;
+	end
+
+	local endFlow = EndFlow_field:get_data(QuestManager);
+
+	if endFlow == nil then
+		return;
+	end
+
+	if endFlow == EndFlow.WaitEndTimer then
+		if Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.Success) == true then
+			if (getTrg_method:call(nil, HOME_key) == true and getTotalJoinNum_method:call(QuestManager) == 1) or getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 then
+				nextEndFlowToCameraDemo_method:call(QuestManager);
 			end
-
-		elseif endFlow == EndFlow.CameraDemo then
-			QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-
-		elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
-			Constants.ClearFade();
+		else
+			if getTrg_method:call(nil, HOME_key) == true then
+				QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+			end
 		end
-    end
+
+	elseif endFlow == EndFlow.CameraDemo then
+		QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+
+	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
+		Constants.ClearFade();
+	end
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
 --
