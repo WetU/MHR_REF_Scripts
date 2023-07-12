@@ -14,14 +14,15 @@ local get_TradeFunc_method = Constants.SDK.find_type_definition("snow.facility.T
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
 local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
 local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData(snow.facility.tradeCenter.NegotiationTypes)");
+local AcornAddCount = TradeFunc_type_def:get_field("_AcornAddCount"):get_data(nil);
 
 local TradeOrderList_type_def = get_TradeOrderList_method:get_return_type();
 local TradeOrderList_get_Count_method = TradeOrderList_type_def:get_method("get_Count");
 local TradeOrderList_get_Item_method = TradeOrderList_type_def:get_method("get_Item(System.Int32)");
 
 local NegotiationData_type_def = getNegotiationData_method:get_return_type();
-local get_Cost_method = NegotiationData_type_def:get_method("get_Cost");
 local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count");
+local get_Cost_method = NegotiationData_type_def:get_method("get_Cost");
 
 local TradeOrder_type_def = TradeOrderList_get_Item_method:get_return_type();
 local initialize_method = TradeOrder_type_def:get_method("initialize");
@@ -35,12 +36,18 @@ local InventoryList_get_Count_method = InventoryList_type_def:get_method("get_Co
 local InventoryList_get_Item_method = InventoryList_type_def:get_method("get_Item(System.Int32)");
 
 local Inventory_type_def = InventoryList_get_Item_method:get_return_type();
-local isEmpty_method = Inventory_type_def:get_method("isEmpty");
+local get_ItemId_method = Inventory_type_def:get_method("get_ItemId");
 local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
-local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)");
+local isEmpty_method = Inventory_type_def:get_method("isEmpty");
+local sub_method = Inventory_type_def:get_method("sub(System.UInt32, System.Boolean)");
+local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)"); -- static
 
 local trySellGameItem_method = Constants.type_definitions.DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
+local getItemBox_method = Constants.type_definitions.DataManager_type_def:get_method("getItemBox");
 
+local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
+
+local Acorn_Id = get_ItemId_method:get_return_type():get_field("I_Normal_1041"):get_data(nil);
 local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
 --
 function this.autoArgosy()
@@ -53,43 +60,69 @@ function this.autoArgosy()
             if TradeOrderList ~= nil then
                 local TradeOrderList_count = TradeOrderList_get_Count_method:call(TradeOrderList);
                 if TradeOrderList_count > 0 then
-                    local isReceived = false;
-                    for i = 0, TradeOrderList_count - 1, 1 do
-                        local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
-                        if TradeOrder ~= nil then
-                            local NegotiationCount = get_NegotiationCount_method:call(TradeOrder);
-                            local NegotiationType = get_NegotiationType_method:call(TradeOrder);
-                            if NegotiationCount == 1 and NegotiationType ~= nil then
-                                local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationType);
-                                if NegotiationData ~= nil then
-                                    local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
-                                    local Cost = get_Cost_method:call(NegotiationData);
-                                    if NegotiationData_count ~= nil and Cost ~= nil and get_Point_method:call(nil) >= Cost then
-                                        setNegotiationCount_method:call(TradeOrder, NegotiationCount + NegotiationData_count);
-                                        subPoint_method:call(nil, Cost);
-                                    end
-                                end
-                            end
+                    local ItemBox = getItemBox_method:call(DataManager);
+                    if ItemBox ~= nil then
+                        local updateNegotiation = false;
+                        local isReceived = false;
+                        local acornAvailable = false;
 
-                            local InventoryList = get_InventoryList_method:call(TradeOrder);
-                            if InventoryList ~= nil then
-                                local InventoryList_count = InventoryList_get_Count_method:call(InventoryList);
-                                if InventoryList_count > 0 then
-                                    for j = 0, InventoryList_count - 1, 1 do
-                                        local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
-                                        if Inventory ~= nil and not isEmpty_method:call(Inventory) then
-                                            if sendInventory_method:call(Inventory, Inventory, Inventory, 65536) ~= SendInventoryResult_AllSended then
-                                                trySellGameItem_method:call(DataManager, Inventory, Inventory_get_Count_method:call(Inventory));
+                        local acornInventoryData = findInventoryData_method:call(ItemBox, Acorn_Id);
+                        if acornInventoryData ~= nil then
+                            acornAvailable = Inventory_get_Count_method:call(acornInventoryData) > 0;
+                        end
+
+                        for i = 0, TradeOrderList_count - 1, 1 do
+                            local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
+                            if TradeOrder ~= nil then
+                                local NegotiationCount = get_NegotiationCount_method:call(TradeOrder);
+                                if NegotiationCount == 1 then
+                                    local NegotiationType = get_NegotiationType_method:call(TradeOrder);
+                                    if NegotiationType ~= nil then
+                                        local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationType);
+                                        if NegotiationData ~= nil then
+                                            local Cost = get_Cost_method:call(NegotiationData);
+                                            if Cost ~= nil and get_Point_method:call(nil) >= Cost then
+                                                local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
+                                                if NegotiationData_count > 0 then
+                                                    updateNegotiation = true;
+                                                    subPoint_method:call(nil, Cost);
+                                                    setNegotiationCount_method:call(TradeOrder, acornAvailable == true and (NegotiationCount + AcornAddCount + NegotiationData_count) or (NegotiationCount + NegotiationData_count));
+                                                end
                                             end
-                                            isReceived = true;
                                         end
                                     end
                                 end
+
+                                local InventoryList = get_InventoryList_method:call(TradeOrder);
+                                if InventoryList ~= nil then
+                                    local InventoryList_count = InventoryList_get_Count_method:call(InventoryList);
+                                    if InventoryList_count > 0 then
+                                        for j = 0, InventoryList_count - 1, 1 do
+                                            local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
+                                            if Inventory ~= nil and isEmpty_method:call(Inventory) == false then
+                                                local ItemId = get_ItemId_method:call(Inventory);
+                                                local itemCount = Inventory_get_Count_method:call(Inventory);
+                                                if ItemId ~= nil and itemCount > 0 then
+                                                    local toInventory = findInventoryData_method:call(ItemBox, ItemId);
+                                                    if sendInventory_method:call(nil, Inventory, toInventory, itemCount) ~= SendInventoryResult_AllSended then
+                                                        trySellGameItem_method:call(DataManager, Inventory, itemCount);
+                                                    end
+                                                    isReceived = true;
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+                                initialize_method:call(TradeOrder);
                             end
-                            initialize_method:call(TradeOrder);
                         end
+
+                        if acornAvailable == true and updateNegotiation == true then
+                            sub_method:call(acornInventoryData, 1, true);
+                        end
+
+                        return isReceived;
                     end
-                    return isReceived;
                 end
             end
         end
