@@ -43,13 +43,7 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCamp
 local function onChangedGameStatus(args)
     if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
         isVillageStarted = false;
-        return;
     end
-
-    if AutoArgosy.autoArgosy() == true then
-        SendMessage("교역선 아이템을 받았습니다");
-    end
-    SendMessage(InventorySupply.Restock(nil, nil));
 end
 Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 --
@@ -57,6 +51,10 @@ local function onVillageStart()
     if isVillageStarted == false then
         isVillageStarted = true;
         CohootSupply.Supply();
+        if AutoArgosy.autoArgosy() == true then
+            SendMessage("교역선 아이템을 받았습니다");
+        end
+        SendMessage(InventorySupply.Restock(nil, nil));
     end
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, onVillageStart);
