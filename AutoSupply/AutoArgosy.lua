@@ -54,26 +54,30 @@ local SendInventoryResult = {
     Error = SendInventoryResult_type_def:get_field("Error"):get_data(nil)
 };
 --
+local function isAcornEnough(dataManager)
+    local ItemBox = getItemBox_method:call(dataManager);
+    if ItemBox ~= nil then
+        local acornInventoryData = findInventoryData_method:call(ItemBox, Acorn_Id);
+        if acornInventoryData ~= nil then
+            return Inventory_get_Count_method:call(acornInventoryData) > 0;
+        end
+    end
+    return nil;
+end
+
 function this.autoArgosy()
     local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
     local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
     if DataManager ~= nil and TradeCenterFacility ~= nil then
-        local ItemBox = getItemBox_method:call(DataManager);
         local TradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
-        if ItemBox ~= nil and TradeFunc ~= nil then
-            local acornAvailable = false;
-            local acornInventoryData = findInventoryData_method:call(ItemBox, Acorn_Id);
+        if TradeFunc ~= nil then
             local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
-
-            if acornInventoryData ~= nil then
-                acornAvailable = Inventory_get_Count_method:call(acornInventoryData) > 0;
-            end
-
             if TradeOrderList ~= nil then
                 local TradeOrderList_count = TradeOrderList_get_Count_method:call(TradeOrderList);
                 if TradeOrderList_count > 0 then
                     local updateNegotiation = false;
                     local isReceived = false;
+                    local acornAvailable = isAcornEnough(DataManager);
 
                     for i = 0, TradeOrderList_count - 1, 1 do
                         local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);

@@ -36,9 +36,7 @@ local outputTicket_method = get_BbqFunc_method:get_return_type():get_method("out
 --
 local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
 
-local MysteryLaboFacility_type_def = getMysteryLaboFacility_method:get_return_type();
-local get_LaboReward_method = MysteryLaboFacility_type_def:get_method("get_LaboReward");
-local IsRequestChatLogIncClearCount_field = MysteryLaboFacility_type_def:get_field("_IsRequestChatLogIncClearCount");
+local get_LaboReward_method = getMysteryLaboFacility_method:get_return_type():get_method("get_LaboReward");
 
 local get_IsClear_method = get_LaboReward_method:get_return_type():get_method("get_IsClear");
 --
@@ -66,8 +64,40 @@ local npcList = {
     ["Pingarh"] = NpcId_type_def:get_field("nid715"):get_data(nil)
 };
 --
-local isCommercialStuff = nil;
-local isMysteryResearchRequestClear = nil;
+local function get_CanObtainCommercialStuff()
+    local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
+    if FacilityDataManager ~= nil then
+        local CommercialStuffFacility = getCommercialStuffFacility_method:call(FacilityDataManager);
+        if CommercialStuffFacility ~= nil and get_CanObtainlItem_method:call(CommercialStuffFacility) == true then
+            return get_CommercialStuffID_method:call(CommercialStuffFacility) ~= CommercialStuff_None;
+        end
+    end
+    return nil;
+end
+
+local function get_IsMysteryResearchRequestClear()
+    local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
+    if FacilityDataManager ~= nil then
+        local LaboFacility = getMysteryLaboFacility_method:call(FacilityDataManager);
+        if LaboFacility ~= nil then
+            local LaboReward = get_LaboReward_method:call(LaboFacility);
+            if LaboReward ~= nil then
+                return get_IsClear_method:call(LaboReward);
+            end
+        end
+    end
+    return nil;
+end
+--
+local function GetTicket(ticketType)
+    local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
+    if ProgressTicketSupplyManager == nil then
+        return;
+    end
+
+    Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
+end
+--
 local CommercialNpcTalkMessageCtrl = nil;
 local MysteryLaboNpcTalkMessageCtrl = nil;
 
@@ -82,9 +112,9 @@ local function PostHook_getTalkTarget()
 
     local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
     if NpcId ~= nil then
-        if NpcId == npcList.Pingarh then
+        if NpcId == npcList.Pingarh and get_CanObtainCommercialStuff() == true then
             CommercialNpcTalkMessageCtrl = NpcTalkMessageCtrl;
-        elseif NpcId == npcList.Bahari then
+        elseif NpcId == npcList.Bahari and get_IsMysteryResearchRequestClear() == true then
             MysteryLaboNpcTalkMessageCtrl = NpcTalkMessageCtrl;
         end
     end
@@ -93,78 +123,16 @@ local function PostHook_getTalkTarget()
 end
 
 local function talkHandler()
-    local FacilityDataManager = nil;
-    if isCommercialStuff == nil then
-        FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
-        if FacilityDataManager ~= nil then
-            local CommercialStuffFacility = getCommercialStuffFacility_method:call(FacilityDataManager);
-            if CommercialStuffFacility ~= nil and get_CanObtainlItem_method:call(CommercialStuffFacility) == true then
-                isCommercialStuff = get_CommercialStuffID_method:call(CommercialStuffFacility) ~= CommercialStuff_None;
-            end
-        end
+    if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
+        CommercialNpcTalkMessageCtrl = nil;
     end
 
-    if isCommercialStuff == true and CommercialNpcTalkMessageCtrl ~= nil then
-        local success = talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0);
-        if success == true then
-            isCommercialStuff = nil;
-            CommercialNpcTalkMessageCtrl = nil;
-        end
+    if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+        resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
+        set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
+        set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
+        MysteryLaboNpcTalkMessageCtrl = nil;
     end
-
-    if isMysteryResearchRequestClear == nil then
-        if FacilityDataManager == nil then
-            FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
-        end
-        if FacilityDataManager ~= nil then
-            local LaboFacility = getMysteryLaboFacility_method:call(FacilityDataManager);
-            if LaboFacility ~= nil then
-                local LaboReward = get_LaboReward_method:call(LaboFacility);
-                if LaboReward ~= nil then
-                    isMysteryResearchRequestClear = get_IsClear_method:call(LaboReward) == true;
-                end
-            end
-        end
-    end
-
-    if isMysteryResearchRequestClear == true and MysteryLaboNpcTalkMessageCtrl ~= nil then
-        local success = talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0);
-        if success == true then
-            isMysteryResearchRequestClear = nil;
-            resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
-            set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
-            set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
-            MysteryLaboNpcTalkMessageCtrl = nil;
-        end
-    end
-end
-
-local MysteryLaboFacility = nil;
-local function PreHook_updateCheckChatLogAnnounce(args)
-    MysteryLaboFacility = Constants.SDK.to_managed_object(args[2]);
-end
-local function PostHook_updateCheckChatLogAnnounce()
-    if MysteryLaboFacility == nil then
-        return;
-    end
-
-    if IsRequestChatLogIncClearCount_field:get_data(MysteryLaboFacility) == true then
-        local LaboReward = get_LaboReward_method:call(MysteryLaboFacility);
-        if LaboReward ~= nil then
-            isMysteryResearchRequestClear = get_IsClear_method:call(LaboReward);
-        end
-    end
-
-    MysteryLaboFacility = nil;
-end
-
-local function GetTicket(ticketType)
-    local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
-    if ProgressTicketSupplyManager == nil then
-        return;
-    end
-
-    Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
 end
 
 function this.init()
@@ -285,7 +253,6 @@ function this.init()
         end
         return retval;
     end);
-    Constants.SDK.hook(MysteryLaboFacility_type_def:get_method("updateCheckChatLogAnnounce"), PreHook_updateCheckChatLogAnnounce, PostHook_updateCheckChatLogAnnounce);
 end
 
 return this;
