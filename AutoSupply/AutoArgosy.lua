@@ -36,19 +36,20 @@ local InventoryList_get_Count_method = InventoryList_type_def:get_method("get_Co
 local InventoryList_get_Item_method = InventoryList_type_def:get_method("get_Item(System.Int32)");
 
 local Inventory_type_def = InventoryList_get_Item_method:get_return_type();
-local get_ItemId_method = Inventory_type_def:get_method("get_ItemId");
 local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
 local isEmpty_method = Inventory_type_def:get_method("isEmpty");
 local sub_method = Inventory_type_def:get_method("sub(System.UInt32, System.Boolean)");
-local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.ItemInventoryData, System.UInt32)"); -- static
+local checkSendInventoryStatus_method = Inventory_type_def:get_method("checkSendInventoryStatus(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
+local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
 
 local trySellGameItem_method = Constants.type_definitions.DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
 local getItemBox_method = Constants.type_definitions.DataManager_type_def:get_method("getItemBox");
 
 local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
 
-local Acorn_Id = get_ItemId_method:get_return_type():get_field("I_Normal_1041"):get_data(nil);
-local SendInventoryResult_AllSended = sendInventory_method:get_return_type():get_field("AllSended"):get_data(nil);
+local Acorn_Id = Constants.SDK.find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_1041"):get_data(nil);
+local PlayerItemBox = Constants.SDK.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
+local SendInventoryStatus_OK = checkSendInventoryStatus_method:get_return_type():get_field("OK"):get_data(nil);
 --
 function this.autoArgosy()
     local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
@@ -81,12 +82,19 @@ function this.autoArgosy()
                                         local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationType);
                                         if NegotiationData ~= nil then
                                             local Cost = get_Cost_method:call(NegotiationData);
-                                            if Cost ~= nil and get_Point_method:call(nil) >= Cost then
-                                                local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
-                                                if NegotiationData_count > 0 then
-                                                    updateNegotiation = true;
-                                                    subPoint_method:call(nil, Cost);
-                                                    setNegotiationCount_method:call(TradeOrder, acornAvailable == true and (NegotiationCount + AcornAddCount + NegotiationData_count) or (NegotiationCount + NegotiationData_count));
+                                            if Cost ~= nil then
+                                                if get_Point_method:call(nil) >= Cost then
+                                                    local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
+                                                    if NegotiationData_count ~= nil then
+                                                        updateNegotiation = true;
+                                                        subPoint_method:call(nil, Cost);
+                                                        setNegotiationCount_method:call(TradeOrder, acornAvailable == true and (NegotiationCount + AcornAddCount + NegotiationData_count) or (NegotiationCount + NegotiationData_count));
+                                                    end
+                                                else
+                                                    if acornAvailable == true then
+                                                        updateNegotiation = true;
+                                                        setNegotiationCount_method:call(TradeOrder, NegotiationCount + AcornAddCount);
+                                                    end
                                                 end
                                             end
                                         end
@@ -100,20 +108,23 @@ function this.autoArgosy()
                                         for j = 0, InventoryList_count - 1, 1 do
                                             local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
                                             if Inventory ~= nil and isEmpty_method:call(Inventory) == false then
-                                                local ItemId = get_ItemId_method:call(Inventory);
-                                                local itemCount = Inventory_get_Count_method:call(Inventory);
-                                                if ItemId ~= nil and itemCount > 0 then
-                                                    local toInventory = findInventoryData_method:call(ItemBox, ItemId);
-                                                    if sendInventory_method:call(nil, Inventory, toInventory, itemCount) ~= SendInventoryResult_AllSended then
+                                                if checkSendInventoryStatus_method:call(nil, Inventory, PlayerItemBox) == SendInventoryStatus_OK then
+                                                    sendInventory_method:call(nil, Inventory, PlayerItemBox);
+                                                else
+                                                    local itemCount = Inventory_get_Count_method:call(Inventory);
+                                                    if itemCount ~= nil then
                                                         trySellGameItem_method:call(DataManager, Inventory, itemCount);
                                                     end
-                                                    isReceived = true;
                                                 end
+                                                isReceived = true;
                                             end
                                         end
                                     end
                                 end
-                                initialize_method:call(TradeOrder);
+
+                                if isReceived == true then
+                                    initialize_method:call(TradeOrder);
+                                end
                             end
                         end
 

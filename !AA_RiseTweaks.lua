@@ -29,8 +29,7 @@ local function PreHook_changeAllMarkerEnable(args)
 	return Constants.SDK.SKIP_ORIGINAL;
 end
 --
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("start"), applyFps);
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), applyFps);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);
 Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
 --
 local function save_config()

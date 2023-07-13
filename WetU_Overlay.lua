@@ -11,30 +11,27 @@ or not OtomoSpyUnit then
 	return;
 end
 --
+local BuffTypes = {
+    "Atk",
+    "Def",
+    "Vital",
+    "Stamina"
+};
+
 local LocalizedBirdTypes = {
-    ["Atk"] = "공격력",
-    ["Def"] = "방어력",
-    ["Vital"] = "체력",
-    ["Stamina"] = "스태미나"
+    "공격력",
+    "방어력",
+    "체력",
+    "스태미나"
 };
 
 local BirdTypeToColor = {
-    ["Atk"] = 4278190335,
-    ["Def"] = 4278222847,
-    ["Vital"] = 4278222848,
-    ["Stamina"] = 4278255615
+    4278190335,
+    4278222847,
+    4278222848,
+    4278255615
 };
 --
-local function buildBirdTypeToTable(buffType)
-    Constants.IMGUI.table_next_row();
-    Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text_colored(LocalizedBirdTypes[buffType] .. ": ", BirdTypeToColor[buffType]);
-    Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[buffType]));
-    Constants.IMGUI.table_next_column();
-    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[buffType]));
-end
-
 Constants.RE.on_frame(function()
     if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
@@ -44,10 +41,15 @@ Constants.RE.on_frame(function()
                 Constants.IMGUI.table_setup_column("횟수", 8, 20.0);
                 Constants.IMGUI.table_setup_column("수치", 8, 25.0);
                 Constants.IMGUI.table_headers_row();
-                buildBirdTypeToTable("Atk");
-                buildBirdTypeToTable("Def");
-                buildBirdTypeToTable("Vital");
-                buildBirdTypeToTable("Stamina");
+                for i = 1, #BuffTypes, 1 do
+                    Constants.IMGUI.table_next_row();
+                    Constants.IMGUI.table_next_column();
+                    Constants.IMGUI.text_colored(LocalizedBirdTypes[i] .. ": ", BirdTypeToColor[i]);
+                    Constants.IMGUI.table_next_column();
+                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[BuffTypes[i]]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[BuffTypes[i]]));
+                    Constants.IMGUI.table_next_column();
+                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[BuffTypes[i]]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[BuffTypes[i]]));
+                end
                 Constants.IMGUI.end_table();
             end
             if SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
