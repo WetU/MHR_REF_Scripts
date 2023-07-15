@@ -41,9 +41,19 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local function onChangedGameStatus(args)
-    if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
-        isVillageStarted = false;
+    if Constants.SDK.to_int64(args[3]) == Constants.GameStatusType.Village then
+        return;
     end
+
+    isVillageStarted = false;
+
+    local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
+    if GuiManager == nil then
+        return;
+    end
+
+    GuiManager:set_field("<IsActivateQuestCounterFromQuestBoard>k__BackingField", false);
+    GuiManager:set_field("<IsActivateQuestBoardFromShortcut>k__BackingField", false);
 end
 Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 --

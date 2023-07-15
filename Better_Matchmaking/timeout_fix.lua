@@ -1,4 +1,3 @@
-local require = require;
 local Constants = require("Constants.Constants");
 if not Constants then
 	return;

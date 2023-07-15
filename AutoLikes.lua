@@ -35,7 +35,7 @@ local function PreHook_doOpen(args)
 end
 
 local function PostHook_updatePlayerInfo()
-	if GoodRelationshipHud == nil then
+	if sendReady == true or GoodRelationshipHud == nil then
 		return;
 	end
 
