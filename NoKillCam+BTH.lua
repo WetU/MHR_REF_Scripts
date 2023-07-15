@@ -13,9 +13,7 @@ local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
 	WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
-	WaitFadeCameraDemo = EndFlow_type_def:get_field("WaitFadeCameraDemo"):get_data(nil),
 	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
-	WaitFadeOut = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
 --
 local HOME_key = 36;
@@ -49,9 +47,6 @@ local function PreHook_updateQuestEndFlow(args)
 
 	elseif endFlow == EndFlow.CameraDemo then
 		QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-
-	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
-		Constants.ClearFade();
 	end
 end
 Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);

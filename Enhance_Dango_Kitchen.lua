@@ -31,7 +31,7 @@ local GuiKitchenEatingEventDemoFsmAction_type_def = Constants.SDK.find_type_defi
 local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_field("_DemoState");
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 
-local reqFinish_method = Constants.SDK.find_type_definition("snow.eventcut.EventcutHandler"):get_method("reqFinish(System.Single)");
+local reqFinish_method = get_KitchenCookDemoHandler_method:get_return_type():get_method("reqFinish(System.Single)");
 -- Auto Dango Ticket
 local function PreHook_updateList(args)
 	local MealFunc = Constants.SDK.to_managed_object(args[2]);
