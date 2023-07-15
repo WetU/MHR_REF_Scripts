@@ -1,26 +1,13 @@
 local string = string;
-local table = table;
 local math = math;
 local lua_func = {
     type = type,
     pairs = pairs,
     ipairs = ipairs,
-    pcall = pcall,
     tostring = tostring,
-    assert = assert,
-    setmetatable = setmetatable,
 
-    string_find = string.find,
     string_format = string.format,
-    string_rep = string.rep,
 
-    table_insert = table.insert,
-    table_concat = table.concat,
-
-    math_floor = math.floor,
-    math_random = math.random,
-    math_cos = math.cos,
-    math_sin = math.sin,
     math_min = math.min,
     math_max = math.max
 };
@@ -51,11 +38,7 @@ local imgui_func = {
     pop_font = imgui.pop_font,
     tree_node = imgui.tree_node,
     tree_pop = imgui.tree_pop,
-    checkbox = imgui.checkbox,
-    combo = imgui.combo,
     slider_int = imgui.slider_int,
-    slider_float = imgui.slider_float,
-    button = imgui.button,
     text = imgui.text,
     text_colored = imgui.text_colored,
     begin_window = imgui.begin_window,
@@ -67,9 +50,6 @@ local imgui_func = {
     table_next_row = imgui.table_next_row,
     end_table = imgui.end_table,
     spacing = imgui.spacing,
-    same_line = imgui.same_line,
-    set_next_window_pos = imgui.set_next_window_pos,
-    set_next_window_size = imgui.set_next_window_size
 };
 
 local Vector2f = Vector2f;
@@ -184,18 +164,20 @@ end
 
 function this.checkGameStatus(checkType)
     local SnowGameManager = this.SDK.get_managed_singleton("snow.SnowGameManager");
-    if SnowGameManager ~= nil then
-        return checkType == get_CurrentStatus_method:call(SnowGameManager);
+    if SnowGameManager == nil then
+        return nil;
     end
-    return nil;
+
+    return checkType == get_CurrentStatus_method:call(SnowGameManager);
 end
 
 function this.checkQuestStatus(questManager, checkType)
     if questManager == nil then
         questManager = this.SDK.get_managed_singleton("snow.QuestManager");
-        if questManager == nil then
-            return nil;
-        end
+    end
+
+    if questManager == nil then
+        return nil;
     end
 
     return checkStatus_method:call(questManager, checkType);
@@ -228,12 +210,10 @@ end
 
 local function create_Nullable_System_Byte(data)
     local start_alpha = this.SDK.to_int64(data);
-    local value = GetValueOrDefault_method:call(data);
-
     local hasValue = start_alpha ~= nil and get_HasValue_method:call(start_alpha) or false;
 
     local new_start_alpha = this.VALUETYPE.new(Nullable_System_byte_type_def);
-    constructor_method:call(new_start_alpha, value);
+    constructor_method:call(new_start_alpha, GetValueOrDefault_method:call(data));
     new_start_alpha:set_field("_HasValue", hasValue);
 
     return new_start_alpha;

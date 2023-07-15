@@ -28,13 +28,13 @@ function this.Supply()
         return;
     end
 
-    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-    if VillageAreaManager == nil then
+    local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
+    if SaveData == nil then
         return;
     end
 
-    local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
-    if SaveData == nil then
+    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+    if VillageAreaManager == nil then
         return;
     end
 

@@ -21,9 +21,6 @@ local sendReady = false;
 
 local function PreHook_doOpen(args)
 	GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
-	sendReady = false;
-end
-local function PostHook_doOpen()
 	if GoodRelationshipHud == nil then
 		return;
 	end
@@ -34,6 +31,7 @@ local function PostHook_doOpen()
 		GoodRelationshipHud:set_field("_gaugeAngleMax", gaugeAngleMax);
 	end
 	GoodRelationshipHud:set_field("WaitTime", 0.0);
+	sendReady = false;
 end
 
 local function PostHook_updatePlayerInfo()
@@ -47,9 +45,12 @@ local function PostHook_updatePlayerInfo()
 		if PlInfos_count > 0 then
 			for i = 0, PlInfos_count - 1, 1 do
 				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
-				if OtherPlayerInfo ~= nil and PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
-					OtherPlayerInfo:set_field("_good", true);
-					PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+				if OtherPlayerInfo ~= nil then
+					local player_enabled = PlInfo_Enable_field:get_data(OtherPlayerInfo);
+					if player_enabled ~= nil then
+						OtherPlayerInfo:set_field("_good", player_enabled);
+						PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+					end
 				end
 			end
 			sendReady = true;
@@ -71,11 +72,11 @@ local function PostHook_isOperationOn(retval)
 	return retval;
 end
 
-local function PostHook_sendGood()
+local function PreHook_sendGood()
 	sendReady = false;
 end
-
-Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
+--
+Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
-Constants.SDK.hook(GoodRelationship_type_def:get_method("sendGood"), nil, PostHook_sendGood);
+Constants.SDK.hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);

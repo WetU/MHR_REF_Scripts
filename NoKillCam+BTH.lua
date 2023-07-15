@@ -23,13 +23,11 @@ Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.De
 -- BTH
 local function PreHook_updateQuestEndFlow(args)
 	local QuestManager = Constants.SDK.to_managed_object(args[2]);
-
 	if QuestManager == nil then
 		return;
 	end
 
 	local endFlow = EndFlow_field:get_data(QuestManager);
-
 	if endFlow == nil then
 		return;
 	end

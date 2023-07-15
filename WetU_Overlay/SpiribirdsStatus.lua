@@ -148,9 +148,11 @@ local function PreHook_subLvBuffFromEnemy(args)
         return;
     end
 
-    if isMasterPlayer_method:call(playerQuestBase) == true then
-        subBuffType = Constants.SDK.to_int64(args[3]);
+    if isMasterPlayer_method:call(playerQuestBase) ~= true then
+        return;
     end
+
+    subBuffType = Constants.SDK.to_int64(args[3]);
 end
 local function PostHook_subLvBuffFromEnemy(retval)
     if subBuffType == nil then
@@ -198,6 +200,7 @@ local function PreHook_updateEquipSkill211(args)
             return;
         end
     end
+
     getCallTimer(EquipSkill211_PlayerQuestBase);
 end
 
@@ -209,10 +212,6 @@ local function PreHook_addLvBuffCnt(args)
     end
 
     addBuffType = Constants.SDK.to_int64(args[4]);
-    if addBuffType == nil or addBuffType == LvBuff.Rainbow then
-        return;
-    end
-
     PlayerManager_obj = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_addLvBuffCnt()

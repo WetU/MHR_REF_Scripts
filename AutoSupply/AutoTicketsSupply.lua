@@ -90,6 +90,10 @@ local function get_IsMysteryResearchRequestClear()
 end
 --
 local function GetTicket(ticketType)
+    if ticketType == nil then
+        return;
+    end
+
     local ProgressTicketSupplyManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
     if ProgressTicketSupplyManager == nil then
         return;
