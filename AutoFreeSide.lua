@@ -23,9 +23,7 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
 
 local function PreHook_getDecideButtonTrg()
-    if isOpenRewardWindow == true then
-        return Constants.SDK.SKIP_ORIGINAL;
-    end
+    return isOpenRewardWindow == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonTrg(retval)
     if isOpenRewardWindow == true then

@@ -22,7 +22,8 @@ local sdk_func = {
     to_ptr = sdk.to_ptr,
     to_int64 = sdk.to_int64,
     to_float = sdk.to_float,
-    SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL
+    SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL,
+    CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL
 };
 
 local json = json;
@@ -119,6 +120,9 @@ this.GameStatusType = {
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
 };
 
+local set_IsActivateQuestCounterFromQuestBoard_method = this.type_definitions.GuiManager_type_def:get_method("set_IsActivateQuestCounterFromQuestBoard(System.Boolean)");
+local set_IsActivateQuestBoardFromShortcut_method = this.type_definitions.GuiManager_type_def:get_method("set_IsActivateQuestBoardFromShortcut(System.Boolean)");
+
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
 
@@ -208,7 +212,7 @@ local function get_force_flag(data)
     return force_flag == nil and false or force_flag;
 end
 
-local function create_Nullable_System_Byte(data)
+local function create_Nullable_Byte(data)
     local start_alpha = this.SDK.to_int64(data);
     local hasValue = start_alpha ~= nil and get_HasValue_method:call(start_alpha) or false;
 
@@ -234,7 +238,7 @@ local function PreHook_requestFadeOut(args)
         return;
     end
 
-    requestFadeOut_method:call(FadeManager, 0.0, get_force_flag(args[4]), this.SDK.to_managed_object(args[5]), create_Nullable_System_Byte(args[6]));
+    requestFadeOut_method:call(FadeManager, 0.0, get_force_flag(args[4]), this.SDK.to_managed_object(args[5]), create_Nullable_Byte(args[6]));
     return this.SDK.SKIP_ORIGINAL;
 end
 this.SDK.hook(requestFadeOut_method, PreHook_requestFadeOut);
@@ -268,5 +272,20 @@ local function PreHook_requestFadeInOut(args)
     return this.SDK.SKIP_ORIGINAL;
 end
 this.SDK.hook(requestFadeInOut_method, PreHook_requestFadeInOut);
+
+local function onChangedGameStatus(args)
+    if this.SDK.to_int64(args[3]) ~= this.GameStatusType.Quest then
+        return;
+    end
+
+    local GuiManager = this.SDK.to_managed_object(args[2]);
+    if GuiManager == nil then
+        return;
+    end
+
+    set_IsActivateQuestCounterFromQuestBoard_method:call(GuiManager, false);
+    set_IsActivateQuestBoardFromShortcut_method:call(GuiManager, false);
+end
+this.SDK.hook(this.type_definitions.GuiManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 --
 return this;

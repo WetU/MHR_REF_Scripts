@@ -46,14 +46,6 @@ local function onChangedGameStatus(args)
     end
 
     isVillageStarted = false;
-
-    local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
-    if GuiManager == nil then
-        return;
-    end
-
-    GuiManager:set_field("<IsActivateQuestCounterFromQuestBoard>k__BackingField", false);
-    GuiManager:set_field("<IsActivateQuestBoardFromShortcut>k__BackingField", false);
 end
 Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 --

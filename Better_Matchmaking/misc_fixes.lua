@@ -6,9 +6,7 @@ end
 local this = {};
 --
 local function PreHook_setOpenNetworkErrorWindowSelection()
-	if Constants.checkGameStatus(Constants.GameStatusType.Quest) == true then
-		return Constants.SDK.SKIP_ORIGINAL;
-	end
+	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 --
 function this.init_module()

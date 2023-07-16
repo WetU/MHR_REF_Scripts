@@ -71,9 +71,7 @@ local function skipReturnAnimation()
 end
 
 local function PreHook_getDecideButtonTrg()
-    if isReturnAnimation == true then
-        return Constants.SDK.SKIP_ORIGINAL;
-    end
+    return isReturnAnimation == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonTrg(retval)
     if isReturnAnimation == true then
@@ -114,9 +112,7 @@ local function handleReward(args)
 end
 
 local function PreHook_getDecideButtonRep()
-    if isReceiveReady == true then
-        return Constants.SDK.SKIP_ORIGINAL;
-    end
+    return isReceiveReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonRep(retval)
     if isReceiveReady == true then

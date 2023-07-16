@@ -61,9 +61,7 @@ local function PostHook_updatePlayerInfo()
 end
 
 local function PreHook_isOperationOn(args)
-	if sendReady == true then
-		return Constants.SDK.SKIP_ORIGINAL;
-	end
+	return sendReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_isOperationOn(retval)
 	if sendReady == true then
