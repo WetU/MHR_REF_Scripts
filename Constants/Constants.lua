@@ -120,38 +120,18 @@ this.GameStatusType = {
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
 };
 
-local set_IsActivateQuestCounterFromQuestBoard_method = this.type_definitions.GuiManager_type_def:get_method("set_IsActivateQuestCounterFromQuestBoard(System.Boolean)");
-local set_IsActivateQuestBoardFromShortcut_method = this.type_definitions.GuiManager_type_def:get_method("set_IsActivateQuestBoardFromShortcut(System.Boolean)");
-
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
 
 local FadeManager_type_def = this.SDK.find_type_definition("snow.FadeManager");
-local set_FadeMode_method = FadeManager_type_def:get_method("set_FadeMode(snow.FadeManager.MODE)");
-local requestFadeOut_method = FadeManager_type_def:get_method("requestFadeOut(System.Single, System.Boolean, snow.wwise.WwiseChangeSpaceWatcher.FadeSettings, System.Nullable`1<System.Byte>)");
-local requestFadeIn_method = FadeManager_type_def:get_method("requestFadeIn(System.Single, snow.wwise.WwiseChangeSpaceWatcher.FadeSettings)");
-local requestFadeInOut_method = FadeManager_type_def:get_method("requestFadeInOut(System.Single)");
-local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
-
-local Nullable_System_byte_type_def = this.SDK.find_type_definition("System.Nullable`1<System.Byte>");
-local constructor_method = Nullable_System_byte_type_def:get_method(".ctor(System.Byte)");
-local get_HasValue_method = Nullable_System_byte_type_def:get_method("get_HasValue");
-local GetValueOrDefault_method = Nullable_System_byte_type_def:get_method("GetValueOrDefault");
+local get_FadeMode_method = FadeManager_type_def:get_method("get_FadeMode");
+local fadeFrame_field = FadeManager_type_def:get_field("fadeFrame");
+local FadeMode_FINISH = get_FadeMode_method:get_return_type():get_field("FINISH"):get_data(nil);
 
 this.QuestStatus = {
     Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
 --
-function this.ClearFade()
-    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
-    if FadeManager == nil then
-        return;
-    end
-
-    set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
-    FadeManager:set_field("fadeOutInFlag", false);
-end
-
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then
         this.MasterPlayerIndex = idx;
@@ -207,85 +187,23 @@ function this.to_uint(value)
     return this.SDK.to_int64(value) & 0xFFFFFFFF;
 end
 --
-local function get_force_flag(data)
-    local force_flag = this.to_bool(data);
-    return force_flag == nil and false or force_flag;
-end
-
-local function create_Nullable_Byte(data)
-    local start_alpha = this.SDK.to_int64(data);
-    local hasValue = start_alpha ~= nil and get_HasValue_method:call(start_alpha) or false;
-
-    local new_start_alpha = this.VALUETYPE.new(Nullable_System_byte_type_def);
-    constructor_method:call(new_start_alpha, GetValueOrDefault_method:call(data));
-    new_start_alpha:set_field("_HasValue", hasValue);
-
-    return new_start_alpha;
-end
-
 local function PreHook_changeMasterPlayerID(args)
     this.GetMasterPlayerId(this.SDK.to_int64(args[3]));
 end
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), PreHook_changeMasterPlayerID);
 
-local function PreHook_requestFadeOut(args)
-    if this.SDK.to_float(args[3]) == 0.0 then
-        return;
-    end
-
+local function ClearFade(args)
     local FadeManager = this.SDK.to_managed_object(args[2]);
     if FadeManager == nil then
         return;
     end
 
-    requestFadeOut_method:call(FadeManager, 0.0, get_force_flag(args[4]), this.SDK.to_managed_object(args[5]), create_Nullable_Byte(args[6]));
-    return this.SDK.SKIP_ORIGINAL;
+    if get_FadeMode_method:call(FadeManager) == FadeMode_FINISH then
+        return;
+    end
+
+    FadeManager:set_field("frame", fadeFrame_field:get_data(FadeManager));
 end
-this.SDK.hook(requestFadeOut_method, PreHook_requestFadeOut);
-
-local function PreHook_requestFadeIn(args)
-    if this.SDK.to_float(args[3]) == 0.0 then
-        return;
-    end
-
-    local FadeManager = this.SDK.to_managed_object(args[2]);
-    if FadeManager == nil then
-        return;
-    end
-
-    requestFadeIn_method:call(FadeManager, 0.0, this.SDK.to_managed_object(args[4]));
-    return this.SDK.SKIP_ORIGINAL;
-end
-this.SDK.hook(requestFadeIn_method, PreHook_requestFadeIn);
-
-local function PreHook_requestFadeInOut(args)
-    if this.SDK.to_float(args[3]) == 0.0 then
-        return;
-    end
-
-    local FadeManager = this.SDK.to_managed_object(args[2]);
-    if FadeManager == nil then
-        return;
-    end
-
-    requestFadeInOut_method:call(FadeManager, 0.0);
-    return this.SDK.SKIP_ORIGINAL;
-end
-this.SDK.hook(requestFadeInOut_method, PreHook_requestFadeInOut);
-
-local function onChangedGameStatus(args)
-    if this.SDK.to_int64(args[3]) ~= this.GameStatusType.Quest then
-        return;
-    end
-
-    local GuiManager = this.SDK.to_managed_object(args[2]);
-    if GuiManager == nil then
-        return;
-    end
-
-    set_IsActivateQuestCounterFromQuestBoard_method:call(GuiManager, false);
-    set_IsActivateQuestBoardFromShortcut_method:call(GuiManager, false);
-end
-this.SDK.hook(this.type_definitions.GuiManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+this.SDK.hook(FadeManager_type_def:get_method("lateUpdate"), ClearFade);
 --
 return this;
