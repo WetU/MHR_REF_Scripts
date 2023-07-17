@@ -123,10 +123,8 @@ this.GameStatusType = {
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
 
-local FadeManager_type_def = this.SDK.find_type_definition("snow.FadeManager");
-local get_FadeMode_method = FadeManager_type_def:get_method("get_FadeMode");
-local fadeFrame_field = FadeManager_type_def:get_field("fadeFrame");
-local FadeMode_FINISH = get_FadeMode_method:get_return_type():get_field("FINISH"):get_data(nil);
+local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
 this.QuestStatus = {
     Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
@@ -166,6 +164,16 @@ function this.checkQuestStatus(questManager, checkType)
     return checkStatus_method:call(questManager, checkType);
 end
 
+function this.ClearFade()
+    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
+    if FadeManager == nil then
+        return;
+    end
+
+    set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
+    FadeManager:set_field("fadeOutInFlag", false);
+end
+
 function this.SKIP_ORIGINAL()
     return this.SDK.SKIP_ORIGINAL;
 end
@@ -190,24 +198,5 @@ local function PreHook_changeMasterPlayerID(args)
     this.GetMasterPlayerId(this.SDK.to_int64(args[3]));
 end
 this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), PreHook_changeMasterPlayerID);
-
-local function ClearFade(args)
-    local FadeManager = this.SDK.to_managed_object(args[2]);
-    if FadeManager == nil then
-        return;
-    end
-
-    if get_FadeMode_method:call(FadeManager) == FadeMode_FINISH then
-        return;
-    end
-
-    local fadeFrame = fadeFrame_field:get_data(FadeManager);
-    if fadeFrame == 0.0 then
-        return;
-    end
-
-    FadeManager:set_field("frame", fadeFrame);
-end
-this.SDK.hook(FadeManager_type_def:get_method("lateUpdate"), ClearFade);
 --
 return this;
