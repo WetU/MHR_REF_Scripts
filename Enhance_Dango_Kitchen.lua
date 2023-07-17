@@ -35,9 +35,10 @@ local reqFinish_method = get_KitchenCookDemoHandler_method:get_return_type():get
 -- Auto Dango Ticket
 local function PreHook_updateList(args)
 	local MealFunc = Constants.SDK.to_managed_object(args[2]);
-	if MealFunc ~= nil then
-		setMealTicketFlag_method:call(MealFunc, true);
+	if MealFunc == nil then
+		return;
 	end
+	setMealTicketFlag_method:call(MealFunc, true);
 end
 Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);
 -- Skip Dango Song Main Function

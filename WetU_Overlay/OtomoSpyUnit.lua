@@ -127,6 +127,7 @@ local function onChangedGameStatus(args)
         get_currentStepCount();
     else
         Terminate();
+        Constants.isOnVillageStarted = false;
     end
 end
 

@@ -60,7 +60,7 @@ local function PostHook_updatePlayerInfo()
 	GoodRelationshipHud = nil;
 end
 
-local function PreHook_isOperationOn(args)
+local function PreHook_isOperationOn()
 	return sendReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_isOperationOn(retval)

@@ -13,7 +13,7 @@ local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field
 local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
 	WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
-	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
+	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil)
 };
 --
 local HOME_key = 36;

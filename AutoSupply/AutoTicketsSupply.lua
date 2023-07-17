@@ -139,6 +139,17 @@ local function talkHandler()
     end
 end
 
+local function getNoteReward(retval)
+    if Constants.to_bool(retval) == true then
+        local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
+        if ProgressNoteRewardManager ~= nil then
+            Note_supply_method:call(ProgressNoteRewardManager);
+            return Constants.FALSE_POINTER;
+        end
+    end
+    return retval;
+end
+
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
@@ -237,26 +248,8 @@ function this.init()
         end
         return retval;
     end);
-    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if Constants.to_bool(retval) == true then
-            local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
-            if ProgressNoteRewardManager ~= nil then
-                Note_supply_method:call(ProgressNoteRewardManager);
-                return Constants.FALSE_POINTER;
-            end
-        end
-        return retval;
-    end);
-    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if Constants.to_bool(retval) == true then
-            local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
-            if ProgressNoteRewardManager ~= nil then
-                Note_supply_method:call(ProgressNoteRewardManager);
-                return Constants.FALSE_POINTER;
-            end
-        end
-        return retval;
-    end);
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 end
 
 return this;

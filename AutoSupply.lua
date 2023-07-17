@@ -15,8 +15,6 @@ end
 --
 local reqAddChatInfomation_method = Constants.SDK.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 --
-local isVillageStarted = false;
-
 local function SendMessage(text)
     if Constants.LUA.type(text) ~= "string" then
         return;
@@ -40,24 +38,17 @@ local function campStart()
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
-local function onChangedGameStatus(args)
-    if Constants.SDK.to_int64(args[3]) == Constants.GameStatusType.Village then
+local function onVillageStart()
+    if Constants.isOnVillageStarted == true then
         return;
     end
 
-    isVillageStarted = false;
-end
-Constants.SDK.hook(Constants.type_definitions.DataManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
---
-local function onVillageStart()
-    if isVillageStarted == false then
-        isVillageStarted = true;
-        CohootSupply.Supply();
-        if AutoArgosy.autoArgosy() == true then
-            SendMessage("교역선 아이템을 받았습니다");
-        end
-        SendMessage(InventorySupply.Restock(nil, nil));
+    Constants.isOnVillageStarted = true;
+    CohootSupply.Supply();
+    if AutoArgosy.autoArgosy() == true then
+        SendMessage("교역선 아이템을 받았습니다");
     end
+    SendMessage(InventorySupply.Restock(nil, nil));
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, onVillageStart);
 --

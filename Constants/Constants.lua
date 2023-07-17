@@ -131,6 +131,8 @@ local FadeMode_FINISH = get_FadeMode_method:get_return_type():get_field("FINISH"
 this.QuestStatus = {
     Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
+
+this.isOnVillageStarted = false;
 --
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then
@@ -151,19 +153,16 @@ function this.checkGameStatus(checkType)
     if SnowGameManager == nil then
         return nil;
     end
-
     return checkType == get_CurrentStatus_method:call(SnowGameManager);
 end
 
 function this.checkQuestStatus(questManager, checkType)
     if questManager == nil then
         questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        if questManager == nil then
+            return nil;
+        end
     end
-
-    if questManager == nil then
-        return nil;
-    end
-
     return checkStatus_method:call(questManager, checkType);
 end
 
@@ -202,7 +201,12 @@ local function ClearFade(args)
         return;
     end
 
-    FadeManager:set_field("frame", fadeFrame_field:get_data(FadeManager));
+    local fadeFrame = fadeFrame_field:get_data(FadeManager);
+    if fadeFrame == 0.0 then
+        return;
+    end
+
+    FadeManager:set_field("frame", fadeFrame);
 end
 this.SDK.hook(FadeManager_type_def:get_method("lateUpdate"), ClearFade);
 --
