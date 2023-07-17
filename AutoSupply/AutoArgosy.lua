@@ -109,6 +109,7 @@ function this.autoArgosy()
                             if InventoryList ~= nil then
                                 local InventoryList_count = InventoryList_get_Count_method:call(InventoryList);
                                 if InventoryList_count > 0 then
+                                    local inventoryReceived = false;
                                     for j = 0, InventoryList_count - 1, 1 do
                                         local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
                                         if Inventory ~= nil and isEmpty_method:call(Inventory) == false then
@@ -121,18 +122,16 @@ function this.autoArgosy()
                                                             trySellGameItem_method:call(DataManager, Inventory, itemCount);
                                                         end
                                                     end
-                                                    if isReceived == false then
-                                                        isReceived = true;
-                                                    end
+                                                    inventoryReceived = true;
                                                 end
                                             end
                                         end
                                     end
+                                    if inventoryReceived == true then
+                                        initialize_method:call(TradeOrder);
+                                        isReceived = isReceived or inventoryReceived;
+                                    end
                                 end
-                            end
-
-                            if isReceived == true then
-                                initialize_method:call(TradeOrder);
                             end
                         end
                     end
