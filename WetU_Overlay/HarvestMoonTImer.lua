@@ -13,12 +13,8 @@ local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_meth
 
 local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
-local this = {
-    CircleTimer = nil
-};
+local this = {CircleTimer = nil};
 --
-local HarvestMoonTimer_String = "원월 타이머: %.f초";
-
 local function Terminate()
     this.CircleTimer = nil;
 end
@@ -29,7 +25,7 @@ local function UpdateHarvestMoonTimer(longSwordShell010)
         Terminate();
         return;
     end
-    this.CircleTimer = Constants.LUA.string_format(HarvestMoonTimer_String, lifeTimer);
+    this.CircleTimer = Constants.LUA.string_format("원월 타이머: %.f초", lifeTimer);
 end
 
 local function PreHook_update(args)

@@ -28,11 +28,6 @@ local GuiOtomoSpyUnitReturn_type_def = Constants.SDK.find_type_definition("snow.
 local ItemReceive = spyOpenType_field:get_type():get_field("ItemReceive"):get_data(nil);
 local ReceiveAllButton_Index = Constants.VECTOR2f.new(0.0, 0.0);
 --
-local OtomoSpyStr = {
-    NotActive = "활동 없음",
-    Step = "조사 단계: %d / 5"
-};
---
 local isReturnAnimation = false;
 local isReceiveReady = false;
 
@@ -55,11 +50,11 @@ local function get_currentStepCount()
         if get_IsOperating_method:call(OtomoSpyUnitManager) == true then
             local NowStepCount = get_NowStepCount_method:call(OtomoSpyUnitManager);
             if NowStepCount ~= nil then
-                this.currentStep = Constants.LUA.string_format(OtomoSpyStr.Step, NowStepCount);
+                this.currentStep = Constants.LUA.string_format("조사 단계: %d / 5", NowStepCount);
                 return;
             end
         else
-            this.currentStep = OtomoSpyStr.NotActive;
+            this.currentStep = "활동 없음";
             return;
         end
     end
@@ -82,16 +77,12 @@ local function PostHook_getDecideButtonTrg(retval)
 end
 
 local function PostHook_endOtomoSpyUnitReturn()
-    this.currentStep = OtomoSpyStr.NotActive;
+    this.currentStep = "활동 없음";
 end
 
 local function handleReward(args)
     local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-    if GuiOtomoSpyUnitMainControll == nil then
-        return;
-    end
-
-    if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) ~= ItemReceive then
+    if GuiOtomoSpyUnitMainControll == nil or spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) ~= ItemReceive then
         return;
     end
 

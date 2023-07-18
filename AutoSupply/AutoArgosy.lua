@@ -64,6 +64,7 @@ local function isAcornEnough(dataManager)
     end
     return nil, nil;
 end
+
 function this.autoArgosy()
     local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
     local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");

@@ -87,17 +87,17 @@ local function getCurrentPosition()
 end
 
 local function getFastTravelPt(stagePointManager, index)
+    if index < 0 then
+        return;
+    end
+
     local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
     if FastTravelPointList == nil then
         return nil;
     end
 
     local count = FastTravelPointList_get_Count_method:call(FastTravelPointList);
-    if count == nil then
-        return nil;
-    end
-
-    if index < 0 or index >= count then
+    if count == nil or index >= count then
         return nil;
     end
 

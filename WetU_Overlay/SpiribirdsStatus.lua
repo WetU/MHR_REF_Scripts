@@ -49,11 +49,6 @@ local BuffTypes = {
     ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
 };
 --
-local TimerString = {
-    Disabled = "향응 비활성 지역",
-    Enabled = "향응 타이머: %.f초"
-};
---
 local hasRainbow = false;
 local firstHook = true;
 local skipUpdate = false;
@@ -90,7 +85,7 @@ local function getCallTimer(playerQuestBase)
     if masterPlayerData ~= nil then
         local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
         if Timer ~= nil then
-            this.SpiribirdsCall_Timer = Constants.LUA.string_format(TimerString.Enabled, 60.0 - (Timer / 60.0));
+            this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (Timer / 60.0));
             return;
         end
     end
@@ -120,6 +115,7 @@ local function PostHook_PlayerQuestBase_start()
                 this.BirdsMaxCounts = {};
                 this.AcquiredCounts = {};
                 this.AcquiredValues = {};
+
                 for k, v in Constants.LUA.pairs(LvBuff) do
                     if k ~= "Rainbow" then
                         local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffTypes[k]);
@@ -130,6 +126,7 @@ local function PostHook_PlayerQuestBase_start()
                         this.AcquiredValues[k] = hasRainbow == true and StatusBuffLimit or Constants.LUA.math_min(Constants.LUA.math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[k]), 0), StatusBuffLimit);
                     end
                 end
+
                 this.SpiribirdsHudDataCreated = true;
             end
         end
@@ -144,22 +141,14 @@ local function PreHook_subLvBuffFromEnemy(args)
     end
 
     local playerQuestBase = Constants.SDK.to_managed_object(args[2]);
-    if playerQuestBase == nil then
-        return;
-    end
-
-    if isMasterPlayer_method:call(playerQuestBase) ~= true then
+    if playerQuestBase == nil or isMasterPlayer_method:call(playerQuestBase) ~= true then
         return;
     end
 
     subBuffType = Constants.SDK.to_int64(args[3]);
 end
 local function PostHook_subLvBuffFromEnemy(retval)
-    if subBuffType == nil then
-        return;
-    end
-
-    if Constants.to_bool(retval) == true then
+    if subBuffType ~= nil and Constants.to_bool(retval) == true then
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
             for k in Constants.LUA.pairs(LvBuff) do
@@ -184,11 +173,7 @@ local function PreHook_updateEquipSkill211(args)
     end
 
     local EquipSkill211_PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
-    if EquipSkill211_PlayerQuestBase == nil then
-        return;
-    end
-
-    if isMasterPlayer_method:call(EquipSkill211_PlayerQuestBase) ~= true then
+    if EquipSkill211_PlayerQuestBase == nil or isMasterPlayer_method:call(EquipSkill211_PlayerQuestBase) ~= true then
         return;
     end
 
@@ -196,7 +181,7 @@ local function PreHook_updateEquipSkill211(args)
         firstHook = false;
         if get_IsInTrainingArea_method:call(EquipSkill211_PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(EquipSkill211_PlayerQuestBase) ~= true then
             skipUpdate = true;
-            this.SpiribirdsCall_Timer = TimerString.Disabled;
+            this.SpiribirdsCall_Timer = "향응 비활성 지역";
             return;
         end
     end

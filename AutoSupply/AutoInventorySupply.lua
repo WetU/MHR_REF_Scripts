@@ -3,36 +3,8 @@ local Constants = require("Constants.Constants");
 if not Constants then
     return;
 end
-
-local config = Constants.JSON.load_file("AutoSupply.json") or {
-    DefaultSet = 1,
-    WeaponTypeConfig = {},
-    EquipLoadoutConfig = {}
-};
-
-if config.DefaultSet == nil then
-    config.DefaultSet = 1;
-end
-if config.WeaponTypeConfig == nil then
-    config.WeaponTypeConfig = {};
-end
-for i = 1, 14, 1 do
-    if config.WeaponTypeConfig[i] == nil then
-        config.WeaponTypeConfig[i] = -1;
-    end
-end
-if config.EquipLoadoutConfig == nil then
-    config.EquipLoadoutConfig = {};
-end
-for i = 1, 224, 1 do
-    if config.EquipLoadoutConfig[i] == nil then
-        config.EquipLoadoutConfig[i] = -1;
-    end
-end
 --
-local function save_config()
-    Constants.JSON.dump_file("AutoSupply.json", config);
-end
+local DefaultSet = 0
 --
 local this = {};
 --
@@ -61,7 +33,6 @@ local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_m
 
 local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
-local get_IsUsing_method = PlEquipMySetData_type_def:get_method("get_IsUsing");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
 local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
 
@@ -79,19 +50,6 @@ local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return
 
 local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 ----------- Equipment Loadout Managementt ----
-local function GetItemLoadoutName(loadoutIndex)
-    if loadoutIndex ~= nil then
-        local ItemMySet = get_ItemMySet_method:call(nil);
-        if ItemMySet ~= nil then
-            local ItemLoadout = getData_method:call(ItemMySet, loadoutIndex);
-            if ItemLoadout ~= nil then
-                return PlItemPouchMySetData_get_Name_method:call(ItemLoadout);
-            end
-        end
-    end
-    return nil;
-end
-
 local function GetCurrentWeaponType()
     local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
     if PlayerManager ~= nil then
@@ -143,16 +101,6 @@ local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
             if EquipmentLoadout ~= nil then
                 return get_Name_method:call(EquipmentLoadout);
             end
-        end
-    end
-    return nil;
-end
-
-local function EquipmentLoadoutIsNotEmpty(loadoutIndex)
-    if loadoutIndex ~= nil then
-        local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
-        if EquipmentLoadout ~= nil then
-            return get_IsUsing_method:call(EquipmentLoadout);
         end
     end
     return nil;
@@ -226,43 +174,17 @@ local function FromDefault(itemName, mismatch)
 end
 
 ---------------      CORE      ----------------
-local function GetWeaponTypeItemLoadoutName(weaponType)
-    local got = config.WeaponTypeConfig[weaponType + 1];
-    return (got == nil or got == -1) and LocalizedStrings.UseDefaultItemSet or GetItemLoadoutName(got);
-end
-
-local function GetLoadoutItemLoadoutIndex(loadoutIndex)
-    local got = config.EquipLoadoutConfig[loadoutIndex + 1];
-    if got == nil or got == -1 then
-        local weaponType = GetEquipmentLoadoutWeaponType(loadoutIndex);
-        if weaponType ~= nil then
-            got = config.WeaponTypeConfig[weaponType + 1];
-            if got == nil or got == -1 then
-                return Constants.LUA.string_format(LocalizedStrings.WeaponTypeNotSetUseDefault, GetWeaponName(weaponType), GetItemLoadoutName(config.DefaultSet));
-            end
-            return Constants.LUA.string_format(LocalizedStrings.UseWeaponTypeItemSet, GetWeaponName(weaponType), GetItemLoadoutName(got));
-        end
-    end
-    return GetItemLoadoutName(got);
-end
-
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     local cacheHit = false;
     local loadoutMismatch = false;
     if expectedLoadoutIndex ~= nil then
         cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
-        local got = config.EquipLoadoutConfig[expectedLoadoutIndex + 1];
-        if got ~= nil and got ~= -1 then
-            return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
-        end
+        return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
     else
 		if lastHitLoadoutIndex ~= -1 and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
             cacheHit = true;
-            local got = config.EquipLoadoutConfig[lastHitLoadoutIndex + 1];
-            if got ~= nil and got ~= -1 then
-                return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex);
-            end
+            return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex);
         end
         if cacheHit == false then
             local found = false;
@@ -271,11 +193,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
                     found = true;
                     expectedLoadoutIndex = i;
                     lastHitLoadoutIndex = i;
-                    local got = config.EquipLoadoutConfig[i + 1];
-                    if got ~= nil and got ~= -1 then
-                        return got, "Loadout", GetEquipmentLoadoutName(equipDataManager, i);
-                    end
-                    break;
+                    return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, i);
                 end
             end
             if found == false then
@@ -285,8 +203,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     end
 
     local weaponType = expectedLoadoutIndex ~= nil and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
-    local got = config.WeaponTypeConfig[weaponType + 1];
-    return (got ~= nil and got ~= -1) and got, "WeaponType", GetWeaponName(weaponType), loadoutMismatch or config.DefaultSet, "Default", "", loadoutMismatch;
+    return DefaultSet, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
 end
 
 ------------------------
@@ -338,42 +255,4 @@ function this.Restock(equipDataManager, loadoutIndex)
     return msg;
 end
 --
-Constants.RE.on_config_save(save_config);
-Constants.RE.on_draw_ui(function()
-    if Constants.IMGUI.tree_node("AutoSupply") == true then
-        Constants.IMGUI.push_font(Constants.Font);
-        local config_changed = false;
-        local changed = false;
-        config_changed, config.DefaultSet = Constants.IMGUI.slider_int("Default ItemSet", config.DefaultSet, 0, 39, GetItemLoadoutName(config.DefaultSet));
-
-        if Constants.IMGUI.tree_node("WeaponType") == true then
-            for i = 1, 14, 1 do
-                local weaponType = i - 1;
-                changed, config.WeaponTypeConfig[i] = Constants.IMGUI.slider_int(GetWeaponName(weaponType), config.WeaponTypeConfig[i], -1, 39, GetWeaponTypeItemLoadoutName(weaponType));
-                config_changed = config_changed or changed;
-            end
-            Constants.IMGUI.tree_pop();
-        end
-
-        if Constants.IMGUI.tree_node("Loadout") == true then
-            for i = 1, 224, 1 do
-                local loadoutIndex = i - 1;
-                local name = GetEquipmentLoadoutName(nil, loadoutIndex);
-                if name ~= nil and EquipmentLoadoutIsNotEmpty(loadoutIndex) == true then
-                    local msg = EquipmentLoadoutIsEquipped(nil, loadoutIndex) == true and " (현재)" or "";
-                    changed, config.EquipLoadoutConfig[i] = Constants.IMGUI.slider_int(name .. msg, config.EquipLoadoutConfig[i], -1, 39, GetLoadoutItemLoadoutIndex(loadoutIndex));
-                    config_changed = config_changed or changed;
-                end
-            end
-            Constants.IMGUI.tree_pop();
-        end
-
-        if config_changed == true then
-            save_config();
-        end
-        Constants.IMGUI.pop_font();
-        Constants.IMGUI.tree_pop();
-    end
-end);
-
 return this;

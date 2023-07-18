@@ -3,7 +3,6 @@ local math = math;
 local lua_func = {
     type = type,
     pairs = pairs,
-    ipairs = ipairs,
     tostring = tostring,
 
     string_format = string.format,
@@ -26,20 +25,11 @@ local sdk_func = {
     CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL
 };
 
-local json = json;
-local json_func = {
-    load_file = json.load_file,
-    dump_file = json.dump_file
-};
-
 local imgui = imgui;
 local imgui_func = {
     load_font = imgui.load_font,
     push_font = imgui.push_font,
     pop_font = imgui.pop_font,
-    tree_node = imgui.tree_node,
-    tree_pop = imgui.tree_pop,
-    slider_int = imgui.slider_int,
     text = imgui.text,
     text_colored = imgui.text_colored,
     begin_window = imgui.begin_window,
@@ -70,15 +60,12 @@ local ValueType_func = {
 
 local re = re;
 local re_func = {
-    on_frame = re.on_frame,
-    on_config_save = re.on_config_save,
-    on_draw_ui = re.on_draw_ui
+    on_frame = re.on_frame
 };
 
 local this = {
     LUA = lua_func,
     SDK = sdk_func,
-    JSON = json_func,
     IMGUI = imgui_func,
     VECTOR2f = Vector2f_func,
     VECTOR3f = Vector3f_func,
@@ -113,6 +100,8 @@ this.type_definitions = {
     PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager")
 };
 
+this.isOnVillageStarted = false;
+--
 local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();
 this.GameStatusType = {
@@ -121,16 +110,14 @@ this.GameStatusType = {
 };
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
-local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
-
-local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
-
 this.QuestStatus = {
     Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
 
-this.isOnVillageStarted = false;
+local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
+
+local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 --
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then

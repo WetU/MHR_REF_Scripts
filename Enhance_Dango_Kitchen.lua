@@ -45,11 +45,7 @@ Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), P
 --CookDemo
 local function PreHook_CookingDemoUpdate(args)
 	local GuiKitchenCookingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
-	if GuiKitchenCookingEventDemoFsmAction == nil then
-		return;
-	end
-
-	if CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) ~= CookingDemoState_Demo_Update then
+	if GuiKitchenCookingEventDemoFsmAction == nil or CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) ~= CookingDemoState_Demo_Update then
 		return;
 	end
 
@@ -71,11 +67,7 @@ local showDangoLog = false;
 
 local function PreHook_EatingDemoUpdate(args)
 	local GuiKitchenEatingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
-	if GuiKitchenEatingEventDemoFsmAction == nil then
-		return;
-	end
-
-	if EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) ~= EatingDemoState_Demo_Update then
+	if GuiKitchenEatingEventDemoFsmAction == nil or EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) ~= EatingDemoState_Demo_Update then
 		return;
 	end
 
@@ -126,6 +118,10 @@ local function PreHook_BBQ_updatePlayDemo(args)
 	end
 
 	local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
+	if DemoState == nil then
+		return;
+	end
+
 	for _, v in Constants.LUA.pairs(BBQ_DemoState) do
 		if DemoState == v then
 			local BBQ_DemoHandler = BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ);
