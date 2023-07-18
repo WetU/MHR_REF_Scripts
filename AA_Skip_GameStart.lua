@@ -1,5 +1,5 @@
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
 	return;
 end
 --
@@ -31,14 +31,12 @@ local function PostHook_play()
 	end
 
 	local DurationTime = get_DurationTime_method:call(Movie);
-	if DurationTime == nil then
-		return;
+	if DurationTime ~= nil then
+		seek_method:call(Movie, DurationTime);
 	end
 
-	seek_method:call(Movie, DurationTime);
 	Movie = nil;
 end
-
 Constants.SDK.hook(Movie_type_def:get_method("play"), PreHook_play, PostHook_play);
 --
 local function ClearAction(args)

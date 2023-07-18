@@ -5,11 +5,11 @@ local CohootSupply = require("AutoSupply.AutoCohootSupply");
 local InventorySupply = require("AutoSupply.AutoInventorySupply");
 local AutoTicketsSupply = require("AutoSupply.AutoTicketsSupply");
 
-if not Constants
-or not AutoArgosy
-or not CohootSupply
-or not InventorySupply
-or not AutoTicketsSupply then
+if Constants == nil
+or AutoArgosy == nil
+or CohootSupply == nil
+or InventorySupply == nil
+or AutoTicketsSupply == nil then
     return;
 end
 --

@@ -1,5 +1,5 @@
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
 	return;
 end
 -- Cache

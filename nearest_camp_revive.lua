@@ -1,12 +1,12 @@
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
 	return;
 end
 --
 local get_CurrentMapNo_method = Constants.SDK.find_type_definition("snow.QuestMapManager"):get_method("get_CurrentMapNo");
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
-local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 
+local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
 local StagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
@@ -74,44 +74,32 @@ end
 
 local function getCurrentPosition()
     local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
-    if CameraManager == nil then
-        return nil;
+    if CameraManager ~= nil then
+        local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
+        if Transform ~= nil then
+            return get_Position_method:call(Transform);
+        end
     end
-
-    local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
-    if Transform == nil then
-        return nil;
-    end
-
-    return get_Position_method:call(Transform);
+    return nil;
 end
 
 local function getFastTravelPt(stagePointManager, index)
-    if index < 0 then
-        return;
+    if index >= 0 then
+        local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
+        if FastTravelPointList ~= nil then
+            local count = FastTravelPointList_get_Count_method:call(FastTravelPointList);
+            if count ~= nil and index < count then
+                local FastTravelPoint = FastTravelPointList_get_Item_method:call(FastTravelPointList, index);
+                if FastTravelPoint ~= nil then
+                    local Points = get_Points_method:call(FastTravelPoint);
+                    if Points ~= nil then
+                        return Points_get_Item_method:call(Points, 0);
+                    end
+                end
+            end
+        end
     end
-
-    local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
-    if FastTravelPointList == nil then
-        return nil;
-    end
-
-    local count = FastTravelPointList_get_Count_method:call(FastTravelPointList);
-    if count == nil or index >= count then
-        return nil;
-    end
-
-    local FastTravelPoint = FastTravelPointList_get_Item_method:call(FastTravelPointList, index);
-    if FastTravelPoint == nil then
-        return nil;
-    end
-
-    local Points = get_Points_method:call(FastTravelPoint);
-    if Points == nil then
-        return nil;
-    end
-
-    return Points_get_Item_method:call(Points, 0);
+    return nil;
 end
 
 local function findNearestCamp(stagePointManager, camps, nekoTakuPos)

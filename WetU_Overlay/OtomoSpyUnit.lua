@@ -1,5 +1,5 @@
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
     return;
 end
 --
@@ -58,7 +58,7 @@ local function get_currentStepCount()
             return;
         end
     end
-    this.currentStep = nil;
+    Terminate();
 end
 
 local function skipReturnAnimation()

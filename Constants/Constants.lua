@@ -40,7 +40,7 @@ local imgui_func = {
     table_headers_row = imgui.table_headers_row,
     table_next_row = imgui.table_next_row,
     end_table = imgui.end_table,
-    spacing = imgui.spacing,
+    spacing = imgui.spacing
 };
 
 local Vector2f = Vector2f;
@@ -71,7 +71,8 @@ local this = {
     VECTOR3f = Vector3f_func,
     VALUETYPE = ValueType_func,
     RE = re_func,
-    MasterPlayerIndex = nil
+    MasterPlayerIndex = nil,
+    isOnVillageStarted = false
 };
 
 this.TRUE_POINTER = this.SDK.to_ptr(true);
@@ -99,8 +100,6 @@ this.type_definitions = {
     StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput"),
     PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager")
 };
-
-this.isOnVillageStarted = false;
 --
 local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();

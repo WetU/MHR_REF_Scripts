@@ -1,5 +1,5 @@
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
 	return;
 end
 --
@@ -71,7 +71,7 @@ local skip_types = {
 };
 --
 local quest_type = quest_types.invalid;
-local skip_next_hook = false;
+local skip_next_hook = nil;
 
 local session_manager = nil;
 local function prehook_on_timeout(args)

@@ -1,6 +1,5 @@
-local require = require;
 local Constants = require("Constants.Constants");
-if not Constants then
+if Constants == nil then
     return;
 end
 --
@@ -143,9 +142,6 @@ local LocalizedStrings = {
         [12] = "조충곤",
         [13] = "활"
     },
-    UseDefaultItemSet = "기본 설정 사용",
-    WeaponTypeNotSetUseDefault = "%s의 설정이 없으므로,\n기본 설정 %s을(를) 사용합니다\n",
-    UseWeaponTypeItemSet = "%s의 설정：%s",
 
     FromLoadout = "장비 프리셋 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
     MismatchLoadout = "현재 장비와 일치하는 프리셋이 없습니다.\n",
