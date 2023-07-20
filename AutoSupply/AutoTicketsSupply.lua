@@ -9,8 +9,6 @@ local supplyReward_method = Constants.SDK.find_type_definition("snow.progress.Pr
 --
 local Otomo_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressOtomoTicketManager"):get_method("supply");
 --
-local Ticket_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager"):get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
-
 local TicketType_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
 local TicketType = {
     Village = TicketType_type_def:get_field("Village"):get_data(nil),
@@ -18,6 +16,7 @@ local TicketType = {
     V02Ticket = TicketType_type_def:get_field("V02Ticket"):get_data(nil),
     MysteryTicket = TicketType_type_def:get_field("MysteryTicket"):get_data(nil)
 };
+local Ticket_supply_method = Constants.SDK.find_type_definition("snow.progress.ProgressTicketSupplyManager"):get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
 --
 local ProgressEc019UnlockItemManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressEc019UnlockItemManager");
 local Ec019_supply_method = ProgressEc019UnlockItemManager_type_def:get_method("supply");
@@ -81,6 +80,7 @@ local function get_CanObtainCommercialStuff()
             return get_CommercialStuffID_method:call(CommercialStuffFacility) ~= CommercialStuff_None;
         end
     end
+
     return nil;
 end
 
@@ -101,6 +101,7 @@ local function get_IsMysteryResearchRequestClear()
             end
         end
     end
+
     return nil;
 end
 --
@@ -115,6 +116,17 @@ local function GetTicket(ticketType)
     end
 
     Ticket_supply_method:call(ProgressTicketSupplyManager, ticketType);
+end
+
+local function getNoteReward(retval)
+    if Constants.to_bool(retval) == true then
+        local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
+        if ProgressNoteRewardManager ~= nil then
+            Note_supply_method:call(ProgressNoteRewardManager);
+            return Constants.FALSE_POINTER;
+        end
+    end
+    return retval;
 end
 --
 local CommercialNpcTalkMessageCtrl = nil;
@@ -152,17 +164,6 @@ function this.talkHandler()
         set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
         MysteryLaboNpcTalkMessageCtrl = nil;
     end
-end
-
-local function getNoteReward(retval)
-    if Constants.to_bool(retval) == true then
-        local ProgressNoteRewardManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressNoteRewardManager");
-        if ProgressNoteRewardManager ~= nil then
-            Note_supply_method:call(ProgressNoteRewardManager);
-            return Constants.FALSE_POINTER;
-        end
-    end
-    return retval;
 end
 
 function this.init()
@@ -265,11 +266,23 @@ function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        MysteryResearchRequestEnd = Constants.to_bool(retval);
+        if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+            MysteryResearchRequestEnd = false;
+            MysteryLaboNpcTalkMessageCtrl = nil;
+            return Constants.FALSE_POINTER;
+        else
+            MysteryResearchRequestEnd = Cosntants.to_bool(retval);
+        end
         return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        CommercialStuff = Constants.to_bool(retval);
+        if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
+            CommercialStuff = false;
+            CommercialNpcTalkMessageCtrl = nil;
+            return Constants.FALSE_POINTER;
+        else
+            CommercialStuff = Constants.to_bool(retval);
+        end
         return retval;
     end);
 end

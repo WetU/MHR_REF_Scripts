@@ -24,7 +24,6 @@ local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get
 local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type();
 local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
 local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
-local GetValueOrDefault_method = PalleteSetIndex_type_def:get_method("GetValueOrDefault");
 
 local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
@@ -222,23 +221,25 @@ function this.Restock(equipDataManager, loadoutIndex)
                     if paletteIndex == nil then
                         msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
                     else
-                        local radialSetIndex = get_HasValue_method:call(paletteIndex) and get_Value_method:call(paletteIndex) or GetValueOrDefault_method:call(paletteIndex);
-                        if radialSetIndex ~= nil then
-                            local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-                            if ShortcutManager ~= nil then
-                                local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
-                                if paletteList ~= nil then
-                                    local palette = paletteSetData_get_Item_method:call(paletteList, radialSetIndex);
-                                    if palette ~= nil then
-                                        local paletteName = paletteSetData_get_Name_method:call(palette);
-                                        if paletteName ~= nil then
-                                            msg = msg .. "\n" .. Constants.LUA.string_format(LocalizedStrings.PaletteApplied, paletteName);
+                        if get_HasValue_method:call(paletteIndex) == true then
+                            local radialSetIndex = get_Value_method:call(paletteIndex);
+                            if radialSetIndex ~= nil then
+                                local ShortcutManager = getCustomShortcutSystem_method:call(nil);
+                                if ShortcutManager ~= nil then
+                                    local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+                                    if paletteList ~= nil then
+                                        local palette = paletteSetData_get_Item_method:call(paletteList, radialSetIndex);
+                                        if palette ~= nil then
+                                            local paletteName = paletteSetData_get_Name_method:call(palette);
+                                            if paletteName ~= nil then
+                                                msg = msg .. "\n" .. Constants.LUA.string_format(LocalizedStrings.PaletteApplied, paletteName);
+                                            end
                                         end
+                                    else
+                                        msg = msg .. "\n" .. LocalizedStrings.PaletteListEmpty;
                                     end
-                                else
-                                    msg = msg .. "\n" .. LocalizedStrings.PaletteListEmpty;
+                                    setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                                 end
-                                setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                             end
                         end
                     end
