@@ -268,6 +268,9 @@ function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
             MysteryResearchRequestEnd = false;
+            resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
+            set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
+            set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
             MysteryLaboNpcTalkMessageCtrl = nil;
             return Constants.FALSE_POINTER;
         else
