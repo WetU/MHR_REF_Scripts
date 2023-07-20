@@ -1,76 +1,63 @@
 local string = string;
 local math = math;
-local lua_func = {
-    type = type,
-    pairs = pairs,
-    tostring = tostring,
-
-    string_format = string.format,
-
-    math_min = math.min,
-    math_max = math.max
-};
-
 local sdk = sdk;
-local sdk_func = {
-    find_type_definition = sdk.find_type_definition,
-    get_managed_singleton = sdk.get_managed_singleton,
-    to_managed_object = sdk.to_managed_object,
-    hook = sdk.hook,
-    hook_vtable = sdk.hook_vtable,
-    to_ptr = sdk.to_ptr,
-    to_int64 = sdk.to_int64,
-    to_float = sdk.to_float,
-    SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL,
-    CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL
-};
-
 local imgui = imgui;
-local imgui_func = {
-    load_font = imgui.load_font,
-    push_font = imgui.push_font,
-    pop_font = imgui.pop_font,
-    text = imgui.text,
-    text_colored = imgui.text_colored,
-    begin_window = imgui.begin_window,
-    end_window = imgui.end_window,
-    begin_table = imgui.begin_table,
-    table_setup_column = imgui.table_setup_column,
-    table_next_column = imgui.table_next_column,
-    table_headers_row = imgui.table_headers_row,
-    table_next_row = imgui.table_next_row,
-    end_table = imgui.end_table,
-    spacing = imgui.spacing
-};
-
 local Vector2f = Vector2f;
-local Vector2f_func = {
-    new = Vector2f.new
-};
-
 local Vector3f = Vector3f;
-local Vector3f_func = {
-    new = Vector3f.new
-};
-
 local ValueType = ValueType;
-local ValueType_func = {
-    new = ValueType.new
-};
-
 local re = re;
-local re_func = {
-    on_frame = re.on_frame
-};
 
 local this = {
-    LUA = lua_func,
-    SDK = sdk_func,
-    IMGUI = imgui_func,
-    VECTOR2f = Vector2f_func,
-    VECTOR3f = Vector3f_func,
-    VALUETYPE = ValueType_func,
-    RE = re_func,
+    LUA = {
+        type = type,
+        pairs = pairs,
+        tostring = tostring,
+
+        string_format = string.format,
+
+        math_min = math.min,
+        math_max = math.max
+    },
+    SDK = {
+        find_type_definition = sdk.find_type_definition,
+        get_managed_singleton = sdk.get_managed_singleton,
+        to_managed_object = sdk.to_managed_object,
+        hook = sdk.hook,
+        hook_vtable = sdk.hook_vtable,
+        to_ptr = sdk.to_ptr,
+        to_int64 = sdk.to_int64,
+        to_float = sdk.to_float,
+        SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL,
+        CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL
+    },
+    IMGUI = {
+        load_font = imgui.load_font,
+        push_font = imgui.push_font,
+        pop_font = imgui.pop_font,
+        text = imgui.text,
+        text_colored = imgui.text_colored,
+        begin_window = imgui.begin_window,
+        end_window = imgui.end_window,
+        begin_table = imgui.begin_table,
+        table_setup_column = imgui.table_setup_column,
+        table_next_column = imgui.table_next_column,
+        table_headers_row = imgui.table_headers_row,
+        table_next_row = imgui.table_next_row,
+        end_table = imgui.end_table,
+        spacing = imgui.spacing
+    },
+    VECTOR2f = {
+        new = Vector2f.new
+    },
+    VECTOR3f = {
+        new = Vector3f.new
+    },
+    VALUETYPE = {
+        new = ValueType.new
+    },
+    RE = {
+        on_frame = re.on_frame
+    },
     MasterPlayerIndex = nil,
     isOnVillageStarted = false
 };
@@ -179,10 +166,5 @@ end
 function this.to_uint(value)
     return this.SDK.to_int64(value) & 0xFFFFFFFF;
 end
---
-local function PreHook_changeMasterPlayerID(args)
-    this.GetMasterPlayerId(this.SDK.to_int64(args[3]));
-end
-this.SDK.hook(this.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), PreHook_changeMasterPlayerID);
 --
 return this;

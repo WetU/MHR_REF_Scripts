@@ -144,7 +144,6 @@ local function prehook_on_timeout(args)
 			quest_type.is_special_random_mystery
 		);
 	end
-	return Constants.SDK.SKIP_ORIGINAL;
 end
 Constants.SDK.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), prehook_on_timeout);
 

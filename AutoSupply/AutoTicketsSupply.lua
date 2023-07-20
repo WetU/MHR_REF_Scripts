@@ -64,7 +64,16 @@ local npcList = {
     ["Pingarh"] = NpcId_type_def:get_field("nid715"):get_data(nil)
 };
 --
+local MysteryResearchRequestEnd = nil;
+local CommercialStuff = nil;
+
 local function get_CanObtainCommercialStuff()
+    if CommercialStuff ~= nil then
+        local result = CommercialStuff;
+        CommercialStuff = nil;
+        return result;
+    end
+
     local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
     if FacilityDataManager ~= nil then
         local CommercialStuffFacility = getCommercialStuffFacility_method:call(FacilityDataManager);
@@ -76,6 +85,12 @@ local function get_CanObtainCommercialStuff()
 end
 
 local function get_IsMysteryResearchRequestClear()
+    if MysteryResearchRequestEnd ~= nil then
+        local result = MysteryResearchRequestEnd;
+        MysteryResearchRequestEnd = nil;
+        return result;
+    end
+
     local FacilityDataManager = Constants.SDK.get_managed_singleton("snow.data.FacilityDataManager");
     if FacilityDataManager ~= nil then
         local LaboFacility = getMysteryLaboFacility_method:call(FacilityDataManager);
@@ -249,6 +264,14 @@ function this.init()
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
+        MysteryResearchRequestEnd = Constants.to_bool(retval);
+        return retval;
+    end);
+    Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
+        CommercialStuff = Constants.to_bool(retval);
+        return retval;
+    end);
 end
 
 return this;

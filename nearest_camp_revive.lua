@@ -26,9 +26,14 @@ local TentPositionList_get_Count_method = TentPositionList_type_def:get_method("
 local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("get_Item(System.Int32)");
 
 local StageManager_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager");
+local requestAreaMoveQuest_method = StageManager_type_def:get_method("requestAreaMoveQuest(snow.stage.StageManager.AreaMoveQuest)");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
---
-local AreaMoveQuest_Die = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
+--FastTravel
+local AreaMoveQuest_type_def = Constants.SDK.find_type_definition("snow.stage.StageManager.AreaMoveQuest");
+local AreaMoveQuest = {
+    Die = AreaMoveQuest_type_def:get_field("Die"):get_data(nil),
+    FastTravel = AreaMoveQuest_type_def:get_field("FastTravel"):get_data(nil)
+};
 local GameObjectType_MasterPlayer = Constants.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
 local MapNoType_type_def = get_CurrentMapNo_method:get_return_type();
 local campList = {
@@ -212,7 +217,7 @@ local function PreHook_setPlWarpInfo_Nekotaku(args)
         return;
     end
 
-    setPlWarpInfo_method:call(StageManager, reviveCamp, 0.0, AreaMoveQuest_Die);
+    setPlWarpInfo_method:call(StageManager, reviveCamp, 0.0, AreaMoveQuest.Die);
     return Constants.SDK.SKIP_ORIGINAL;
 end
 

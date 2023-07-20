@@ -19,17 +19,13 @@ local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field(
 local GoodRelationshipHud = nil;
 local sendReady = false;
 
-local function PreHook_doOpen(args)
+local function PreHook_routineWait(args)
 	GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
 	if GoodRelationshipHud == nil then
 		return;
 	end
 
-	local gaugeAngleMax = gaugeAngleMax_field:get_data(GoodRelationshipHud);
-	if gaugeAngleMax ~= nil then
-		gauge_set_Item_method:call(gaugeAngleMax, 1, 0.0);
-		GoodRelationshipHud:set_field("_gaugeAngleMax", gaugeAngleMax);
-	end
+	GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
 	GoodRelationshipHud:set_field("WaitTime", 0.0);
 	sendReady = false;
 end
@@ -74,7 +70,7 @@ local function PreHook_sendGood()
 	sendReady = false;
 end
 --
-Constants.SDK.hook(GoodRelationship_type_def:get_method("doOpen"), PreHook_doOpen);
+Constants.SDK.hook(GoodRelationship_type_def:get_method("routineWait"), PreHook_routineWait);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
 Constants.SDK.hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);

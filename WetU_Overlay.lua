@@ -32,6 +32,11 @@ local BirdTypeToColor = {
     4278255615
 };
 --
+local function onchangeMasterPlayerID(args)
+    Constants.GetMasterPlayerId(Constants.SDK.to_int64(args[3]));
+end
+Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), onchangeMasterPlayerID);
+--
 Constants.RE.on_frame(function()
     if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
