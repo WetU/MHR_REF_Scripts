@@ -38,6 +38,7 @@ local function PreHook_updateList(args)
 	if MealFunc == nil then
 		return;
 	end
+
 	setMealTicketFlag_method:call(MealFunc, true);
 end
 Constants.SDK.hook(mealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);

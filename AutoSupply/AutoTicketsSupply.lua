@@ -126,7 +126,7 @@ local function PostHook_getTalkTarget()
     NpcTalkMessageCtrl = nil;
 end
 
-local function talkHandler()
+function this.talkHandler()
     if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
         CommercialNpcTalkMessageCtrl = nil;
     end
@@ -153,7 +153,6 @@ end
 function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
-    Constants.SDK.hook(Constants.SDK.find_type_definition("snow.npc.NpcTalkMessageManager"):get_method("setupVillage"), nil, talkHandler);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_V02Ticket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if Constants.to_bool(retval) == true then
             GetTicket(TicketType.V02Ticket);

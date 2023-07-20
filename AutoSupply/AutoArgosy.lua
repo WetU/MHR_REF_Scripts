@@ -115,15 +115,13 @@ function this.autoArgosy()
                                         local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
                                         if Inventory ~= nil and isEmpty_method:call(Inventory) == false then
                                             local sendResult = sendInventory_method:call(nil, Inventory, PlayerItemBox);
-                                            if sendResult ~= nil then
-                                                if sendResult ~= SendInventoryResult.Error then
-                                                    if sendResult ~= SendInventoryResult.AllSended then
-                                                        local itemCount = Inventory_get_Count_method:call(Inventory);
-                                                        if itemCount ~= nil then
-                                                            trySellGameItem_method:call(DataManager, Inventory, itemCount);
-                                                        end
+                                            if sendResult ~= nil and sendResult ~= SendInventoryResult.Error then
+                                                inventoryReceived = true;
+                                                if sendResult ~= SendInventoryResult.AllSended then
+                                                    local itemCount = Inventory_get_Count_method:call(Inventory);
+                                                    if itemCount ~= nil then
+                                                        trySellGameItem_method:call(DataManager, Inventory, itemCount);
                                                     end
-                                                    inventoryReceived = true;
                                                 end
                                             end
                                         end

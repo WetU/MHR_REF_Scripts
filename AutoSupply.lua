@@ -39,6 +39,8 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local function onVillageStart()
+    AutoTicketsSupply.talkHandler();
+
     if Constants.isOnVillageStarted == true then
         return;
     end
