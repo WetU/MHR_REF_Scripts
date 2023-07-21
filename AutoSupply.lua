@@ -54,4 +54,5 @@ local function onVillageStart()
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, onVillageStart);
 --
+AutoArgosy.init();
 AutoTicketsSupply.init();

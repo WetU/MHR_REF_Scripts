@@ -9,7 +9,8 @@ local VillagePoint_type_def = Constants.SDK.find_type_definition("snow.data.Vill
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
 local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
-local get_TradeFunc_method = Constants.SDK.find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
+local TradeCenterFacility_type_def = Constants.SDK.find_type_definition("snow.facility.TradeCenterFacility");
+local get_TradeFunc_method = TradeCenterFacility_type_def:get_method("get_TradeFunc");
 
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
 local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
@@ -45,7 +46,16 @@ local trySellGameItem_method = Constants.type_definitions.DataManager_type_def:g
 local getItemBox_method = Constants.type_definitions.DataManager_type_def:get_method("getItemBox");
 
 local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
-
+--
+local NegotiationTypes_type_def = get_NegotiationType_method:get_return_type();
+local NegotiationTypes = {
+    NegotiationTypes_type_def:get_field("Negotiation_000"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_001"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_002"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_003"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
+};
 local Acorn_Id = Constants.SDK.find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_1041"):get_data(nil);
 local PlayerItemBox = Constants.SDK.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
 local SendInventoryResult_type_def = sendInventory_method:get_return_type();
@@ -54,6 +64,36 @@ local SendInventoryResult = {
     Error = SendInventoryResult_type_def:get_field("Error"):get_data(nil)
 };
 --
+local cacheNegotiationData = nil;
+--
+local function getCacheData()
+    if cacheNegotiationData ~= nil then
+        return;
+    end
+
+    local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
+    if TradeCenterFacility == nil then
+        return;
+    end
+
+    local TradeFunc = get_TradeFunc_method:call(TradeCenterFacility);
+    if TradeFunc == nil then
+        return;
+    end
+
+    cacheNegotiationData = {};
+
+    for i = 0, #NegotiationTypes, 1 do
+        local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationTypes[i]);
+        if NegotiationData ~= nil then
+            cacheNegotiationData[i] = {
+                Count = NegotiationData_get_Count_method:call(NegotiationData),
+                Cost = get_Cost_method:call(NegotiationData)
+            };
+        end
+    end
+end
+
 local function isAcornEnough(dataManager)
     local ItemBox = getItemBox_method:call(dataManager);
     if ItemBox ~= nil then
@@ -75,33 +115,27 @@ function this.autoArgosy()
             if TradeOrderList ~= nil then
                 local TradeOrderList_count = TradeOrderList_get_Count_method:call(TradeOrderList);
                 if TradeOrderList_count > 0 then
-                    local updateNegotiation = false;
+                    local updateCount = false;
                     local isReceived = false;
                     local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
 
                     for i = 0, TradeOrderList_count - 1, 1 do
                         local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
                         if TradeOrder ~= nil then
-                            local NegotiationCount = get_NegotiationCount_method:call(TradeOrder);
-                            if NegotiationCount == 1 then
+                            if get_NegotiationCount_method:call(TradeOrder) == 1 then
                                 local NegotiationType = get_NegotiationType_method:call(TradeOrder);
                                 if NegotiationType ~= nil then
-                                    local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationType);
+                                    local tempCount = acornAvailable == true and (1 + AcornAddCount) or 1;
+                                    local NegotiationData = cacheNegotiationData ~= nil and cacheNegotiationData[NegotiationType] or nil;
                                     if NegotiationData ~= nil then
-                                        local Cost = get_Cost_method:call(NegotiationData);
-                                        if Cost ~= nil then
-                                            if get_Point_method:call(nil) >= Cost then
-                                                local NegotiationData_count = NegotiationData_get_Count_method:call(NegotiationData);
-                                                if NegotiationData_count ~= nil then
-                                                    subPoint_method:call(nil, Cost);
-                                                    setNegotiationCount_method:call(TradeOrder, acornAvailable == true and (NegotiationCount + AcornAddCount + NegotiationData_count) or (NegotiationCount + NegotiationData_count));
-                                                    updateNegotiation = true;
-                                                end
-                                            elseif acornAvailable == true then
-                                                setNegotiationCount_method:call(TradeOrder, NegotiationCount + AcornAddCount);
-                                                updateNegotiation = true;
-                                            end
+                                        if get_Point_method:call(nil) >= NegotiationData.Cost then
+                                            tempCount = tempCount + NegotiationData.Count;
+                                            subPoint_method:call(nil, Cost);
                                         end
+                                    end
+                                    if tempCount > 1 then
+                                        setNegotiationCount_method:call(TradeOrder, tempCount);
+                                        updateCount = true;
                                     end
                                 end
                             end
@@ -113,7 +147,9 @@ function this.autoArgosy()
                                     local inventoryReceived = false;
                                     for j = 0, InventoryList_count - 1, 1 do
                                         local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
-                                        if Inventory ~= nil and isEmpty_method:call(Inventory) == false then
+                                        if Inventory == nil or isEmpty_method:call(Inventory) == true then
+                                            break;
+                                        else
                                             local sendResult = sendInventory_method:call(nil, Inventory, PlayerItemBox);
                                             if sendResult ~= nil and sendResult ~= SendInventoryResult.Error then
                                                 inventoryReceived = true;
@@ -135,7 +171,7 @@ function this.autoArgosy()
                         end
                     end
 
-                    if acornAvailable == true and updateNegotiation == true then
+                    if acornAvailable == true and updateCount == true then
                         sub_method:call(acornInventoryData, 1, true);
                     end
 
@@ -144,7 +180,16 @@ function this.autoArgosy()
             end
         end
     end
+
     return nil;
+end
+
+function this.init()
+    if cacheNegotiationData == nil then
+        getCacheData();
+    end
+
+    Constants.SDK.hook(TradeCenterFacility_type_def:get_method("onLoad(snow.SaveDataBase)"), nil, getCacheData);
 end
 --
 return this;

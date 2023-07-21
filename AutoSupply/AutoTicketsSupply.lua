@@ -273,9 +273,8 @@ function this.init()
             set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
             MysteryLaboNpcTalkMessageCtrl = nil;
             return Constants.FALSE_POINTER;
-        else
-            MysteryResearchRequestEnd = Cosntants.to_bool(retval);
         end
+        MysteryResearchRequestEnd = Constants.to_bool(retval);
         return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
@@ -283,9 +282,8 @@ function this.init()
             CommercialStuff = false;
             CommercialNpcTalkMessageCtrl = nil;
             return Constants.FALSE_POINTER;
-        else
-            CommercialStuff = Constants.to_bool(retval);
         end
+        CommercialStuff = Constants.to_bool(retval);
         return retval;
     end);
 end
