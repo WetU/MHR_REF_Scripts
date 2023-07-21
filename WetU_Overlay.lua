@@ -37,7 +37,7 @@ local function onchangeMasterPlayerID(args)
 end
 Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), onchangeMasterPlayerID);
 --
-Constants.RE.on_frame(function()
+local function draw()
     if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
@@ -90,7 +90,8 @@ Constants.RE.on_frame(function()
         end
         Constants.IMGUI.pop_font();
     end
-end);
+end
+Constants.RE.on_frame(draw);
 --
 SpiribirdsStatus.init();
 HarvestMoonTimer.init();
