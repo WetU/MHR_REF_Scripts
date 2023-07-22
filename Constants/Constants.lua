@@ -85,7 +85,8 @@ this.type_definitions = {
     EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager"),
     GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager"),
     StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput"),
-    PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager")
+    PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager"),
+    WwiseChangeSpaceWatcher_type_def = this.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher")
 };
 --
 local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");

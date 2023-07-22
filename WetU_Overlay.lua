@@ -1,13 +1,15 @@
 local require = require;
 local Constants = require("Constants.Constants");
-local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
+local QuestInfo = require("WetU_Overlay.QuestInfo");
+local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
 if Constants == nil
-or SpiribirdsStatus == nil
 or HarvestMoonTimer == nil
-or OtomoSpyUnit == nil then
+or OtomoSpyUnit == nil
+or QuestInfo == nil
+or SpiribirdsStatus == nil then
 	return;
 end
 --
@@ -38,6 +40,43 @@ end
 Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), onchangeMasterPlayerID);
 --
 local function draw()
+    if HarvestMoonTimer.CircleTimer ~= nil then
+        Constants.IMGUI.push_font(Constants.Font);
+        if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) == true then
+            Constants.IMGUI.text(HarvestMoonTimer.CircleTimer);
+            Constants.IMGUI.end_window();
+        end
+        Constants.IMGUI.pop_font();
+    end
+
+    if OtomoSpyUnit.currentStep ~= nil then
+        Constants.IMGUI.push_font(Constants.Font);
+        if Constants.IMGUI.begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
+            Constants.IMGUI.text(OtomoSpyUnit.currentStep);
+            Constants.IMGUI.end_window();
+        end
+        Constants.IMGUI.pop_font();
+    end
+
+    if QuestInfo.QuestTimer ~= nil then
+        Constants.IMGUI.push_font(Constants.Font);
+        if Constants.IMGUI.begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
+            Constants.IMGUI.text(QuestInfo.QuestTimer);
+            if QuestInfo.DeathCount ~= nil then
+                Constants.IMGUI.text(QuestInfo.DeathCount);
+            end
+            Constants.IMGUI.end_window();
+        end
+        Constants.IMGUI.pop_font();
+    elseif QuestInfo.DeathCount ~= nil then
+        Constants.IMGUI.push_font(Constants.Font);
+        if Constants.IMGUI.begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
+            Constants.IMGUI.text(QuestInfo.DeathCount);
+            Constants.IMGUI.end_window();
+        end
+        Constants.IMGUI.pop_font();
+    end
+
     if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
         Constants.IMGUI.push_font(Constants.Font);
         if Constants.IMGUI.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
@@ -72,27 +111,10 @@ local function draw()
         end
         Constants.IMGUI.pop_font();
     end
-
-    if HarvestMoonTimer.CircleTimer ~= nil then
-        Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("원월", nil, 4096 + 64 + 512) == true then
-            Constants.IMGUI.text(HarvestMoonTimer.CircleTimer);
-            Constants.IMGUI.end_window();
-        end
-        Constants.IMGUI.pop_font();
-    end
-
-    if OtomoSpyUnit.currentStep ~= nil then
-        Constants.IMGUI.push_font(Constants.Font);
-        if Constants.IMGUI.begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
-            Constants.IMGUI.text(OtomoSpyUnit.currentStep);
-            Constants.IMGUI.end_window();
-        end
-        Constants.IMGUI.pop_font();
-    end
 end
 Constants.RE.on_frame(draw);
 --
-SpiribirdsStatus.init();
 HarvestMoonTimer.init();
 OtomoSpyUnit.init();
+QuestInfo.init();
+SpiribirdsStatus.init();

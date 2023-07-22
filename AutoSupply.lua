@@ -52,7 +52,7 @@ local function onVillageStart()
     end
     SendMessage(InventorySupply.Restock(nil, nil));
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher"):get_method("onVillageStart"), nil, onVillageStart);
+Constants.SDK.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
 --
 AutoArgosy.init();
 AutoTicketsSupply.init();
