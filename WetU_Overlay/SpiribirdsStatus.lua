@@ -85,7 +85,7 @@ local function getCallTimer(playerQuestBase)
     if masterPlayerData ~= nil then
         local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
         if Timer ~= nil then
-            this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (Timer / 60));
+            this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (Timer / 60.0));
             return;
         end
     end
