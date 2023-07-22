@@ -83,7 +83,7 @@ local function getCacheData()
 
     cacheNegotiationData = {};
 
-    for i = 0, #NegotiationTypes, 1 do
+    for i = 1, #NegotiationTypes, 1 do
         local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationTypes[i]);
         if NegotiationData ~= nil then
             cacheNegotiationData[i] = {
@@ -126,7 +126,7 @@ function this.autoArgosy()
                                 local NegotiationType = get_NegotiationType_method:call(TradeOrder);
                                 if NegotiationType ~= nil then
                                     local tempCount = acornAvailable == true and (1 + AcornAddCount) or 1;
-                                    local NegotiationData = cacheNegotiationData ~= nil and cacheNegotiationData[NegotiationType] or nil;
+                                    local NegotiationData = cacheNegotiationData ~= nil and cacheNegotiationData[NegotiationType + 1] or nil;
                                     if NegotiationData ~= nil then
                                         if get_Point_method:call(nil) >= NegotiationData.Cost then
                                             tempCount = tempCount + NegotiationData.Count;
