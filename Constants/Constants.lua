@@ -56,8 +56,7 @@ local this = {
         new = ValueType.new
     },
     RE = {
-        on_frame = re.on_frame,
-        on_script_reset = re.on_script_reset
+        on_frame = re.on_frame
     },
     MasterPlayerIndex = nil,
     isOnVillageStarted = false
