@@ -114,9 +114,8 @@ this.QuestMapList = {
 };
 
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
-local questStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
 this.QuestStatus = {
-    Success = questStatus_type_def:get_field("Success"):get_data(nil)
+    Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
 --
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
