@@ -65,7 +65,6 @@ local npcList = {
 --
 local MysteryResearchRequestEnd = nil;
 local CommercialStuff = nil;
-local receivedReward = false;
 local isOpenRewardDialog = false;
 
 local function get_CanObtainCommercialStuff()
@@ -158,11 +157,11 @@ end
 
 function this.talkHandler()
     if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
-        receivedReward = true;
         CommercialNpcTalkMessageCtrl = nil;
     end
 
     if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+        isOpenRewardDialog = true;
         resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
         set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
         set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
@@ -271,6 +270,7 @@ function this.init()
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+            isOpenRewardDialog = true;
             MysteryResearchRequestEnd = false;
             resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
             set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
@@ -283,19 +283,12 @@ function this.init()
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
         if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
-            receivedReward = true;
             CommercialStuff = false;
             CommercialNpcTalkMessageCtrl = nil;
             return Constants.FALSE_POINTER;
         end
         CommercialStuff = Constants.to_bool(retval);
         return retval;
-    end);
-    Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiRewardDialog"):get_method("updateRewardList"), function()
-        if receivedReward == true then
-            receivedReward = false;
-            isOpenRewardDialog = true;
-        end
     end);
     Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), function()
         return isOpenRewardDialog == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;

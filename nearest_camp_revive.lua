@@ -3,6 +3,11 @@ if Constants == nil then
 	return;
 end
 --
+local GetTransform_method = this.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
+local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
+
+local GameObjectType_MasterPlayer = this.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
+--
 local createNekotaku_method = Constants.SDK.find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 --
 local StagePointManager_type_def = Constants.SDK.find_type_definition("snow.stage.StagePointManager");
@@ -79,6 +84,17 @@ local skipWarpNeko = false;
 local reviveCamp = nil;
 local nekoTaku = nil;
 
+local function getCurrentPosition()
+    local CameraManager = this.SDK.get_managed_singleton("snow.CameraManager");
+    if CameraManager ~= nil then
+        local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
+        if Transform ~= nil then
+            return get_Position_method:call(Transform);
+        end
+    end
+
+    return nil;
+end
 local function getFastTravelPt(stagePointManager, index)
     if index >= 0 then
         local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
@@ -95,6 +111,7 @@ local function getFastTravelPt(stagePointManager, index)
             end
         end
     end
+
     return nil;
 end
 
@@ -104,7 +121,7 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
         return;
     end
 
-    local currentPos = Constants.getCurrentPosition();
+    local currentPos = getCurrentPosition();
     if currentPos == nil then
         return;
     end

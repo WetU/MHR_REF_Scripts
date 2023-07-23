@@ -1,4 +1,3 @@
-local table = table;
 local string = string;
 local math = math;
 local sdk = sdk;
@@ -14,15 +13,12 @@ local this = {
         pairs = pairs,
         tostring = tostring,
 
-        table_insert = table.insert,
-
         string_format = string.format,
 
         math_min = math.min,
         math_max = math.max
     },
     SDK = {
-        is_managed_object = sdk.is_managed_object,
         find_type_definition = sdk.find_type_definition,
         get_managed_singleton = sdk.get_managed_singleton,
         to_managed_object = sdk.to_managed_object,
@@ -123,11 +119,6 @@ local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:ge
 local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 --
-local GetTransform_method = this.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
-local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
-
-local GameObjectType_MasterPlayer = this.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
---
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then
         this.MasterPlayerIndex = idx;
@@ -179,18 +170,6 @@ function this.getQuestMapNo(questManager)
     end
 
     return getMapNo_method:call(questManager);
-end
-
-function this.getCurrentPosition()
-    local CameraManager = this.SDK.get_managed_singleton("snow.CameraManager");
-    if CameraManager ~= nil then
-        local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
-        if Transform ~= nil then
-            return get_Position_method:call(Transform);
-        end
-    end
-
-    return nil;
 end
 
 function this.SKIP_ORIGINAL()

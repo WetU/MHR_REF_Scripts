@@ -16,6 +16,8 @@ local isQuestMaxTimeUnlimited_method = Constants.type_definitions.QuestManager_t
 local getQuestElapsedTimeSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestElapsedTimeSec");
 local getQuestElapsedTimeMin_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestElapsedTimeMin");
 --
+local getClearTimeFormatText_method = Constants.SDK.find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
+--
 local curQuestLife = nil;
 local curQuestMaxTimeMin = nil;
 
@@ -62,10 +64,10 @@ local function onQuestStart()
 
         if isQuestMaxTimeUnlimited_method:call(QuestManager) == false then
             curQuestMaxTimeMin = getQuestMaxTimeMin_method:call(QuestManager);
-            this.QuestTimer = Constants.LUA.string_format("%d분 %.2f초 / %d분", QuestElapsedTimeMin, QuestElapsedTimeSec % 60, curQuestMaxTimeMin);
+            this.QuestTimer = getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec) .. " / " .. Constants.LUA.string_format("%d분", curQuestMaxTimeMin);
         else
             curQuestMaxTimeMin = nil;
-            this.QuestTimer = Constants.LUA.string_format("%d분 %.2f초", QuestElapsedTimeMin, QuestElapsedTimeSec % 60);
+            this.QuestTimer = getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec);
         end
 
         return;
@@ -102,8 +104,8 @@ local function PreHook_updateQuestTime(args)
     local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(QuestManager);
     local QuestElapsedTimeMin = getQuestElapsedTimeMin_method:call(QuestManager);
     this.QuestTimer = curQuestMaxTimeMin ~= nil
-        and Constants.LUA.string_format("%d분 %.2f초 / %d분", QuestElapsedTimeMin, QuestElapsedTimeSec % 60, curQuestMaxTimeMin)
-        or Constants.LUA.string_format("%d분 %.2f초", QuestElapsedTimeMin, QuestElapsedTimeSec % 60);
+        and getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec) .. " / " .. Constants.LUA.string_format("%d분", curQuestMaxTimeMin)
+        or getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec);
 end
 
 function this.init()
