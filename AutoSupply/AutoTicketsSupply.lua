@@ -126,6 +126,7 @@ local function getNoteReward(retval)
             return Constants.FALSE_POINTER;
         end
     end
+
     return retval;
 end
 --

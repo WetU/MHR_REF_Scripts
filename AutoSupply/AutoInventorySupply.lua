@@ -32,9 +32,6 @@ local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_m
 local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
-local getWeaponData_method = PlEquipMySetData_type_def:get_method("getWeaponData");
-
-local get_PlWeaponType_method = getWeaponData_method:get_return_type():get_method("get_PlWeaponType");
 
 local getCustomShortcutSystem_method = Constants.SDK.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static
 
@@ -56,6 +53,7 @@ local function GetCurrentWeaponType()
             return playerWeaponType_field:get_data(MasterPlayer);
         end
     end
+
     return nil;
 end
 
@@ -72,19 +70,7 @@ local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
             end
         end
     end
-    return nil;
-end
 
-local function GetEquipmentLoadoutWeaponType(loadoutIndex)
-    if loadoutIndex ~= nil then
-        local EquipmentLoadout = GetEquipmentLoadout(nil, loadoutIndex);
-        if EquipmentLoadout ~= nil then
-            local WeaponData = getWeaponData_method:call(EquipmentLoadout);
-            if WeaponData ~= nil then
-                return get_PlWeaponType_method:call(WeaponData);
-            end
-        end
-    end
     return nil;
 end
 
@@ -101,6 +87,7 @@ local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
             end
         end
     end
+
     return nil;
 end
 
@@ -117,6 +104,7 @@ local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
             end
         end
     end
+
     return nil;
 end
 
@@ -170,35 +158,27 @@ end
 
 ---------------      CORE      ----------------
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
-    local cacheHit = false;
     local loadoutMismatch = false;
     if expectedLoadoutIndex ~= nil then
-        cacheHit = true;
         lastHitLoadoutIndex = expectedLoadoutIndex;
         return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex);
     else
 		if lastHitLoadoutIndex ~= -1 and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
-            cacheHit = true;
             return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex);
         end
-        if cacheHit == false then
-            local found = false;
-            for i = 0, 223, 1 do
-                if EquipmentLoadoutIsEquipped(equipDataManager, i) == true then
-                    found = true;
-                    expectedLoadoutIndex = i;
-                    lastHitLoadoutIndex = i;
-                    return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, i);
-                end
-            end
-            if found == false then
-                loadoutMismatch = true;
+
+        for i = 0, 223, 1 do
+            if EquipmentLoadoutIsEquipped(equipDataManager, i) == true then
+                expectedLoadoutIndex = i;
+                lastHitLoadoutIndex = i;
+                return DefaultSet, "Loadout", GetEquipmentLoadoutName(equipDataManager, i);
             end
         end
+
+        loadoutMismatch = true;
     end
 
-    local weaponType = expectedLoadoutIndex ~= nil and GetEquipmentLoadoutWeaponType(expectedLoadoutIndex) or GetCurrentWeaponType();
-    return DefaultSet, "WeaponType", GetWeaponName(weaponType), loadoutMismatch;
+    return DefaultSet, "WeaponType", GetWeaponName(GetCurrentWeaponType()), loadoutMismatch;
 end
 
 ------------------------
@@ -249,6 +229,7 @@ function this.Restock(equipDataManager, loadoutIndex)
             end
         end
     end
+
     return msg;
 end
 --

@@ -38,6 +38,13 @@ local function getCurrentQuestLife(questManager)
 end
 
 local function updateDeathCount(questManager)
+    if questManager == nil then
+        questManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
+        if questManager == nil then
+            return;
+        end
+    end
+
     if curQuestLife == nil then
         getCurrentQuestLife(questManager);
     end
@@ -60,6 +67,7 @@ local function onQuestStart()
             curQuestMaxTimeMin = nil;
             this.QuestTimer = Constants.LUA.string_format("%d분 %.2f초", QuestElapsedTimeMin, QuestElapsedTimeSec % 60);
         end
+
         return;
     end
 
@@ -67,10 +75,10 @@ local function onQuestStart()
 end
 
 local QuestManager = nil;
-local function PreHook_notifyDeath(args)
+local function PreHook_questForfeit(args)
     QuestManager = Constants.SDK.to_managed_object(args[2]);
 end
-local function PostHook_notifyDeath()
+local function PostHook_questForfeit()
     if QuestManager == nil then
         QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
         if QuestManager == nil then
@@ -85,7 +93,10 @@ end
 local function PreHook_updateQuestTime(args)
     local QuestManager = Constants.SDK.to_managed_object(args[2]);
     if QuestManager == nil then
-        return;
+        QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
+        if QuestManager == nil then
+            return;
+        end
     end
 
     local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(QuestManager);
@@ -100,7 +111,7 @@ function this.init()
         onQuestStart();
     end
     Constants.SDK.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
-    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_notifyDeath, PostHook_notifyDeath);
+    Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
