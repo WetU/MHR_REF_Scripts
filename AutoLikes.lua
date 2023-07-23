@@ -4,10 +4,7 @@ if Constants == nil then
 end
 -- Cache
 local GoodRelationship_type_def = Constants.SDK.find_type_definition("snow.gui.GuiHud_GoodRelationship");
-local gaugeAngleMax_field = GoodRelationship_type_def:get_field("_gaugeAngleMax");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
-
-local gauge_set_Item_method = gaugeAngleMax_field:get_type():get_method("set_Item(System.Int32, System.Single)");
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
 local PlInfos_get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count");

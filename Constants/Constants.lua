@@ -1,3 +1,4 @@
+local table = table;
 local string = string;
 local math = math;
 local sdk = sdk;
@@ -13,12 +14,15 @@ local this = {
         pairs = pairs,
         tostring = tostring,
 
+        table_insert = table.insert,
+
         string_format = string.format,
 
         math_min = math.min,
         math_max = math.max
     },
     SDK = {
+        is_managed_object = sdk.is_managed_object,
         find_type_definition = sdk.find_type_definition,
         get_managed_singleton = sdk.get_managed_singleton,
         to_managed_object = sdk.to_managed_object,
@@ -56,7 +60,8 @@ local this = {
         new = ValueType.new
     },
     RE = {
-        on_frame = re.on_frame
+        on_frame = re.on_frame,
+        on_script_reset = re.on_script_reset
     },
     MasterPlayerIndex = nil,
     isOnVillageStarted = false
@@ -95,16 +100,34 @@ this.GameStatusType = {
     Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
 };
-
-local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
-this.QuestStatus = {
-    Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
+--
+local getMapNo_method = this.type_definitions.QuestManager_type_def:get_method("getMapNo");
+local MapNoType_type_def = getMapNo_method:get_return_type();
+this.QuestMapList = {
+    ["Shrine Ruins"] = MapNoType_type_def:get_field("No01"):get_data(nil), -- 사원 폐허
+    ["Sandy Plains"] = MapNoType_type_def:get_field("No02"):get_data(nil), -- 모래 평원
+    ["Flooded Forest"] = MapNoType_type_def:get_field("No03"):get_data(nil), -- 수몰된 숲
+    ["Frost Islands"] = MapNoType_type_def:get_field("No04"):get_data(nil), -- 한랭 군도
+    ["Lava Caverns"] = MapNoType_type_def:get_field("No05"):get_data(nil), -- 용암 동굴
+    ["Jungle"] = MapNoType_type_def:get_field("No31"):get_data(nil), -- 밀림
+    ["Citadel"] = MapNoType_type_def:get_field("No32"):get_data(nil)  -- 요새 고원
 };
 
+local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
+local questStatus_type_def = this.SDK.find_type_definition("snow.QuestManager.Status");
+this.QuestStatus = {
+    Success = questStatus_type_def:get_field("Success"):get_data(nil)
+};
+--
 local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
-
+--
 local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
+--
+local GetTransform_method = this.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
+local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
+
+local GameObjectType_MasterPlayer = this.SDK.find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
 --
 function this.GetMasterPlayerId(idx)
     if idx ~= nil then
@@ -146,6 +169,29 @@ function this.ClearFade()
 
     set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
     FadeManager:set_field("fadeOutInFlag", false);
+end
+
+function this.getQuestMapNo(questManager)
+    if questManager == nil then
+        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        if questManager == nil then
+            return nil;
+        end
+    end
+
+    return getMapNo_method:call(questManager);
+end
+
+function this.getCurrentPosition()
+    local CameraManager = this.SDK.get_managed_singleton("snow.CameraManager");
+    if CameraManager ~= nil then
+        local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
+        if Transform ~= nil then
+            return get_Position_method:call(Transform);
+        end
+    end
+
+    return nil;
 end
 
 function this.SKIP_ORIGINAL()
