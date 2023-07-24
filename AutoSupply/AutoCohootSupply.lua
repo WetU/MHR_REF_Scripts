@@ -33,6 +33,19 @@ function this.Supply()
         return;
     end
 
+    local fullFlag = 0;
+
+    if kamuraStackCount_field:get_data(SaveData) == StackItemCount then
+        fullFlag = fullFlag + 1;
+    end
+    if elgadoStackCount_field:get_data(SaveData) == StackItemCount then
+        fullFlag = fullFlag + 2;
+    end
+
+    if fullFlag == 0 then
+        return;
+    end
+
     local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
     if VillageAreaManager == nil then
         return;
@@ -43,20 +56,34 @@ function this.Supply()
         return;
     end
 
-    if kamuraStackCount_field:get_data(SaveData) == StackItemCount then
-        if savedAreaNo == BUDDY_PLAZA then
+    if fullFlag == 3 then
+        if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then
             supply_method:call(ProgressOwlNestManager);
+            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == BUDDY_PLAZA and OUTPOST or BUDDY_PLAZA);
+            supply_method:call(ProgressOwlNestManager);
+            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
         else
             set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
             supply_method:call(ProgressOwlNestManager);
+            set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
+            supply_method:call(ProgressOwlNestManager);
             set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
         end
-    end
-    if elgadoStackCount_field:get_data(SaveData) == StackItemCount then
+
+    elseif fullFlag == 2 then
         if savedAreaNo == OUTPOST then
             supply_method:call(ProgressOwlNestManager);
         else
             set__CurrentAreaNo_method:call(VillageAreaManager, OUTPOST);
+            supply_method:call(ProgressOwlNestManager);
+            set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+        end
+
+    else
+        if savedAreaNo == BUDDY_PLAZA then
+            supply_method:call(ProgressOwlNestManager);
+        else
+            set__CurrentAreaNo_method:call(VillageAreaManager, BUDDY_PLAZA);
             supply_method:call(ProgressOwlNestManager);
             set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
         end
