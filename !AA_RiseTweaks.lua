@@ -29,3 +29,4 @@ end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);
 Constants.SDK.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmManager"):get_method("isPressEndQuestCounterOrderStampWithAnim"), Constants.SKIP_ORIGINAL, Constants.Return_TRUE);
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("requestMysteryCoreHitMark(snow.enemy.EnemyDef.PartsGroup, snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)"), Constants.SKIP_ORIGINAL);

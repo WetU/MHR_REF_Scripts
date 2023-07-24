@@ -129,6 +129,7 @@ function this.GetMasterPlayerId(idx)
             return;
         end
     end
+
     this.MasterPlayerIndex = nil;
 end
 
@@ -137,6 +138,7 @@ function this.checkGameStatus(checkType)
     if SnowGameManager == nil then
         return nil;
     end
+
     return checkType == get_CurrentStatus_method:call(SnowGameManager);
 end
 
@@ -147,6 +149,7 @@ function this.checkQuestStatus(questManager, checkType)
             return nil;
         end
     end
+
     return checkStatus_method:call(questManager, checkType);
 end
 

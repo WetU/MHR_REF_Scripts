@@ -3,7 +3,9 @@ if Constants == nil then
     return;
 end
 --
-local this = {currentStep = nil};
+local this = {
+    currentStep = nil
+};
 --
 local OtomoSpyUnitManager_type_def = Constants.SDK.find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
@@ -58,6 +60,7 @@ local function get_currentStepCount()
             return;
         end
     end
+
     Terminate();
 end
 

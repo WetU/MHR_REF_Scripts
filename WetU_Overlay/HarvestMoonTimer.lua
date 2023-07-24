@@ -25,6 +25,7 @@ local function UpdateHarvestMoonTimer(longSwordShell010)
         Terminate();
         return;
     end
+
     this.CircleTimer = Constants.LUA.string_format("원월 타이머: %.f초", lifeTimer);
 end
 
@@ -34,6 +35,7 @@ local function PreHook_update(args)
         Terminate();
         return;
     end
+
     UpdateHarvestMoonTimer(LongSwordShell010);
 end
 
