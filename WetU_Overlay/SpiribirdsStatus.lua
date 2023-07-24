@@ -162,16 +162,13 @@ local function PreHook_PlayerQuestBase_start(args)
     PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_PlayerQuestBase_start()
-    if PlayerQuestBase == nil then
+    if PlayerQuestBase == nil or isMasterPlayer_method:call(PlayerQuestBase) ~= true then
         return;
     end
 
-    if isMasterPlayer_method:call(PlayerQuestBase) == true then
-        Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, PostHook_onDestroy);
-        Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
-        CreateData();
-    end
-
+    Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, PostHook_onDestroy);
+    Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
+    CreateData();
     PlayerQuestBase = nil;
 end
 
@@ -268,11 +265,9 @@ local function PostHook_addLvBuffCnt()
 end
 
 local function PostHook_clearLvBuffCnt()
-    if this.SpiribirdsHudDataCreated ~= true then
-        return;
+    if this.SpiribirdsHudDataCreated == true then
+        clearLvBuff();
     end
-
-    clearLvBuff();
 end
 
 local newPlayerIndex = nil;
