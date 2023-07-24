@@ -151,7 +151,7 @@ end
 
 local function clearLvBuff()
     hasRainbow = false;
-    for k in Constants.LUA.pairs(LvBuff) do
+    for k in Constants.LUA.pairs(BuffTypes) do
         this.AcquiredCounts[k] = 0;
         this.AcquiredValues[k] = 0;
     end
