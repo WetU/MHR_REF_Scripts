@@ -162,13 +162,16 @@ local function PreHook_PlayerQuestBase_start(args)
     PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_PlayerQuestBase_start()
-    if PlayerQuestBase == nil or isMasterPlayer_method:call(PlayerQuestBase) ~= true then
+    if PlayerQuestBase == nil then
         return;
     end
 
-    Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, PostHook_onDestroy);
-    Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
-    CreateData();
+    if isMasterPlayer_method:call(PlayerQuestBase) == true then
+        Constants.SDK.hook_vtable(PlayerQuestBase, onDestroy_method, nil, PostHook_onDestroy);
+        Constants.GetMasterPlayerId(getPlayerIndex_method:call(PlayerQuestBase));
+        CreateData();
+    end
+
     PlayerQuestBase = nil;
 end
 
