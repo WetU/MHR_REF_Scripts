@@ -28,6 +28,7 @@ local function SkipReset(retval)
 			end
 		end
 	end
+
 	return retval;
 end
 -- Hook

@@ -28,7 +28,7 @@ local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get
 local nullable_uint32_type_def = Constants.SDK.find_type_definition("System.Nullable`1<System.UInt32>");
 local nullable_uint32_constructor_method = nullable_uint32_type_def:get_method(".ctor(System.UInt32)");
 local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue");
-local nullable_uint32_get_value_or_default_method = nullable_uint32_type_def:get_method("GetValueOrDefault");
+local nullable_uint32_get_value_method = nullable_uint32_type_def:get_method("get_Value");
 --
 local SessionAttr_Quest = Constants.SDK.find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
 --
@@ -191,11 +191,11 @@ local function prehook_req_matchmaking_hyakuryu(args)
 	quest_type.target_enemy.has_value = nullable_uint32_get_has_value_method:call(target_enemy);
 
 	if quest_type.quest_level.has_value == true then
-		quest_type.quest_level.value = nullable_uint32_get_value_or_default_method:call(args[4]);
+		quest_type.quest_level.value = nullable_uint32_get_value_method:call(args[4]);
 	end
 
 	if quest_type.target_enemy.has_value == true then
-		quest_type.target_enemy.value = nullable_uint32_get_value_or_default_method:call(args[5]);
+		quest_type.target_enemy.value = nullable_uint32_get_value_method:call(args[5]);
 	end
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionHyakuryu
@@ -252,7 +252,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 	local enemy_id = Constants.SDK.to_int64(args[6]);
 	quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id);
 	if quest_type.enemy_id.has_value == true then
-		quest_type.enemy_id.value = nullable_uint32_get_value_or_default_method:call(args[6]);
+		quest_type.enemy_id.value = nullable_uint32_get_value_method:call(args[6]);
 	end
 end
 

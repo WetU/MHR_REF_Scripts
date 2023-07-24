@@ -13,7 +13,9 @@ local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_meth
 
 local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
-local this = {CircleTimer = nil};
+local this = {
+    CircleTimer = nil
+};
 --
 local function Terminate()
     this.CircleTimer = nil;
