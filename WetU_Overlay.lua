@@ -13,13 +13,6 @@ or SpiribirdsStatus == nil then
 	return;
 end
 --
-local BuffTypes = {
-    "Atk",
-    "Def",
-    "Vital",
-    "Stamina"
-};
-
 local LocalizedBirdTypes = {
     "공격력",
     "방어력",
@@ -85,14 +78,15 @@ local function draw()
                 Constants.IMGUI.table_setup_column("횟수", 8, 20.0);
                 Constants.IMGUI.table_setup_column("수치", 8, 25.0);
                 Constants.IMGUI.table_headers_row();
-                for i = 1, #BuffTypes, 1 do
+                for i = 1, #SpiribirdsStatus.Buffs, 1 do
+                    local buffType = SpiribirdsStatus.Buffs[i];
                     Constants.IMGUI.table_next_row();
                     Constants.IMGUI.table_next_column();
                     Constants.IMGUI.text_colored(LocalizedBirdTypes[i] .. ": ", BirdTypeToColor[i]);
                     Constants.IMGUI.table_next_column();
-                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[BuffTypes[i]]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[BuffTypes[i]]));
+                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredCounts[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.BirdsMaxCounts[buffType]));
                     Constants.IMGUI.table_next_column();
-                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[BuffTypes[i]]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[BuffTypes[i]]));
+                    Constants.IMGUI.text(Constants.LUA.tostring(SpiribirdsStatus.AcquiredValues[buffType]) .. "/" .. Constants.LUA.tostring(SpiribirdsStatus.StatusBuffLimits[buffType]));
                 end
                 Constants.IMGUI.end_table();
             end

@@ -9,7 +9,13 @@ local this = {
     StatusBuffLimits = nil,
     AcquiredValues = nil,
     BirdsMaxCounts = nil,
-    AcquiredCounts = nil
+    AcquiredCounts = nil,
+    Buffs = {
+        "Atk",
+        "Def",
+        "Vital",
+        "Stamina"
+    }
 };
 --
 local calcLvBuffNumToMax_method = Constants.type_definitions.EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
@@ -43,12 +49,10 @@ local LvBuff = {
 };
 --
 local NormalLvBuffCageData_BuffTypes_type_def = Constants.SDK.find_type_definition("snow.data.NormalLvBuffCageData.BuffTypes");
-local BuffTypes = {
-    ["Atk"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Atk"):get_data(nil),
-    ["Def"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Def"):get_data(nil),
-    ["Vital"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Vital"):get_data(nil),
-    ["Stamina"] = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
-};
+local BuffTypes = {};
+for _, v in Constants.LUA.pairs(this.Buffs) do
+    BuffTypes[v] = NormalLvBuffCageData_BuffTypes_type_def:get_field(v):get_data(nil);
+end
 --
 local hasRainbow = false;
 local firstHook = true;
@@ -151,9 +155,9 @@ end
 
 local function clearLvBuff()
     hasRainbow = false;
-    for k in Constants.LUA.pairs(BuffTypes) do
-        this.AcquiredCounts[k] = 0;
-        this.AcquiredValues[k] = 0;
+    for _, v in Constants.LUA.pairs(this.Buffs) do
+        this.AcquiredCounts[v] = 0;
+        this.AcquiredValues[v] = 0;
     end
 end
 
