@@ -164,23 +164,23 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
 end
 --
 local function PreHook_startToPlayPlayerDieMusic()
-    local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
-    if StagePointManager == nil then
-        return;
-    end
-
     local mapNo = Constants.getQuestMapNo(nil);
     if mapNo == nil then
         return;
     end
 
-    local camps = TentPositionList_field:get_data(StagePointManager);
-    if camps == nil then
+    local nekoTakuItem = campList[mapNo];
+    if nekoTakuItem == nil then
         return;
     end
 
-    local nekoTakuItem = campList[mapNo];
-    if nekoTakuItem == nil then
+    local StagePointManager = Constants.SDK.get_managed_singleton("snow.stage.StagePointManager");
+    if StagePointManager == nil then
+        return;
+    end
+
+    local camps = TentPositionList_field:get_data(StagePointManager);
+    if camps == nil then
         return;
     end
 
@@ -197,13 +197,17 @@ local function PreHook_createNekotaku(args)
     end
 
     skipCreateNeko = false;
+
     if nekoTaku == nil then
         return;
     end
 
     local NekotakuManager = Constants.SDK.to_managed_object(args[2]);
     if NekotakuManager == nil then
-        return;
+        NekotakuManager = Constants.SDK.get_managed_singleton("snow.NekotakuManager");
+        if NekotakuManager == nil then
+            return;
+        end
     end
 
     createNekotaku_method:call(NekotakuManager, Constants.to_byte(args[3]), nekoTaku, Constants.SDK.to_float(args[5]));
@@ -216,13 +220,17 @@ local function PreHook_setPlWarpInfo_Nekotaku(args)
     end
 
     skipWarpNeko = false;
+
     if reviveCamp == nil then
         return;
     end
 
     local StageManager = Constants.SDK.to_managed_object(args[2]);
     if StageManager == nil then
-        return;
+        StageManager = Constants.SDK.get_managed_singleton("snow.stage.StageManager");
+        if StageManager == nil then
+            return;
+        end
     end
 
     setPlWarpInfo_method:call(StageManager, reviveCamp, 0.0, AreaMoveQuest_Die);

@@ -19,7 +19,10 @@ local function PreHook_changeAllMarkerEnable(args)
 
 	local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
 	if ObjectAccessManager == nil then
-		return;
+		ObjectAccessManager = Constants.SDK.get_managed_singleton("snow.access.ObjectAccessManager");
+		if ObjectAccessManager == nil then
+			return;
+		end
 	end
 
 	changeAllMarkerEnable_method:call(ObjectAccessManager, true);

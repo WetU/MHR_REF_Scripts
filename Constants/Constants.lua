@@ -1,6 +1,7 @@
 local string = string;
 local math = math;
 local sdk = sdk;
+local PreHookResult = sdk.PreHookResult;
 local imgui = imgui;
 local Vector2f = Vector2f;
 local Vector3f = Vector3f;
@@ -27,8 +28,8 @@ local this = {
         to_ptr = sdk.to_ptr,
         to_int64 = sdk.to_int64,
         to_float = sdk.to_float,
-        SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL,
-        CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL
+        SKIP_ORIGINAL = PreHookResult.SKIP_ORIGINAL,
+        CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL
     },
     IMGUI = {
         load_font = imgui.load_font,

@@ -54,7 +54,7 @@ local function updateDeathCount(questManager)
     this.DeathCount = Constants.LUA.string_format("다운 횟수: %d / %d", getDeathNum_method:call(questManager), curQuestLife);
 end
 
-local function onQuestStart()
+function this.onQuestStart()
     local QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
     if QuestManager ~= nil then
         updateDeathCount(QuestManager);
@@ -110,9 +110,8 @@ end
 
 function this.init()
     if Constants.checkGameStatus(Constants.GameStatusType.Quest) == true then
-        onQuestStart();
+        this.onQuestStart();
     end
-    Constants.SDK.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);

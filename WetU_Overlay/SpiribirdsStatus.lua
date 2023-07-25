@@ -133,7 +133,7 @@ local function getCallTimer(playerQuestBase)
     this.SpiribirdsCall_Timer = nil;
 end
 
-local function onQuestStart()
+function this.onQuestStart()
     if this.SpiribirdsHudDataCreated ~= true then
         return;
     end
@@ -294,7 +294,6 @@ local function PostHook_changePlayerIndex(retval)
 end
 
 function this.init()
-    Constants.SDK.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);

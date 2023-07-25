@@ -31,6 +31,12 @@ local function onchangeMasterPlayerID(args)
     Constants.GetMasterPlayerId(Constants.SDK.to_int64(args[3]));
 end
 Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("changeMasterPlayerID(snow.player.PlayerIndex)"), onchangeMasterPlayerID);
+
+local function onQuestStart()
+    QuestInfo.onQuestStart();
+    SpiribirdsStatus.onQuestStart();
+end
+Constants.SDK.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
 local function draw()
     if HarvestMoonTimer.CircleTimer ~= nil then
