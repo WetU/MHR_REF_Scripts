@@ -22,7 +22,7 @@ local EndFlow = {
 };
 --
 local HOME_key = 36;
--- No Kill Cam
+-- Skip Kill Camera
 local function skipKillCamera()
 	local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
 	if CameraManager == nil then
@@ -38,7 +38,7 @@ local function skipKillCamera()
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Update(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform)"), skipKillCamera);
 
--- BTH
+-- Skip End Flow
 local function PreHook_updateQuestEndFlow(args)
 	local QuestManager = Constants.SDK.to_managed_object(args[2]);
 	if QuestManager == nil then

@@ -48,7 +48,7 @@ local function onVillageStart()
     Constants.isOnVillageStarted = true;
     CohootSupply.Supply();
     if AutoArgosy.autoArgosy() == true then
-        SendMessage("교역선 아이템을 받았습니다");
+        SendMessage("교역 아이템을 받았습니다");
     end
     SendMessage(InventorySupply.Restock(nil, nil));
 end
