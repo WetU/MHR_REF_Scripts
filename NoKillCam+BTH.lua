@@ -3,6 +3,9 @@ if Constants == nil then
 	return;
 end
 --
+local get__RefDemoCameraBehavior_method = Constants.type_definitions.CameraManager_type_def:get_method("get__RefDemoCameraBehavior");
+local DemoEnd_method = get__RefDemoCameraBehavior_method:get_return_type():get_method("DemoEnd");
+--
 local getTrg_method = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 --
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec");
@@ -20,7 +23,20 @@ local EndFlow = {
 --
 local HOME_key = 36;
 -- No Kill Cam
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), Constants.SKIP_ORIGINAL);
+local function skipKillCamera()
+	local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
+	if CameraManager == nil then
+		return;
+	end
+
+	local DemoCamera = get__RefDemoCameraBehavior_method:call(CameraManager);
+	if DemoCamera == nil then
+		return;
+	end
+
+	DemoEnd_method:call(DemoCamera);
+end
+Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Update(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform)"), skipKillCamera);
 
 -- BTH
 local function PreHook_updateQuestEndFlow(args)

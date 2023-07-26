@@ -183,6 +183,10 @@ function this.Return_TRUE()
     return this.TRUE_POINTER;
 end
 
+function this.Return_FALSE()
+    return this.FALSE_POINTER;
+end
+
 function this.to_bool(value)
     return (this.SDK.to_int64(value) & 1) == 1;
 end

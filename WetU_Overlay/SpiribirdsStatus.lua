@@ -15,6 +15,18 @@ local this = {
         "Def",
         "Vital",
         "Stamina"
+    },
+    LocalizedBirdTypes = {
+        "공격력",
+        "방어력",
+        "체력",
+        "스태미나"
+    },
+    BirdTypeToColor = {
+        4278190335,
+        4278222847,
+        4278222848,
+        4278255615
     }
 };
 --
