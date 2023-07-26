@@ -72,15 +72,12 @@ local function PreHook_getDecideButtonTrg()
     return isReturnAnimation == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonTrg(retval)
-    if isReturnAnimation == true then
-        isReturnAnimation = false;
-        return Constants.TRUE_POINTER;
-    end
-    return retval;
+    return isReturnAnimation == true and Constants.TRUE_POINTER or retval;
 end
 
-local function PostHook_endOtomoSpyUnitReturn()
+local function PreHook_endOtomoSpyUnitReturn()
     this.currentStep = "활동 없음";
+    isReturnAnimation = false;
 end
 
 local function handleReward(args)
@@ -109,11 +106,11 @@ local function PreHook_getDecideButtonRep()
     return isReceiveReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonRep(retval)
-    if isReceiveReady == true then
-        isReceiveReady = false;
-        return Constants.TRUE_POINTER;
-    end
-    return retval;
+    return isReceiveReady == true and Constants.TRUE_POINTER or retval;
+end
+
+local function PreHook_addAllGameItemtoBox()
+    isReceiveReady = false;
 end
 
 local function onChangedGameStatus(args)
@@ -133,9 +130,10 @@ function this.init()
     Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
     Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
-    Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), nil, PostHook_endOtomoSpyUnitReturn);
+    Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);
     Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardListCursor"), handleReward);
     Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonRep, PostHook_getDecideButtonRep);
+    Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
     Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
 --
