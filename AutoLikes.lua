@@ -28,25 +28,28 @@ local function PreHook_routineWait(args)
 end
 
 local function PostHook_updatePlayerInfo()
-	if sendReady == true or GoodRelationshipHud == nil then
+	if GoodRelationshipHud == nil then
 		return;
 	end
 
-	local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
-	if OtherPlayerInfos ~= nil then
-		local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
-		if PlInfos_count > 0 then
-			for i = 0, PlInfos_count - 1, 1 do
-				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
-				if OtherPlayerInfo ~= nil then
-					local player_enabled = PlInfo_Enable_field:get_data(OtherPlayerInfo);
-					if player_enabled ~= nil then
-						OtherPlayerInfo:set_field("_good", player_enabled);
-						PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+	if sendReady ~= true then
+		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
+		if OtherPlayerInfos ~= nil then
+			local PlInfos_count = PlInfos_get_Count_method:call(OtherPlayerInfos);
+			if PlInfos_count > 0 then
+				for i = 0, PlInfos_count - 1, 1 do
+					local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+					if OtherPlayerInfo ~= nil then
+						local player_enabled = PlInfo_Enable_field:get_data(OtherPlayerInfo);
+						if player_enabled ~= nil then
+							OtherPlayerInfo:set_field("_good", player_enabled);
+							PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+						end
 					end
 				end
+
+				sendReady = true;
 			end
-			sendReady = true;
 		end
 	end
 
@@ -57,10 +60,7 @@ local function PreHook_isOperationOn()
 	return sendReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
 end
 local function PostHook_isOperationOn(retval)
-	if sendReady == true then
-		return Constants.TRUE_POINTER;
-	end
-	return retval;
+	return sendReady == true and Constants.TRUE_POINTER or retval;
 end
 
 local function PreHook_sendGood()

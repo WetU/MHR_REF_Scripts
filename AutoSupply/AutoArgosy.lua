@@ -66,11 +66,21 @@ local SendInventoryResult = {
 --
 local cacheNegotiationData = nil;
 --
-local function getCacheData()
-    if cacheNegotiationData ~= nil then
-        return;
-    end
+local function buildCache(tradeFunc)
+    cacheNegotiationData = {};
 
+    for i = 1, #NegotiationTypes, 1 do
+        local NegotiationData = getNegotiationData_method:call(tradeFunc, NegotiationTypes[i]);
+        if NegotiationData ~= nil then
+            cacheNegotiationData[i] = {
+                Count = NegotiationData_get_Count_method:call(NegotiationData),
+                Cost = get_Cost_method:call(NegotiationData)
+            };
+        end
+    end
+end
+
+local function getCacheData()
     local TradeCenterFacility = Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility");
     if TradeCenterFacility == nil then
         return;
@@ -81,17 +91,24 @@ local function getCacheData()
         return;
     end
 
-    cacheNegotiationData = {};
+    buildCache(TradeFunc);
+end
 
-    for i = 1, #NegotiationTypes, 1 do
-        local NegotiationData = getNegotiationData_method:call(TradeFunc, NegotiationTypes[i]);
-        if NegotiationData ~= nil then
-            cacheNegotiationData[i] = {
-                Count = NegotiationData_get_Count_method:call(NegotiationData),
-                Cost = get_Cost_method:call(NegotiationData)
-            };
-        end
+local initTable_TradeFunc = nil;
+local function PreHook_initTable(args)
+    if cacheNegotiationData ~= nil then
+        return;
     end
+
+    initTable_TradeFunc = Constants.SDK.to_managed_object(args[2]);
+end
+local function PostHook_initTable()
+    if initTable_TradeFunc == nil then
+        return;
+    end
+
+    buildCache(initTable_TradeFunc);
+    initTable_TradeFunc = nil;
 end
 
 local function isAcornEnough(dataManager)
@@ -189,7 +206,7 @@ function this.init()
         getCacheData();
     end
 
-    Constants.SDK.hook(TradeCenterFacility_type_def:get_method("onLoad(snow.SaveDataBase)"), nil, getCacheData);
+    Constants.SDK.hook(TradeFunc_type_def:get_method("initTable"), PreHook_initTable, PostHook_initTable);
 end
 --
 return this;

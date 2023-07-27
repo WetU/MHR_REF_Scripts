@@ -3,6 +3,8 @@ if Constants == nil then
 	return;
 end
 --
+local getMasterPlayerIndex_method = Constants.SDK.find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayerIndex");
+--
 local LongSwordShell010_type_def = Constants.SDK.find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):get_return_type():get_method("get_Item(System.Int32)"):get_return_type();
 local update_method = LongSwordShell010_type_def:get_method("update");
 local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
@@ -44,16 +46,13 @@ end
 local LongSwordShell010 = nil;
 local function PreHook(args)
     LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
-    if Constants.MasterPlayerIndex == nil then
-        Constants.GetMasterPlayerId(nil);
-    end
 end
 local function PostHook()
     if LongSwordShell010 == nil then
         return;
     end
 
-    if get_OwnerId_method:call(LongSwordShell010) == Constants.MasterPlayerIndex and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
+    if get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
         UpdateHarvestMoonTimer(LongSwordShell010);
         Constants.SDK.hook_vtable(LongSwordShell010, update_method, PreHook_update);
         Constants.SDK.hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);

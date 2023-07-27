@@ -290,12 +290,6 @@ function this.init()
         return retval;
     end);
     Constants.SDK.hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
-            CommercialStuff = false;
-            CommercialNpcTalkMessageCtrl = nil;
-            return Constants.FALSE_POINTER;
-        end
-
         CommercialStuff = Constants.to_bool(retval);
         return retval;
     end);

@@ -3,6 +3,8 @@ if Constants == nil then
 	return;
 end
 --
+local calcDistance_method = Constants.SDK.find_type_definition("snow.CharacterMathUtility"):get_method("calcDistance(via.vec3, via.vec3)"); -- static
+--
 local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
@@ -85,7 +87,7 @@ local reviveCamp = nil;
 local nekoTaku = nil;
 
 local function getCurrentPosition()
-    local CameraManager = this.SDK.get_managed_singleton("snow.CameraManager");
+    local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
     if CameraManager ~= nil then
         local Transform = GetTransform_method:call(CameraManager, GameObjectType_MasterPlayer);
         if Transform ~= nil then
@@ -95,6 +97,7 @@ local function getCurrentPosition()
 
     return nil;
 end
+
 local function getFastTravelPt(stagePointManager, index)
     if index >= 0 then
         local FastTravelPointList = get_FastTravelPointList_method:call(stagePointManager);
@@ -133,9 +136,8 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
     for i = 0, camps_count - 1, 1 do
         local camp = TentPositionList_get_Item_method:call(camps, i);
         if camp ~= nil then
-            local camp_x = camp.x;
-            local distance = ((currentPos.x - camp_x) ^ 2 + (currentPos.z - camp.z) ^ 2) ^ 0.5;
-            if (i == 0) or ((nearestDistance ~= nil and distance < nearestDistance) and camp_x ~= 0.0) then
+            local distance = calcDistance_method:call(nil, currentPos, camp);
+            if (i == 0) or ((nearestDistance ~= nil and distance < nearestDistance) and camp.x ~= 0.0) then
                 nearestCamp = camp;
                 nearestDistance = distance;
                 nearestCampIndex = i;

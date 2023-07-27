@@ -59,7 +59,6 @@ local this = {
     RE = {
         on_frame = re.on_frame
     },
-    MasterPlayerIndex = nil,
     isOnVillageStarted = false
 };
 
@@ -96,6 +95,44 @@ this.GameStatusType = {
     Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
 };
+
+function this.checkGameStatus(checkType)
+    local SnowGameManager = this.SDK.get_managed_singleton("snow.SnowGameManager");
+    if SnowGameManager == nil then
+        return nil;
+    end
+
+    return checkType == get_CurrentStatus_method:call(SnowGameManager);
+end
+--
+local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
+this.QuestStatus = {
+    Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
+};
+
+function this.checkQuestStatus(questManager, checkType)
+    if questManager == nil then
+        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        if questManager == nil then
+            return nil;
+        end
+    end
+
+    return checkStatus_method:call(questManager, checkType);
+end
+--
+local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
+
+function this.ClearFade()
+    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
+    if FadeManager == nil then
+        return;
+    end
+
+    set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
+    FadeManager:set_field("fadeOutInFlag", false);
+end
 --
 local getMapNo_method = this.type_definitions.QuestManager_type_def:get_method("getMapNo");
 local MapNoType_type_def = getMapNo_method:get_return_type();
@@ -109,61 +146,6 @@ this.QuestMapList = {
     ["Citadel"] = MapNoType_type_def:get_field("No32"):get_data(nil)  -- 요새 고원
 };
 
-local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
-this.QuestStatus = {
-    Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
-};
---
-local getMasterPlayerID_method = this.type_definitions.PlayerManager_type_def:get_method("getMasterPlayerID");
---
-local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
---
-function this.GetMasterPlayerId(idx)
-    if idx ~= nil then
-        this.MasterPlayerIndex = idx;
-        return;
-    else
-        local PlayerManager = this.SDK.get_managed_singleton("snow.player.PlayerManager");
-        if PlayerManager ~= nil then
-            this.MasterPlayerIndex = getMasterPlayerID_method:call(PlayerManager);
-            return;
-        end
-    end
-
-    this.MasterPlayerIndex = nil;
-end
-
-function this.checkGameStatus(checkType)
-    local SnowGameManager = this.SDK.get_managed_singleton("snow.SnowGameManager");
-    if SnowGameManager == nil then
-        return nil;
-    end
-
-    return checkType == get_CurrentStatus_method:call(SnowGameManager);
-end
-
-function this.checkQuestStatus(questManager, checkType)
-    if questManager == nil then
-        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
-        if questManager == nil then
-            return nil;
-        end
-    end
-
-    return checkStatus_method:call(questManager, checkType);
-end
-
-function this.ClearFade()
-    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
-    if FadeManager == nil then
-        return;
-    end
-
-    set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
-    FadeManager:set_field("fadeOutInFlag", false);
-end
-
 function this.getQuestMapNo(questManager)
     if questManager == nil then
         questManager = this.SDK.get_managed_singleton("snow.QuestManager");
@@ -174,7 +156,7 @@ function this.getQuestMapNo(questManager)
 
     return getMapNo_method:call(questManager);
 end
-
+--
 function this.SKIP_ORIGINAL()
     return this.SDK.SKIP_ORIGINAL;
 end

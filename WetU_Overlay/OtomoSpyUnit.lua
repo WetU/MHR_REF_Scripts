@@ -19,9 +19,11 @@ local spyOpenType_field = GuiOtomoSpyUnitMainControll_type_def:get_field("spyOpe
 
 local RewardListCursor_type_def = RewardListCursor_field:get_type();
 local get__PageCursor_method = RewardListCursor_type_def:get_method("get__PageCursor");
-local setIndex_method = RewardListCursor_type_def:get_method("setIndex(via.vec2)");
+local get__Index_method = RewardListCursor_type_def:get_method("get__Index");
+local set__Index_method = RewardListCursor_type_def:get_method("set__Index(via.vec2)");
 
 local PageCursor_type_def = get__PageCursor_method:get_return_type();
+local get_pageNo_method = PageCursor_type_def:get_method("get_pageNo");
 local set_pageNo_method = PageCursor_type_def:get_method("set_pageNo(System.Int32)");
 local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
 
@@ -96,9 +98,28 @@ local function handleReward(args)
         return;
     end
 
-    set_pageNo_method:call(PageCursor, getPageMax_method:call(PageCursor));
-    setIndex_method:call(RewardListCursor, ReceiveAllButton_Index);
-    updateRewardList_method:call(GuiOtomoSpyUnitMainControll);
+    local isChanged = false;
+
+    local PageMax = getPageMax_method:call(PageCursor);
+    if get_pageNo_method:call(PageCursor) ~= PageMax then
+        set_pageNo_method:call(PageCursor, PageMax);
+        if isChanged == false then
+            isChanged = true;
+        end
+    end
+
+    local currentIndex = get__Index_method:call(RewardListCursor);
+    if currentIndex.x ~= 0.0 or currentIndex.y ~= 0.0 then
+        set__Index_method:call(RewardListCursor, ReceiveAllButton_Index);
+        if isChanged == false then
+            isChanged = true;
+        end
+    end
+
+    if isChanged == true then
+        updateRewardList_method:call(GuiOtomoSpyUnitMainControll);
+    end
+
     isReceiveReady = true;
 end
 

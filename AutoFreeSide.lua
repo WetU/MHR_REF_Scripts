@@ -30,6 +30,7 @@ local function PostHook_getDecideButtonTrg(retval)
         isOpenRewardWindow = false;
         return Constants.TRUE_POINTER;
     end
+
     return retval;
 end
 Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
