@@ -37,29 +37,29 @@ local campList = {};
 for mapName, mapNo in Constants.LUA.pairs(Constants.QuestMapList) do
     local campPosition = nil;
 
-    if mapName == "Shrine Ruins" then
+    if mapName == "ShrineRuins" then
         campPosition = {
             Constants.VECTOR3f.new(236.707, 174.37, -510.568)
         };
 
-    elseif mapName == "Sandy Plains" then
+    elseif mapName == "SandyPlains" then
         campPosition = {
             Constants.VECTOR3f.new(-117.699, -45.653, -233.201),
             Constants.VECTOR3f.new(116.07, -63.316, -428.018)
         };
 
-    elseif mapName == "Flooded Forest" then
+    elseif mapName == "FloodedForest" then
         campPosition = {
             Constants.VECTOR3f.new(207.968, 90.447, 46.081)
         };
 
-    elseif mapName == "Frost Islands" then
+    elseif mapName == "FrostIslands" then
         campPosition = {
             Constants.VECTOR3f.new(-94.171, 2.744, -371.947),
             Constants.VECTOR3f.new(103.986, 26, -496.863)
         };
 
-    elseif mapName == "Lava Caverns" then
+    elseif mapName == "LavaCaverns" then
         campPosition = {
             Constants.VECTOR3f.new(244.252, 147.122, -537.940),
             Constants.VECTOR3f.new(-40.000, 81.136, -429.201)
@@ -137,7 +137,7 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
         local camp = TentPositionList_get_Item_method:call(camps, i);
         if camp ~= nil then
             local distance = calcDistance_method:call(nil, currentPos, camp);
-            if (i == 0) or ((nearestDistance ~= nil and distance < nearestDistance) and camp.x ~= 0.0) then
+            if i == 0 or (distance < nearestDistance and camp.x ~= 0.0) then
                 nearestCamp = camp;
                 nearestDistance = distance;
                 nearestCampIndex = i;

@@ -137,11 +137,11 @@ end
 local getMapNo_method = this.type_definitions.QuestManager_type_def:get_method("getMapNo");
 local MapNoType_type_def = getMapNo_method:get_return_type();
 this.QuestMapList = {
-    ["Shrine Ruins"] = MapNoType_type_def:get_field("No01"):get_data(nil), -- 사원 폐허
-    ["Sandy Plains"] = MapNoType_type_def:get_field("No02"):get_data(nil), -- 모래 평원
-    ["Flooded Forest"] = MapNoType_type_def:get_field("No03"):get_data(nil), -- 수몰된 숲
-    ["Frost Islands"] = MapNoType_type_def:get_field("No04"):get_data(nil), -- 한랭 군도
-    ["Lava Caverns"] = MapNoType_type_def:get_field("No05"):get_data(nil), -- 용암 동굴
+    ["ShrineRuins"] = MapNoType_type_def:get_field("No01"):get_data(nil), -- 사원 폐허
+    ["SandyPlains"] = MapNoType_type_def:get_field("No02"):get_data(nil), -- 모래 평원
+    ["FloodedForest"] = MapNoType_type_def:get_field("No03"):get_data(nil), -- 수몰된 숲
+    ["FrostIslands"] = MapNoType_type_def:get_field("No04"):get_data(nil), -- 한랭 군도
+    ["LavaCaverns"] = MapNoType_type_def:get_field("No05"):get_data(nil), -- 용암 동굴
     ["Jungle"] = MapNoType_type_def:get_field("No31"):get_data(nil), -- 밀림
     ["Citadel"] = MapNoType_type_def:get_field("No32"):get_data(nil)  -- 요새 고원
 };

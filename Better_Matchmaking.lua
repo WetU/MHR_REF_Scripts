@@ -43,11 +43,11 @@ local quest_types = {
 	rampage = {
 		difficulty = 0,
 		quest_level = {
-			value = 0,
+			value = nil,
 			has_value = false
 		},
 		target_enemy = {
-			value = 0,
+			value = nil,
 			has_value = false
 		}
 	},
@@ -65,7 +65,7 @@ local quest_types = {
 		max_level = 1,
 		party_limit = 4,
 		enemy_id = {
-			value = 0,
+			value = nil,
 			has_value = false
 		},
 		reward_item = 67108864,
@@ -110,6 +110,7 @@ local function prehook_on_timeout(args)
 
 	elseif quest_type == quest_types.rampage then
 		skip_next_hook = skip_types.rampage;
+
 		local quest_level_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
 		nullable_uint32_constructor_method:call(quest_level_pointer, quest_type.quest_level.value);
 		quest_level_pointer:set_field("_HasValue", quest_type.quest_level.has_value);
@@ -130,6 +131,7 @@ local function prehook_on_timeout(args)
 
 	elseif quest_type == quest_types.anomaly_investigation then
 		skip_next_hook = skip_types.anomaly_investigation;
+
 		local enemy_id_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
 		nullable_uint32_constructor_method:call(enemy_id_pointer, quest_type.enemy_id.value);
 		enemy_id_pointer:set_field("_HasValue", quest_type.enemy_id.has_value);
@@ -184,19 +186,11 @@ local function prehook_req_matchmaking_hyakuryu(args)
 	quest_type = quest_types.rampage;
 	quest_type.difficulty = Constants.to_uint(args[3]);
 
-	local quest_level = Constants.SDK.to_int64(args[4]);
-	local target_enemy = Constants.SDK.to_int64(args[5]);
+	quest_type.quest_level.has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[4]));
+	quest_type.quest_level.value = quest_type.quest_level.has_value == true and nullable_uint32_get_value_method:call(args[4]) or nil;
 
-	quest_type.quest_level.has_value = nullable_uint32_get_has_value_method:call(quest_level);
-	quest_type.target_enemy.has_value = nullable_uint32_get_has_value_method:call(target_enemy);
-
-	if quest_type.quest_level.has_value == true then
-		quest_type.quest_level.value = nullable_uint32_get_value_method:call(args[4]);
-	end
-
-	if quest_type.target_enemy.has_value == true then
-		quest_type.target_enemy.value = nullable_uint32_get_value_method:call(args[5]);
-	end
+	quest_type.target_enemy.has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[5]));
+	quest_type.target_enemy.value = quest_type.target_enemy.has_value == true and nullable_uint32_get_value_method:call(args[5]) or nil;
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionHyakuryu
 --	System.UInt32 						difficulty
@@ -249,11 +243,8 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 	quest_type.reward_item = Constants.to_uint(args[7]);
 	quest_type.is_special_random_mystery = Constants.to_bool(args[8]);
 
-	local enemy_id = Constants.SDK.to_int64(args[6]);
-	quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(enemy_id);
-	if quest_type.enemy_id.has_value == true then
-		quest_type.enemy_id.value = nullable_uint32_get_value_method:call(args[6]);
-	end
+	quest_type.enemy_id.has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[6]));
+	quest_type.enemy_id.value = quest_type.enemy_id.has_value == true and nullable_uint32_get_value_method:call(args[6]) or nil;
 end
 
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandomMysteryQuest

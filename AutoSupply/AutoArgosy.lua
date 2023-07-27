@@ -94,21 +94,26 @@ local function getCacheData()
     buildCache(TradeFunc);
 end
 
-local initTable_TradeFunc = nil;
-local function PreHook_initTable(args)
+local TradeCenterFacility_start = nil;
+local function PreHook_start(args)
     if cacheNegotiationData ~= nil then
         return;
     end
 
-    initTable_TradeFunc = Constants.SDK.to_managed_object(args[2]);
+    TradeCenterFacility_start = Constants.SDK.to_managed_object(args[2]);
 end
-local function PostHook_initTable()
-    if initTable_TradeFunc == nil then
+local function PostHook_start()
+    if TradeCenterFacility_start == nil then
         return;
     end
 
-    buildCache(initTable_TradeFunc);
-    initTable_TradeFunc = nil;
+    local TradeFunc = get_TradeFunc_method:call(TradeCenterFacility_start);
+    if TradeFunc == nil then
+        return;
+    end
+
+    buildCache(TradeFunc);
+    TradeCenterFacility_start = nil;
 end
 
 local function isAcornEnough(dataManager)
@@ -206,7 +211,7 @@ function this.init()
         getCacheData();
     end
 
-    Constants.SDK.hook(TradeFunc_type_def:get_method("initTable"), PreHook_initTable, PostHook_initTable);
+    Constants.SDK.hook(TradeCenterFacility_type_def:get_method("start"), PreHook_start, PostHook_start);
 end
 --
 return this;
