@@ -78,8 +78,8 @@ local function PostHook_getDecideButtonTrg(retval)
 end
 
 local function PreHook_endOtomoSpyUnitReturn()
-    this.currentStep = "활동 없음";
     isReturnAnimation = false;
+    this.currentStep = "활동 없음";
 end
 
 local function handleReward(args)
@@ -99,8 +99,8 @@ local function handleReward(args)
     end
 
     local isChanged = false;
-
     local PageMax = getPageMax_method:call(PageCursor);
+
     if get_pageNo_method:call(PageCursor) ~= PageMax then
         set_pageNo_method:call(PageCursor, PageMax);
         if isChanged == false then
@@ -109,6 +109,7 @@ local function handleReward(args)
     end
 
     local currentIndex = get__Index_method:call(RewardListCursor);
+
     if currentIndex.x ~= 0.0 or currentIndex.y ~= 0.0 then
         set__Index_method:call(RewardListCursor, ReceiveAllButton_Index);
         if isChanged == false then

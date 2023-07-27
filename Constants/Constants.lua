@@ -32,7 +32,6 @@ local this = {
         CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL
     },
     IMGUI = {
-        load_font = imgui.load_font,
         push_font = imgui.push_font,
         pop_font = imgui.pop_font,
         text = imgui.text,
@@ -64,7 +63,7 @@ local this = {
 
 this.TRUE_POINTER = this.SDK.to_ptr(true);
 this.FALSE_POINTER = this.SDK.to_ptr(false);
-this.Font = this.IMGUI.load_font("NotoSansKR-Bold.otf", 22, {
+this.Font = imgui.load_font("NotoSansKR-Bold.otf", 22, {
     0x0020, 0x00FF, -- Basic Latin + Latin Supplement
     0x2000, 0x206F, -- General Punctuation
     0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana

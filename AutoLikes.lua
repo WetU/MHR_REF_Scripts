@@ -24,7 +24,6 @@ local function PreHook_routineWait(args)
 
 	GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
 	GoodRelationshipHud:set_field("WaitTime", 0.0);
-	sendReady = false;
 end
 
 local function PostHook_updatePlayerInfo()

@@ -13,7 +13,6 @@ local function PreHook_doOpen(args)
 
     GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
     GuiSideQuestOrder:set_field("DecideDelay", 0.0);
-    isOpenRewardWindow = false;
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
 

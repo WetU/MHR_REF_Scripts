@@ -93,21 +93,16 @@ local function PostHook_requestAutoSaveAll()
 	end
 
 	local GuiKitchenFsmManager = Constants.SDK.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
-	if GuiKitchenFsmManager == nil then
-		return;
+	if GuiKitchenFsmManager ~= nil then
+		local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(GuiKitchenFsmManager);
+		if KitchenDangoLogParam ~= nil then
+			local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
+			if GuiManager ~= nil then
+				reqDangoLogStart_method:call(GuiManager, KitchenDangoLogParam, 5.0);
+			end
+		end
 	end
 
-	local GuiManager = Constants.SDK.get_managed_singleton("snow.gui.GuiManager");
-	if GuiManager == nil then
-		return;
-	end
-
-	local KitchenDangoLogParam = get_KitchenDangoLogParam_method:call(GuiKitchenFsmManager);
-	if KitchenDangoLogParam == nil then
-		return;
-	end
-
-	reqDangoLogStart_method:call(GuiManager, KitchenDangoLogParam, 5.0);
 	showDangoLog = false;
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);

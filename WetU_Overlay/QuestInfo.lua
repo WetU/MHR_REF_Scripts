@@ -76,20 +76,20 @@ function this.onQuestStart()
     Terminate();
 end
 
-local QuestManager = nil;
+local QuestManager_forfeit = nil;
 local function PreHook_questForfeit(args)
-    QuestManager = Constants.SDK.to_managed_object(args[2]);
+    QuestManager_forfeit = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_questForfeit()
-    if QuestManager == nil then
-        QuestManager = Constants.SDK.get_managed_singleton("snow.QuestManager");
-        if QuestManager == nil then
+    if QuestManager_forfeit == nil then
+        QuestManager_forfeit = Constants.SDK.get_managed_singleton("snow.QuestManager");
+        if QuestManager_forfeit == nil then
             return;
         end
     end
 
-    updateDeathCount(QuestManager);
-    QuestManager = nil;
+    updateDeathCount(QuestManager_forfeit);
+    QuestManager_forfeit = nil;
 end
 
 local function PreHook_updateQuestTime(args)
