@@ -4,14 +4,6 @@ local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
 local QuestInfo = require("WetU_Overlay.QuestInfo");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
-
-if Constants == nil
-or HarvestMoonTimer == nil
-or OtomoSpyUnit == nil
-or QuestInfo == nil
-or SpiribirdsStatus == nil then
-	return;
-end
 --
 local function onQuestStart()
     QuestInfo.onQuestStart();
@@ -120,3 +112,10 @@ HarvestMoonTimer.init();
 OtomoSpyUnit.init();
 QuestInfo.init();
 SpiribirdsStatus.init();
+
+if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
+    OtomoSpyUnit.get_currentStepCount();
+elseif Constants.checkGameStatus(Constants.GameStatusType.Quest) == true then
+    QuestInfo.onQuestStart();
+    SpiribirdsStatus.CreateData();
+end

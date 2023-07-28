@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 --
 local MaxFps = 119.98;
 --
@@ -17,15 +14,7 @@ local function PreHook_changeAllMarkerEnable(args)
 		return;
 	end
 
-	local ObjectAccessManager = Constants.SDK.to_managed_object(args[2]);
-	if ObjectAccessManager == nil then
-		ObjectAccessManager = Constants.SDK.get_managed_singleton("snow.access.ObjectAccessManager");
-		if ObjectAccessManager == nil then
-			return;
-		end
-	end
-
-	changeAllMarkerEnable_method:call(ObjectAccessManager, true);
+	changeAllMarkerEnable_method:call(Constants.SDK.to_managed_object(args[2]) or Constants.SDK.get_managed_singleton("snow.access.ObjectAccessManager"), true);
 	return Constants.SDK.SKIP_ORIGINAL;
 end
 --

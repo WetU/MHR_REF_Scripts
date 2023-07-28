@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-    return;
-end
 --
 local this = {};
 --
@@ -24,14 +21,7 @@ local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
 --
 function this.Supply()
     local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
-    if ProgressOwlNestManager == nil then
-        return;
-    end
-
     local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
-    if SaveData == nil then
-        return;
-    end
 
     local fullFlag = 0;
 
@@ -47,14 +37,7 @@ function this.Supply()
     end
 
     local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
-    if VillageAreaManager == nil then
-        return;
-    end
-
     local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
-    if savedAreaNo == nil then
-        return;
-    end
 
     if fullFlag == 3 then
         if savedAreaNo == BUDDY_PLAZA or savedAreaNo == OUTPOST then

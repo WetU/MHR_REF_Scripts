@@ -1,18 +1,10 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 -- Region lock fix
 local session_steam_type_def = Constants.SDK.find_type_definition("via.network.SessionSteam");
 local setLobbyDistanceFilter_method = session_steam_type_def:get_method("setLobbyDistanceFilter(System.UInt32)");
 --
 local function on_set_is_invisible(args)
-	local session_steam = Constants.SDK.to_managed_object(args[1]);
-	if session_steam == nil then
-		return;
-	end
-
-	setLobbyDistanceFilter_method:call(session_steam, 3);
+	setLobbyDistanceFilter_method:call(Constants.SDK.to_managed_object(args[1]), 3);
 end
 Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), on_set_is_invisible);
 
@@ -56,9 +48,6 @@ local function prehook_on_timeout(args)
 	end
 
 	local session_manager = Constants.SDK.to_managed_object(args[2]);
-	if session_manager == nil then
-		return;
-	end
 
 	if quest_type == quest_types.regular then
 		skip_next_hook = quest_types.regular;
@@ -235,14 +224,18 @@ end
 --	System.Boolean						isSpecialRandomMystery
 Constants.SDK.hook(req_matchmaking_random_mystery_quest_method, prehook_req_matchmaking_random_mystery_quest);
 
-local function onChangedGameStatus(args)
-	if Constants.SDK.to_int64(args[3]) ~= Constants.GameStatusType.Village then
-		quest_type = nil;
-		quest_vars = nil;
-		skip_next_hook = nil;
+local function resetVars(args)
+	if Constants.SDK.to_int64(args[3]) < SessionAttr_Quest then
+		return;
 	end
+
+	quest_type = nil;
+	quest_vars = nil;
+	skip_next_hook = nil;
 end
-Constants.SDK.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+Constants.SDK.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), resetVars);
+Constants.SDK.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), resetVars);
+Constants.SDK.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), resetVars);
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()

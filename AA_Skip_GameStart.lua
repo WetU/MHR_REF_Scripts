@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 --
 local Movie_type_def = Constants.SDK.find_type_definition("via.movie.Movie");
 local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
@@ -13,12 +10,7 @@ local notifyActionEnd_method = Constants.SDK.find_type_definition("via.behaviort
 --
 local Movie = nil;
 local function PreHook_play(args)
-	local GuiGameStartFsmManager = Constants.SDK.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-	if GuiGameStartFsmManager == nil then
-		return;
-	end
-
-	local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
+	local GameStartState = get_GameStartState_method:call(Constants.SDK.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager"));
 	if GameStartState == nil or GameStartState < 0 or GameStartState > 7 then
 		return;
 	end
@@ -30,30 +22,17 @@ local function PostHook_play()
 		return;
 	end
 
-	local DurationTime = get_DurationTime_method:call(Movie);
-	if DurationTime ~= nil then
-		seek_method:call(Movie, DurationTime);
-	end
-
+	seek_method:call(Movie, get_DurationTime_method:call(Movie));
 	Movie = nil;
 end
 Constants.SDK.hook(Movie_type_def:get_method("play"), PreHook_play, PostHook_play);
 --
 local function ClearAction(args)
-	local Action = Constants.SDK.to_managed_object(args[3]);
-	if Action == nil then
-		return;
-	end
-
-	notifyActionEnd_method:call(Action);
+	notifyActionEnd_method:call(Constants.SDK.to_managed_object(args[3]));
 end
 
 local function Create_hook_vtable(args)
 	local obj = Constants.SDK.to_managed_object(args[2]);
-	if obj == nil then
-		return;
-	end
-
 	Constants.SDK.hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, Constants.ClearFade);
 end
 

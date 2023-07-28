@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-    return;
-end
 --
 local this = {
     currentStep = nil
@@ -40,27 +37,17 @@ local function Terminate()
 end
 
 local function setBoostItem(args)
-    local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-    if GuiOtomoSpyUnitMainControll == nil then
-        return;
-    end
-
-    setBoostItem_method:call(GuiOtomoSpyUnitMainControll);
+    setBoostItem_method:call(Constants.SDK.to_managed_object(args[2]));
 end
 
-local function get_currentStepCount()
+function this.get_currentStepCount()
     local OtomoSpyUnitManager = Constants.SDK.get_managed_singleton("snow.data.OtomoSpyUnitManager");
-    if OtomoSpyUnitManager ~= nil then
-        if get_IsOperating_method:call(OtomoSpyUnitManager) == true then
-            local NowStepCount = get_NowStepCount_method:call(OtomoSpyUnitManager);
-            if NowStepCount ~= nil then
-                this.currentStep = Constants.LUA.string_format("조사 단계: %d / 5", NowStepCount);
-                return;
-            end
-        else
-            this.currentStep = "활동 없음";
-            return;
-        end
+    if get_IsOperating_method:call(OtomoSpyUnitManager) == true then
+        this.currentStep = Constants.LUA.string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager));
+        return;
+    else
+        this.currentStep = "활동 없음";
+        return;
     end
 
     Terminate();
@@ -84,22 +71,18 @@ end
 
 local function handleReward(args)
     local GuiOtomoSpyUnitMainControll = Constants.SDK.to_managed_object(args[2]);
-    if GuiOtomoSpyUnitMainControll == nil or spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) ~= ItemReceive then
+    if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) ~= ItemReceive then
         return;
     end
 
     local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
-    if RewardListCursor == nil then
-        return;
-    end
 
     local PageCursor = get__PageCursor_method:call(RewardListCursor);
-    if PageCursor == nil then
-        return;
-    end
+    local PageMax = getPageMax_method:call(PageCursor);
+
+    local currentIndex = get__Index_method:call(RewardListCursor);
 
     local isChanged = false;
-    local PageMax = getPageMax_method:call(PageCursor);
 
     if get_pageNo_method:call(PageCursor) ~= PageMax then
         set_pageNo_method:call(PageCursor, PageMax);
@@ -107,8 +90,6 @@ local function handleReward(args)
             isChanged = true;
         end
     end
-
-    local currentIndex = get__Index_method:call(RewardListCursor);
 
     if currentIndex.x ~= 0.0 or currentIndex.y ~= 0.0 then
         set__Index_method:call(RewardListCursor, ReceiveAllButton_Index);
@@ -137,7 +118,7 @@ end
 
 local function onChangedGameStatus(args)
     if Constants.SDK.to_int64(args[3]) == Constants.GameStatusType.Village then
-        get_currentStepCount();
+        this.get_currentStepCount();
     else
         Terminate();
         Constants.isOnVillageStarted = false;
@@ -145,11 +126,8 @@ local function onChangedGameStatus(args)
 end
 
 function this.init()
-    if Constants.checkGameStatus(Constants.GameStatusType.Village) == true then
-        get_currentStepCount();
-    end
     Constants.SDK.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
-    Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
+    Constants.SDK.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, this.get_currentStepCount);
     Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
     Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
     Constants.SDK.hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);

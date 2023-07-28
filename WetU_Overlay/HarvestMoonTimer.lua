@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 --
 local getMasterPlayerIndex_method = Constants.SDK.find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayerIndex");
 --
@@ -24,23 +21,11 @@ local function Terminate()
 end
 
 local function UpdateHarvestMoonTimer(longSwordShell010)
-    local lifeTimer = lifeTimer_field:get_data(longSwordShell010);
-    if lifeTimer == nil then
-        Terminate();
-        return;
-    end
-
-    this.CircleTimer = Constants.LUA.string_format("원월 타이머: %.f초", lifeTimer);
+    this.CircleTimer = Constants.LUA.string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
 end
 
 local function PreHook_update(args)
-    local LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
-    if LongSwordShell010 == nil then
-        Terminate();
-        return;
-    end
-
-    UpdateHarvestMoonTimer(LongSwordShell010);
+    UpdateHarvestMoonTimer(Constants.SDK.to_managed_object(args[2]));
 end
 
 local LongSwordShell010 = nil;
@@ -48,10 +33,6 @@ local function PreHook(args)
     LongSwordShell010 = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook()
-    if LongSwordShell010 == nil then
-        return;
-    end
-
     if get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
         UpdateHarvestMoonTimer(LongSwordShell010);
         Constants.SDK.hook_vtable(LongSwordShell010, update_method, PreHook_update);

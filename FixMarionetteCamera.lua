@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 -- Cache
 local ResetState_None = Constants.SDK.find_type_definition("snow.camera.PlayerCamera.ResetState"):get_field("None"):get_data(nil);
 
@@ -16,15 +13,10 @@ local NotResetPtr = Constants.SDK.to_ptr(ResetState_None);
 -- Main
 local function SkipReset(retval)
 	if Constants.SDK.to_int64(retval) ~= ResetState_None then
-		local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
-		if CameraManager ~= nil then
-			local MarionetteCameraType = get_MarionetteCameraType_method:call(CameraManager);
-			if MarionetteCameraType ~= nil then
-				for _, v in Constants.LUA.pairs(NotResetTypes) do
-					if MarionetteCameraType == v then
-						return NotResetPtr;
-					end
-				end
+		local MarionetteCameraType = get_MarionetteCameraType_method:call(Constants.SDK.get_managed_singleton("snow.CameraManager"));
+		for _, v in Constants.LUA.pairs(NotResetTypes) do
+			if MarionetteCameraType == v then
+				return NotResetPtr;
 			end
 		end
 	end

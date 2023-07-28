@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 -- Cache
 local GoodRelationship_type_def = Constants.SDK.find_type_definition("snow.gui.GuiHud_GoodRelationship");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
@@ -18,10 +15,6 @@ local sendReady = false;
 
 local function PreHook_routineWait(args)
 	GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
-	if GoodRelationshipHud == nil then
-		return;
-	end
-
 	GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
 	GoodRelationshipHud:set_field("WaitTime", 0.0);
 end

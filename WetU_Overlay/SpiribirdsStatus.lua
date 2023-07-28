@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 --
 local this = {
     SpiribirdsHudDataCreated = nil,
@@ -80,23 +77,12 @@ local function Terminate()
     skipUpdate = false;
 end
 
-local function CreateData()
+function this.CreateData()
     local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
-    if PlayerManager == nil then
-        return;
-    end
-
     hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
 
     local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-    if EquipDataManager == nil then
-        return;
-    end
-    
     local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
-    if EquippingLvBuffcageData == nil then
-        return;
-    end
 
     this.StatusBuffLimits = {};
     this.BirdsMaxCounts = {};
@@ -126,27 +112,15 @@ local function getBuffParameters(equipDataManager, playerManager, buffType)
 end
 
 local function getCallTimer(playerQuestBase)
-    local masterPlayerData = get_PlayerData_method:call(playerQuestBase);
-    if masterPlayerData ~= nil then
-        local Timer = SpiribirdsCallTimer_field:get_data(masterPlayerData);
-        if Timer ~= nil then
-            this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (Timer / 60.0));
-            return;
-        end
-    end
-
-    this.SpiribirdsCall_Timer = nil;
+    this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(playerQuestBase)) / 60.0));
 end
 
 function this.onQuestStart()
     if this.SpiribirdsHudDataCreated ~= true then
-        CreateData();
+        this.CreateData();
     end
 
     local MapNo = Constants.getQuestMapNo(nil);
-    if MapNo == nil then
-        return;
-    end
 
     for _, map in Constants.LUA.pairs(Constants.QuestMapList) do
         if map == MapNo then
@@ -163,12 +137,8 @@ local function PreHook_PlayerQuestBase_start(args)
     PlayerQuestBase_start = Constants.SDK.to_managed_object(args[2]);
 end
 local function PostHook_PlayerQuestBase_start()
-    if PlayerQuestBase_start == nil then 
-        return;
-    end
-
     if isMasterPlayer_method:call(PlayerQuestBase_start) == true then
-        CreateData();
+        this.CreateData();
     end
 
     PlayerQuestBase_start = nil;
@@ -177,12 +147,12 @@ end
 local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
     local PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
-    if PlayerQuestBase == nil or isMasterPlayer_method:call(PlayerQuestBase) ~= true then
+    if isMasterPlayer_method:call(PlayerQuestBase) ~= true then
         return;
     end
 
     if this.SpiribirdsHudDataCreated ~= true then
-        CreateData();
+        this.CreateData();
     end
 
     subBuffType = Constants.SDK.to_int64(args[3]);
@@ -197,11 +167,7 @@ local function PostHook_subLvBuffFromEnemy(retval)
                 this.AcquiredValues[v] = 0;
             end
         else
-            local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-            local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
-            if EquipDataManager ~= nil and PlayerManager ~= nil then
-                getBuffParameters(EquipDataManager, PlayerManager, subBuffType)
-            end
+            getBuffParameters(Constants.SDK.get_managed_singleton("snow.data.EquipDataManager"), Constants.SDK.get_managed_singleton("snow.player.PlayerManager"), subBuffType)
         end
     end
 
@@ -215,7 +181,7 @@ local function PreHook_updateEquipSkill211(args)
     end
 
     local PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
-    if PlayerQuestBase == nil or isMasterPlayer_method:call(PlayerQuestBase) ~= true then
+    if isMasterPlayer_method:call(PlayerQuestBase) ~= true then
         return;
     end
 
@@ -235,7 +201,7 @@ local addBuffType = nil;
 local PlayerManager_obj = nil;
 local function PreHook_addLvBuffCnt(args)
     if this.SpiribirdsHudDataCreated ~= true then
-        CreateData();
+        this.CreateData();
     end
 
     addBuffType = Constants.SDK.to_int64(args[4]);
@@ -244,7 +210,7 @@ local function PreHook_addLvBuffCnt(args)
         hasRainbow = true;
         addBuffType = nil;
     else
-        PlayerManager_obj = Constants.SDK.to_managed_object(args[2]);
+        PlayerManager_obj = Constants.SDK.to_managed_object(args[2]) or Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
     end
 end
 local function PostHook_addLvBuffCnt()
@@ -260,15 +226,7 @@ local function PostHook_addLvBuffCnt()
     end
 
     if addBuffType ~= nil then
-        if PlayerManager_obj == nil then
-            PlayerManager_obj = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
-        end
-
-        local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
-
-        if PlayerManager_obj ~= nil and EquipDataManager ~= nil then
-            getBuffParameters(EquipDataManager, PlayerManager_obj, addBuffType);
-        end
+        getBuffParameters(Constants.SDK.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager_obj, addBuffType);
     end
 
     addBuffType = nil;
@@ -276,9 +234,6 @@ local function PostHook_addLvBuffCnt()
 end
 
 function this.init()
-    if Constants.checkGameStatus(Constants.GameStatusType.Quest) == true then
-        CreateData();
-    end
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
     Constants.SDK.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);

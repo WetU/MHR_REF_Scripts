@@ -1,7 +1,4 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-	return;
-end
 --
 local get__RefDemoCameraBehavior_method = Constants.type_definitions.CameraManager_type_def:get_method("get__RefDemoCameraBehavior");
 local DemoEnd_method = get__RefDemoCameraBehavior_method:get_return_type():get_method("DemoEnd");
@@ -24,31 +21,14 @@ local EndFlow = {
 local HOME_key = 36;
 -- Skip Kill Camera
 local function skipKillCamera()
-	local CameraManager = Constants.SDK.get_managed_singleton("snow.CameraManager");
-	if CameraManager == nil then
-		return;
-	end
-
-	local DemoCamera = get__RefDemoCameraBehavior_method:call(CameraManager);
-	if DemoCamera == nil then
-		return;
-	end
-
-	DemoEnd_method:call(DemoCamera);
+	DemoEnd_method:call(get__RefDemoCameraBehavior_method:call(Constants.SDK.get_managed_singleton("snow.CameraManager")));
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Update(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform)"), skipKillCamera);
 
 -- Skip End Flow
 local function PreHook_updateQuestEndFlow(args)
-	local QuestManager = Constants.SDK.to_managed_object(args[2]);
-	if QuestManager == nil then
-		return;
-	end
-
+	local QuestManager = Constants.SDK.to_managed_object(args[2]) or Constants.SDK.get_managed_singleton("snow.QuestManager");
 	local endFlow = EndFlow_field:get_data(QuestManager);
-	if endFlow == nil then
-		return;
-	end
 
 	if endFlow == EndFlow.WaitEndTimer then
 		if Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.Success) == true then
