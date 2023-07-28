@@ -37,8 +37,7 @@ Constants.SDK.hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), P
 -- Skip Dango Song Main Function
 --CookDemo
 local function PreHook_CookingDemoUpdate(args)
-	local GuiKitchenCookingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
-	if CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) ~= CookingDemoState_Demo_Update then
+	if CookingDemoState_field:get_data(Constants.SDK.to_managed_object(args[2])) ~= CookingDemoState_Demo_Update then
 		return;
 	end
 
@@ -49,8 +48,7 @@ Constants.SDK.hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("upda
 local showDangoLog = false;
 
 local function PreHook_EatingDemoUpdate(args)
-	local GuiKitchenEatingEventDemoFsmAction = Constants.SDK.to_managed_object(args[2]);
-	if EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) ~= EatingDemoState_Demo_Update then
+	if EatingDemoState_field:get_data(Constants.SDK.to_managed_object(args[2])) ~= EatingDemoState_Demo_Update then
 		return;
 	end
 

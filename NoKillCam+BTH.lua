@@ -1,7 +1,6 @@
 local Constants = require("Constants.Constants");
 --
-local get__RefDemoCameraBehavior_method = Constants.type_definitions.CameraManager_type_def:get_method("get__RefDemoCameraBehavior");
-local DemoEnd_method = get__RefDemoCameraBehavior_method:get_return_type():get_method("DemoEnd");
+local DemoEnd_method = Constants.SDK.find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
 local getTrg_method = Constants.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 --
@@ -21,7 +20,7 @@ local EndFlow = {
 local HOME_key = 36;
 -- Skip Kill Camera
 local function skipKillCamera()
-	DemoEnd_method:call(get__RefDemoCameraBehavior_method:call(Constants.SDK.get_managed_singleton("snow.CameraManager")));
+	DemoEnd_method:call(Constants.SDK.get_managed_singleton("snow.camera.DemoCamera"));
 end
 Constants.SDK.hook(Constants.SDK.find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Update(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform)"), skipKillCamera);
 

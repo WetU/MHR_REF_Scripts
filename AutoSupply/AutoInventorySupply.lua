@@ -130,8 +130,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 
     return "WeaponType", GetWeaponName(GetCurrentWeaponType()), loadoutMismatch;
 end
-
-------------------------
+--
 function this.Restock(equipDataManager, loadoutIndex)
     local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
     local ItemMySet = get_ItemMySet_method:call(nil);

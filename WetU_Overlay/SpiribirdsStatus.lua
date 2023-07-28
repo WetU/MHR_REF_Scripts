@@ -146,8 +146,7 @@ end
 
 local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
-    local PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
-    if isMasterPlayer_method:call(PlayerQuestBase) ~= true then
+    if isMasterPlayer_method:call(Constants.SDK.to_managed_object(args[2])) ~= true then
         return;
     end
 
