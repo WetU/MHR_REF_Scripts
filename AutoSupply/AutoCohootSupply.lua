@@ -2,7 +2,7 @@ local Constants = require("Constants.Constants");
 --
 local this = {};
 --
-local ProgressOwlNestManager_type_def = Constants.SDK.find_type_definition("snow.progress.ProgressOwlNestManager");
+local ProgressOwlNestManager_type_def = sdk.find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");
 local get_SaveData_method = ProgressOwlNestManager_type_def:get_method("get_SaveData");
 local StackItemCount = ProgressOwlNestManager_type_def:get_field("StackItemCount"):get_data(nil);
@@ -19,7 +19,7 @@ local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
 local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
 --
 function this.Supply()
-    local ProgressOwlNestManager = Constants.SDK.get_managed_singleton("snow.progress.ProgressOwlNestManager");
+    local ProgressOwlNestManager = sdk.get_managed_singleton("snow.progress.ProgressOwlNestManager");
     local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
 
     local fullFlag = 0;
@@ -35,7 +35,7 @@ function this.Supply()
         return;
     end
 
-    local VillageAreaManager = Constants.SDK.get_managed_singleton("snow.VillageAreaManager");
+    local VillageAreaManager = sdk.get_managed_singleton("snow.VillageAreaManager");
     local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
 
     if fullFlag == 3 then

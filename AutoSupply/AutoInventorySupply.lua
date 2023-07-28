@@ -30,7 +30,7 @@ local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_ty
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
 
-local getCustomShortcutSystem_method = Constants.SDK.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static
+local getCustomShortcutSystem_method = sdk.find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static
 
 local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
@@ -40,10 +40,10 @@ local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type(
 
 local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
-local SycleTypes_Quest = Constants.SDK.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
+local SycleTypes_Quest = sdk.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 ----------- Equipment Loadout Managementt ----
 local function GetCurrentWeaponType()
-    return playerWeaponType_field:get_data(findMasterPlayer_method:call(Constants.SDK.get_managed_singleton("snow.player.PlayerManager")));
+    return playerWeaponType_field:get_data(findMasterPlayer_method:call(sdk.get_managed_singleton("snow.player.PlayerManager")));
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
@@ -98,12 +98,12 @@ end
 
 local function FromWeaponType(equipName, itemName, mismatch)
     local msg = mismatch == true and LocalizedStrings.MismatchLoadout or "";
-    return msg .. Constants.LUA.string_format(LocalizedStrings.FromWeaponType, equipName, itemName);
+    return msg .. string.format(LocalizedStrings.FromWeaponType, equipName, itemName);
 end
 
 local function FromDefault(itemName, mismatch)
-    local msg = mismatch == true and Constants.LUA.string_format(LocalizedStrings.MismatchWeaponType, GetWeaponName(GetCurrentWeaponType())) or "";
-    return msg .. Constants.LUA.string_format(LocalizedStrings.FromDefault, itemName);
+    local msg = mismatch == true and string.format(LocalizedStrings.MismatchWeaponType, GetWeaponName(GetCurrentWeaponType())) or "";
+    return msg .. string.format(LocalizedStrings.FromDefault, itemName);
 end
 
 ---------------      CORE      ----------------
@@ -139,7 +139,7 @@ function this.Restock(equipDataManager, loadoutIndex)
     local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
     if isEnoughItem_method:call(loadout) == true then
         applyItemMySet_method:call(ItemMySet, DefaultSet);
-        msg = matchedType == "Loadout" and Constants.LUA.string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
+        msg = matchedType == "Loadout" and string.format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
             or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
             or FromDefault(itemLoadoutName, loadoutMismatch);
 
@@ -152,12 +152,12 @@ function this.Restock(equipDataManager, loadoutIndex)
                 local ShortcutManager = getCustomShortcutSystem_method:call(nil);
                 local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
                 msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                                          or msg .. "\n" .. Constants.LUA.string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
+                                          or msg .. "\n" .. string.format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
                 setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
             end
         end
     else
-        msg = Constants.LUA.string_format(LocalizedStrings.OutOfStock, itemLoadoutName);
+        msg = string.format(LocalizedStrings.OutOfStock, itemLoadoutName);
     end
 
     return msg;

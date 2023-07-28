@@ -1,24 +1,21 @@
 local Constants = require("Constants.Constants");
-if Constants == nil then
-    return;
-end
 --
 local isOpenRewardWindow = false;
 
 local function PreHook_doOpen(args)
-    local GuiSideQuestOrder = Constants.SDK.to_managed_object(args[2]);
+    local GuiSideQuestOrder = sdk.to_managed_object(args[2]);
     GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
     GuiSideQuestOrder:set_field("DecideDelay", 0.0);
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
+sdk.hook(sdk.find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
 
 local function PostHook_getReaward()
     isOpenRewardWindow = true;
 end
-Constants.SDK.hook(Constants.SDK.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
+sdk.hook(sdk.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmFreeSideQuestCheckAction"):get_method("getReaward(snow.quest.FreeMissionData, snow.quest.FreeMissionWork)"), nil, PostHook_getReaward);
 
 local function PreHook_getDecideButtonTrg()
-    return isOpenRewardWindow == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
+    return isOpenRewardWindow == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonTrg(retval)
     if isOpenRewardWindow == true then
@@ -28,4 +25,4 @@ local function PostHook_getDecideButtonTrg(retval)
 
     return retval;
 end
-Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
+sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);

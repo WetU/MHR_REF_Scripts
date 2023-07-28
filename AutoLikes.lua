@@ -1,6 +1,6 @@
 local Constants = require("Constants.Constants");
 -- Cache
-local GoodRelationship_type_def = Constants.SDK.find_type_definition("snow.gui.GuiHud_GoodRelationship");
+local GoodRelationship_type_def = sdk.find_type_definition("snow.gui.GuiHud_GoodRelationship");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 
 local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
@@ -14,7 +14,7 @@ local GoodRelationshipHud = nil;
 local sendReady = false;
 
 local function PreHook_routineWait(args)
-	GoodRelationshipHud = Constants.SDK.to_managed_object(args[2]);
+	GoodRelationshipHud = sdk.to_managed_object(args[2]);
 	GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
 	GoodRelationshipHud:set_field("WaitTime", 0.0);
 end
@@ -49,7 +49,7 @@ local function PostHook_updatePlayerInfo()
 end
 
 local function PreHook_isOperationOn()
-	return sendReady == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
+	return sendReady == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
 end
 local function PostHook_isOperationOn(retval)
 	return sendReady == true and Constants.TRUE_POINTER or retval;
@@ -59,7 +59,7 @@ local function PreHook_sendGood()
 	sendReady = false;
 end
 --
-Constants.SDK.hook(GoodRelationship_type_def:get_method("routineWait"), PreHook_routineWait);
-Constants.SDK.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
-Constants.SDK.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
-Constants.SDK.hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);
+sdk.hook(GoodRelationship_type_def:get_method("routineWait"), PreHook_routineWait);
+sdk.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), nil, PostHook_updatePlayerInfo);
+sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
+sdk.hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);

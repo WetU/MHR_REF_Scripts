@@ -36,7 +36,7 @@ local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_t
 
 local getLvBuffCnt_method = Constants.type_definitions.PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
-local PlayerQuestBase_type_def = Constants.SDK.find_type_definition("snow.player.PlayerQuestBase");
+local PlayerQuestBase_type_def = sdk.find_type_definition("snow.player.PlayerQuestBase");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
@@ -46,7 +46,7 @@ local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
 local SpiribirdsCallTimer_field = get_PlayerData_method:get_return_type():get_field("_EquipSkill211_Timer");
 --
-local LvBuff_type_def = Constants.SDK.find_type_definition("snow.player.PlayerDefine.LvBuff");
+local LvBuff_type_def = sdk.find_type_definition("snow.player.PlayerDefine.LvBuff");
 local LvBuff = {
     ["Atk"] = LvBuff_type_def:get_field("Attack"):get_data(nil),
     ["Def"] = LvBuff_type_def:get_field("Defence"):get_data(nil),
@@ -55,9 +55,9 @@ local LvBuff = {
     ["Rainbow"] = LvBuff_type_def:get_field("Rainbow"):get_data(nil)
 };
 --
-local NormalLvBuffCageData_BuffTypes_type_def = Constants.SDK.find_type_definition("snow.data.NormalLvBuffCageData.BuffTypes");
+local NormalLvBuffCageData_BuffTypes_type_def = sdk.find_type_definition("snow.data.NormalLvBuffCageData.BuffTypes");
 local BuffTypes = {};
-for _, v in Constants.LUA.pairs(this.Buffs) do
+for _, v in pairs(this.Buffs) do
     BuffTypes[v] = NormalLvBuffCageData_BuffTypes_type_def:get_field(v):get_data(nil);
 end
 --
@@ -78,10 +78,10 @@ local function Terminate()
 end
 
 function this.CreateData()
-    local PlayerManager = Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
+    local PlayerManager = sdk.get_managed_singleton("snow.player.PlayerManager");
     hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
 
-    local EquipDataManager = Constants.SDK.get_managed_singleton("snow.data.EquipDataManager");
+    local EquipDataManager = sdk.get_managed_singleton("snow.data.EquipDataManager");
     local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
 
     this.StatusBuffLimits = {};
@@ -89,30 +89,30 @@ function this.CreateData()
     this.AcquiredCounts = {};
     this.AcquiredValues = {};
 
-    for k, v in Constants.LUA.pairs(BuffTypes) do
+    for k, v in pairs(BuffTypes) do
         local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, v);
         local LvBuffNumToMax = calcLvBuffNumToMax_method:call(EquipDataManager, LvBuff[k]);
         this.StatusBuffLimits[k] = StatusBuffLimit;
         this.BirdsMaxCounts[k] = LvBuffNumToMax;
-        this.AcquiredCounts[k] = hasRainbow == true and LvBuffNumToMax or Constants.LUA.math_min(Constants.LUA.math_max(getLvBuffCnt_method:call(PlayerManager, LvBuff[k]), 0), LvBuffNumToMax);
-        this.AcquiredValues[k] = hasRainbow == true and StatusBuffLimit or Constants.LUA.math_min(Constants.LUA.math_max(calcLvBuffValue_method:call(EquipDataManager, v), 0), StatusBuffLimit);
+        this.AcquiredCounts[k] = hasRainbow == true and LvBuffNumToMax or math.min(math.max(getLvBuffCnt_method:call(PlayerManager, LvBuff[k]), 0), LvBuffNumToMax);
+        this.AcquiredValues[k] = hasRainbow == true and StatusBuffLimit or math.min(math.max(calcLvBuffValue_method:call(EquipDataManager, v), 0), StatusBuffLimit);
     end
 
     this.SpiribirdsHudDataCreated = true;
 end
 
 local function getBuffParameters(equipDataManager, playerManager, buffType)
-    for k, v in Constants.LUA.pairs(LvBuff) do
+    for k, v in pairs(LvBuff) do
         if buffType == v then
-            this.AcquiredCounts[k] = Constants.LUA.math_min(Constants.LUA.math_max(getLvBuffCnt_method:call(playerManager, v), 0), this.BirdsMaxCounts[k]);
-            this.AcquiredValues[k] = Constants.LUA.math_min(Constants.LUA.math_max(calcLvBuffValue_method:call(equipDataManager, BuffTypes[k]), 0), this.StatusBuffLimits[k]);
+            this.AcquiredCounts[k] = math.min(math.max(getLvBuffCnt_method:call(playerManager, v), 0), this.BirdsMaxCounts[k]);
+            this.AcquiredValues[k] = math.min(math.max(calcLvBuffValue_method:call(equipDataManager, BuffTypes[k]), 0), this.StatusBuffLimits[k]);
             break;
         end
     end
 end
 
 local function getCallTimer(playerQuestBase)
-    this.SpiribirdsCall_Timer = Constants.LUA.string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(playerQuestBase)) / 60.0));
+    this.SpiribirdsCall_Timer = string.format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(playerQuestBase)) / 60.0));
 end
 
 function this.onQuestStart()
@@ -122,9 +122,9 @@ function this.onQuestStart()
 
     local MapNo = Constants.getQuestMapNo(nil);
 
-    for _, map in Constants.LUA.pairs(Constants.QuestMapList) do
+    for _, map in pairs(Constants.QuestMapList) do
         if map == MapNo then
-            for k, v in Constants.LUA.pairs(BuffTypes) do
+            for k, v in pairs(BuffTypes) do
                 addLvBuffCount_method:call(nil, v, this.BirdsMaxCounts[k]);
             end
             break;
@@ -134,7 +134,7 @@ end
 
 local PlayerQuestBase_start = nil;
 local function PreHook_PlayerQuestBase_start(args)
-    PlayerQuestBase_start = Constants.SDK.to_managed_object(args[2]);
+    PlayerQuestBase_start = sdk.to_managed_object(args[2]);
 end
 local function PostHook_PlayerQuestBase_start()
     if isMasterPlayer_method:call(PlayerQuestBase_start) == true then
@@ -146,7 +146,7 @@ end
 
 local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
-    if isMasterPlayer_method:call(Constants.SDK.to_managed_object(args[2])) ~= true then
+    if isMasterPlayer_method:call(sdk.to_managed_object(args[2])) ~= true then
         return;
     end
 
@@ -154,19 +154,19 @@ local function PreHook_subLvBuffFromEnemy(args)
         this.CreateData();
     end
 
-    subBuffType = Constants.SDK.to_int64(args[3]);
+    subBuffType = sdk.to_int64(args[3]);
 end
 local function PostHook_subLvBuffFromEnemy(retval)
     if subBuffType ~= nil and Constants.to_bool(retval) == true then
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
 
-            for _, v in Constants.LUA.pairs(this.Buffs) do
+            for _, v in pairs(this.Buffs) do
                 this.AcquiredCounts[v] = 0;
                 this.AcquiredValues[v] = 0;
             end
         else
-            getBuffParameters(Constants.SDK.get_managed_singleton("snow.data.EquipDataManager"), Constants.SDK.get_managed_singleton("snow.player.PlayerManager"), subBuffType)
+            getBuffParameters(sdk.get_managed_singleton("snow.data.EquipDataManager"), sdk.get_managed_singleton("snow.player.PlayerManager"), subBuffType)
         end
     end
 
@@ -179,7 +179,7 @@ local function PreHook_updateEquipSkill211(args)
         return;
     end
 
-    local PlayerQuestBase = Constants.SDK.to_managed_object(args[2]);
+    local PlayerQuestBase = sdk.to_managed_object(args[2]);
     if isMasterPlayer_method:call(PlayerQuestBase) ~= true then
         return;
     end
@@ -203,18 +203,18 @@ local function PreHook_addLvBuffCnt(args)
         this.CreateData();
     end
 
-    addBuffType = Constants.SDK.to_int64(args[4]);
+    addBuffType = sdk.to_int64(args[4]);
 
     if addBuffType == LvBuff.Rainbow then
         hasRainbow = true;
         addBuffType = nil;
     else
-        PlayerManager_obj = Constants.SDK.to_managed_object(args[2]) or Constants.SDK.get_managed_singleton("snow.player.PlayerManager");
+        PlayerManager_obj = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.player.PlayerManager");
     end
 end
 local function PostHook_addLvBuffCnt()
     if hasRainbow == true then
-        for k, v in Constants.LUA.pairs(this.StatusBuffLimits) do
+        for k, v in pairs(this.StatusBuffLimits) do
             this.AcquiredCounts[k] = this.BirdsMaxCounts[k];
             this.AcquiredValues[k] = v;
         end
@@ -225,7 +225,7 @@ local function PostHook_addLvBuffCnt()
     end
 
     if addBuffType ~= nil then
-        getBuffParameters(Constants.SDK.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager_obj, addBuffType);
+        getBuffParameters(sdk.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager_obj, addBuffType);
     end
 
     addBuffType = nil;
@@ -233,11 +233,11 @@ local function PostHook_addLvBuffCnt()
 end
 
 function this.init()
-    Constants.SDK.hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
-    Constants.SDK.hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
-    Constants.SDK.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
-    Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
-    Constants.SDK.hook(Constants.type_definitions.PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, Terminate);
+    sdk.hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
+    sdk.hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
+    sdk.hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
+    sdk.hook(Constants.type_definitions.PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
+    sdk.hook(Constants.type_definitions.PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, Terminate);
 end
 --
 return this;

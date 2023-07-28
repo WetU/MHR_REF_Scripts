@@ -1,65 +1,8 @@
-local string = string;
-local math = math;
-local sdk = sdk;
-local PreHookResult = sdk.PreHookResult;
-local imgui = imgui;
-local imgui_load_font = imgui.load_font;
-local Vector2f = Vector2f;
-local Vector3f = Vector3f;
-local ValueType = ValueType;
-local re = re;
-
 local this = {
-    LUA = {
-        type = type,
-        pairs = pairs,
-        tostring = tostring,
-
-        string_format = string.format,
-
-        math_min = math.min,
-        math_max = math.max
-    },
-    SDK = {
-        find_type_definition = sdk.find_type_definition,
-        get_managed_singleton = sdk.get_managed_singleton,
-        to_managed_object = sdk.to_managed_object,
-        hook = sdk.hook,
-        hook_vtable = sdk.hook_vtable,
-        to_ptr = sdk.to_ptr,
-        to_int64 = sdk.to_int64,
-        to_float = sdk.to_float,
-        SKIP_ORIGINAL = PreHookResult.SKIP_ORIGINAL,
-        CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL
-    },
-    IMGUI = {
-        push_font = imgui.push_font,
-        pop_font = imgui.pop_font,
-        text = imgui.text,
-        text_colored = imgui.text_colored,
-        begin_window = imgui.begin_window,
-        end_window = imgui.end_window,
-        begin_table = imgui.begin_table,
-        table_setup_column = imgui.table_setup_column,
-        table_next_column = imgui.table_next_column,
-        table_headers_row = imgui.table_headers_row,
-        table_next_row = imgui.table_next_row,
-        end_table = imgui.end_table,
-        spacing = imgui.spacing
-    },
-    VECTOR2f = {
-        new = Vector2f.new
-    },
-    VECTOR3f = {
-        new = Vector3f.new
-    },
-    VALUETYPE = {
-        new = ValueType.new
-    },
-    RE = {
-        on_frame = re.on_frame
-    },
-    Font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
+    isOnVillageStarted = false,
+    TRUE_POINTER = sdk.to_ptr(true),
+    FALSE_POINTER = sdk.to_ptr(false),
+    Font = imgui.load_font("NotoSansKR-Bold.otf", 22, {
         0x0020, 0x00FF, -- Basic Latin + Latin Supplement
         0x2000, 0x206F, -- General Punctuation
         0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
@@ -72,26 +15,22 @@ local this = {
         0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
         0
     }),
-    isOnVillageStarted = false
-};
-
-this.TRUE_POINTER = this.SDK.to_ptr(true);
-this.FALSE_POINTER = this.SDK.to_ptr(false);
-
-this.type_definitions = {
-    CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager"),
-    QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager"),
-    VillageAreaManager_type_def = this.SDK.find_type_definition("snow.VillageAreaManager"),
-    DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager"),
-    EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager"),
-    GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager"),
-    StmGuiInput_type_def = this.SDK.find_type_definition("snow.gui.StmGuiInput"),
-    PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager"),
-    WwiseChangeSpaceWatcher_type_def = this.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher")
+    type_definitions = {
+        CameraManager_type_def = sdk.find_type_definition("snow.CameraManager"),
+        QuestManager_type_def = sdk.find_type_definition("snow.QuestManager"),
+        VillageAreaManager_type_def = sdk.find_type_definition("snow.VillageAreaManager"),
+        DataManager_type_def = sdk.find_type_definition("snow.data.DataManager"),
+        EquipDataManager_type_def = sdk.find_type_definition("snow.data.EquipDataManager"),
+        GuiManager_type_def = sdk.find_type_definition("snow.gui.GuiManager"),
+        StmGuiInput_type_def = sdk.find_type_definition("snow.gui.StmGuiInput"),
+        PlayerManager_type_def = sdk.find_type_definition("snow.player.PlayerManager"),
+        WwiseChangeSpaceWatcher_type_def = sdk.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher")
+    }
 };
 --
-local getTrg_method = this.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
-local KeyboardKey_type_def = this.SDK.find_type_definition("via.hid.KeyboardKey");
+local getTrg_method = sdk.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
+local KeyboardKey_type_def = sdk.find_type_definition("via.hid.KeyboardKey");
+
 this.Keys = {
     Home_key = KeyboardKey_type_def:get_field("Home"):get_data(nil),
     F5_key = KeyboardKey_type_def:get_field("F5"):get_data(nil),
@@ -102,15 +41,16 @@ function this.checkKeyTrg(key)
     return getTrg_method:call(nil, key);
 end
 --
-local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
+local get_CurrentStatus_method = sdk.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();
+
 this.GameStatusType = {
     Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
     Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
 };
 
 function this.checkGameStatus(checkType)
-    local SnowGameManager = this.SDK.get_managed_singleton("snow.SnowGameManager");
+    local SnowGameManager = sdk.get_managed_singleton("snow.SnowGameManager");
     if SnowGameManager ~= nil then
         return checkType == get_CurrentStatus_method:call(SnowGameManager);
     end
@@ -118,29 +58,31 @@ function this.checkGameStatus(checkType)
 end
 --
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
+
 this.QuestStatus = {
-    Success = this.SDK.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
+    Success = sdk.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
 
 function this.checkQuestStatus(questManager, checkType)
     if questManager == nil then
-        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
     return checkStatus_method:call(questManager, checkType);
 end
 --
-local set_FadeMode_method = this.SDK.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local FadeMode_FINISH = this.SDK.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
+local set_FadeMode_method = sdk.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local FadeMode_FINISH = sdk.find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
 function this.ClearFade()
-    local FadeManager = this.SDK.get_managed_singleton("snow.FadeManager");
+    local FadeManager = sdk.get_managed_singleton("snow.FadeManager");
     set_FadeMode_method:call(FadeManager, FadeMode_FINISH);
     FadeManager:set_field("fadeOutInFlag", false);
 end
 --
 local getMapNo_method = this.type_definitions.QuestManager_type_def:get_method("getMapNo");
 local MapNoType_type_def = getMapNo_method:get_return_type();
+
 this.QuestMapList = {
     ["ShrineRuins"] = MapNoType_type_def:get_field("No01"):get_data(nil), -- 사원 폐허
     ["SandyPlains"] = MapNoType_type_def:get_field("No02"):get_data(nil), -- 모래 평원
@@ -153,14 +95,14 @@ this.QuestMapList = {
 
 function this.getQuestMapNo(questManager)
     if questManager == nil then
-        questManager = this.SDK.get_managed_singleton("snow.QuestManager");
+        questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
     return getMapNo_method:call(questManager);
 end
 --
 function this.SKIP_ORIGINAL()
-    return this.SDK.SKIP_ORIGINAL;
+    return sdk.PreHookResult.SKIP_ORIGINAL;
 end
 
 function this.RETURN_TRUE()
@@ -168,15 +110,15 @@ function this.RETURN_TRUE()
 end
 
 function this.to_bool(value)
-    return (this.SDK.to_int64(value) & 1) == 1;
+    return (sdk.to_int64(value) & 1) == 1;
 end
 
 function this.to_byte(value)
-    return this.SDK.to_int64(value) & 0xFF;
+    return sdk.to_int64(value) & 0xFF;
 end
 
 function this.to_uint(value)
-    return this.SDK.to_int64(value) & 0xFFFFFFFF;
+    return sdk.to_int64(value) & 0xFFFFFFFF;
 end
 --
 return this;

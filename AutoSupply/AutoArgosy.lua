@@ -2,11 +2,11 @@ local Constants = require("Constants.Constants");
 --
 local this = {};
 --
-local VillagePoint_type_def = Constants.SDK.find_type_definition("snow.data.VillagePoint");
+local VillagePoint_type_def = sdk.find_type_definition("snow.data.VillagePoint");
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
 local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
-local get_TradeFunc_method = Constants.SDK.find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
+local get_TradeFunc_method = sdk.find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
 
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
 local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
@@ -52,8 +52,8 @@ local NegotiationTypes = {
     NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
     NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
 };
-local Acorn_Id = Constants.SDK.find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_1041"):get_data(nil);
-local PlayerItemBox = Constants.SDK.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
+local Acorn_Id = sdk.find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_1041"):get_data(nil);
+local PlayerItemBox = sdk.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
 local SendInventoryResult_type_def = sendInventory_method:get_return_type();
 local SendInventoryResult = {
     AllSended = SendInventoryResult_type_def:get_field("AllSended"):get_data(nil),
@@ -84,8 +84,8 @@ local function isAcornEnough(dataManager)
 end
 
 function this.autoArgosy()
-    local DataManager = Constants.SDK.get_managed_singleton("snow.data.DataManager");
-    local TradeFunc = get_TradeFunc_method:call(Constants.SDK.get_managed_singleton("snow.facility.TradeCenterFacility"));
+    local DataManager = sdk.get_managed_singleton("snow.data.DataManager");
+    local TradeFunc = get_TradeFunc_method:call(sdk.get_managed_singleton("snow.facility.TradeCenterFacility"));
     local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
 
     buildCache(TradeFunc);

@@ -1,15 +1,15 @@
 local Constants = require("Constants.Constants");
 -- Region lock fix
-local session_steam_type_def = Constants.SDK.find_type_definition("via.network.SessionSteam");
+local session_steam_type_def = sdk.find_type_definition("via.network.SessionSteam");
 local setLobbyDistanceFilter_method = session_steam_type_def:get_method("setLobbyDistanceFilter(System.UInt32)");
 --
 local function on_set_is_invisible(args)
-	setLobbyDistanceFilter_method:call(Constants.SDK.to_managed_object(args[1]), 3);
+	setLobbyDistanceFilter_method:call(sdk.to_managed_object(args[1]), 3);
 end
-Constants.SDK.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), on_set_is_invisible);
+sdk.hook(session_steam_type_def:get_method("setIsInvisible(System.Boolean)"), on_set_is_invisible);
 
 -- timeout fix
-local session_manager_type_def = Constants.SDK.find_type_definition("snow.SnowSessionManager");
+local session_manager_type_def = sdk.find_type_definition("snow.SnowSessionManager");
 local req_matchmaking_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSession(System.UInt32)");
 local req_matchmaking_random_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandom(System.UInt32)");
 local req_matchmaking_hyakuryu_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionHyakuryu(System.UInt32, System.Nullable`1<System.UInt32>, System.Nullable`1<System.UInt32>)");
@@ -17,12 +17,12 @@ local req_matchmaking_random_master_rank_method = session_manager_type_def:get_m
 local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery(System.UInt32, System.UInt32, System.UInt32)");
 local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>, snow.data.ContentsIdSystem.ItemId, System.Boolean)");
 
-local nullable_uint32_type_def = Constants.SDK.find_type_definition("System.Nullable`1<System.UInt32>");
+local nullable_uint32_type_def = sdk.find_type_definition("System.Nullable`1<System.UInt32>");
 local nullable_uint32_constructor_method = nullable_uint32_type_def:get_method(".ctor(System.UInt32)");
 local nullable_uint32_get_has_value_method = nullable_uint32_type_def:get_method("get_HasValue");
 local nullable_uint32_get_value_method = nullable_uint32_type_def:get_method("get_Value");
 --
-local SessionAttr_Quest = Constants.SDK.find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
+local SessionAttr_Quest = sdk.find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
 --
 local quest_types = {
 	regular = 1,
@@ -43,11 +43,11 @@ local function prehook_on_timeout(args)
 		return;
 	end
 
-	if Constants.SDK.to_int64(args[3]) < SessionAttr_Quest then
+	if sdk.to_int64(args[3]) < SessionAttr_Quest then
 		return;
 	end
 
-	local session_manager = Constants.SDK.to_managed_object(args[2]);
+	local session_manager = sdk.to_managed_object(args[2]);
 
 	if quest_type == quest_types.regular then
 		skip_next_hook = quest_types.regular;
@@ -60,11 +60,11 @@ local function prehook_on_timeout(args)
 	elseif quest_type == quest_types.rampage then
 		skip_next_hook = quest_types.rampage;
 
-		local quest_level_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+		local quest_level_pointer = ValueType.new(nullable_uint32_type_def);
 		nullable_uint32_constructor_method:call(quest_level_pointer, quest_vars.quest_level.value);
 		quest_level_pointer:set_field("_HasValue", quest_vars.quest_level.has_value);
 
-		local target_enemy_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+		local target_enemy_pointer = ValueType.new(nullable_uint32_type_def);
 		nullable_uint32_constructor_method:call(target_enemy_pointer, quest_vars.target_enemy.value);
 		target_enemy_pointer:set_field("_HasValue", quest_vars.target_enemy.has_value);
 
@@ -81,7 +81,7 @@ local function prehook_on_timeout(args)
 	elseif quest_type == quest_types.anomaly_investigation then
 		skip_next_hook = quest_types.anomaly_investigation;
 
-		local enemy_id_pointer = Constants.VALUETYPE.new(nullable_uint32_type_def);
+		local enemy_id_pointer = ValueType.new(nullable_uint32_type_def);
 		nullable_uint32_constructor_method:call(enemy_id_pointer, quest_vars.enemy_id.value);
 		enemy_id_pointer:set_field("_HasValue", quest_vars.enemy_id.has_value);
 
@@ -96,9 +96,9 @@ local function prehook_on_timeout(args)
 		);
 	end
 
-	return Constants.SDK.SKIP_ORIGINAL;
+	return sdk.PreHookResult.SKIP_ORIGINAL;
 end
-Constants.SDK.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), prehook_on_timeout);
+sdk.hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), prehook_on_timeout);
 
 local function prehook_req_matchmaking(args)
 	if skip_next_hook == quest_types.regular then
@@ -113,7 +113,7 @@ local function prehook_req_matchmaking(args)
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSession
 --	System.UInt32 						questID
-Constants.SDK.hook(req_matchmaking_method, prehook_req_matchmaking);
+sdk.hook(req_matchmaking_method, prehook_req_matchmaking);
 
 local function prehook_req_matchmaking_random(args)
 	if skip_next_hook == quest_types.random then
@@ -128,7 +128,7 @@ local function prehook_req_matchmaking_random(args)
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandom
 --	System.UInt32 						myHunterRank
-Constants.SDK.hook(req_matchmaking_random_method, prehook_req_matchmaking_random);
+sdk.hook(req_matchmaking_random_method, prehook_req_matchmaking_random);
 
 local function prehook_req_matchmaking_hyakuryu(args)
 	if skip_next_hook == quest_types.rampage then
@@ -136,8 +136,8 @@ local function prehook_req_matchmaking_hyakuryu(args)
 		return;
 	end
 
-	local quest_level_has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[4]));
-	local target_enemy_has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[5]));
+	local quest_level_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[4]));
+	local target_enemy_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[5]));
 
 	quest_type = quest_types.rampage;
 	quest_vars = {
@@ -156,7 +156,7 @@ end
 --	System.UInt32 						difficulty
 --	System.Nullable`1<System.UInt32>	questLevel
 --	System.Nullable`1<System.UInt32>	targetEnemy
-Constants.SDK.hook(req_matchmaking_hyakuryu_method, prehook_req_matchmaking_hyakuryu);
+sdk.hook(req_matchmaking_hyakuryu_method, prehook_req_matchmaking_hyakuryu);
 
 local function prehook_req_matchmaking_random_master_rank(args)
 	if skip_next_hook == quest_types.random_master_rank then
@@ -173,7 +173,7 @@ end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandomMasterRank
 --	System.UInt32 						myHunterRank
 --	System.UInt32						myMasterRank
-Constants.SDK.hook(req_matchmaking_random_master_rank_method, prehook_req_matchmaking_random_master_rank);
+sdk.hook(req_matchmaking_random_master_rank_method, prehook_req_matchmaking_random_master_rank);
 
 local function prehook_req_matchmaking_random_mystery(args)
 	if skip_next_hook == quest_types.random_anomaly then
@@ -192,7 +192,7 @@ end
 --	System.UInt32 						myHunterRank
 --	System.UInt32						myMasterRank
 --	System.UInt32						mysteryResearchLevel
-Constants.SDK.hook(req_matchmaking_random_mystery_method, prehook_req_matchmaking_random_mystery);
+sdk.hook(req_matchmaking_random_mystery_method, prehook_req_matchmaking_random_mystery);
 
 local function prehook_req_matchmaking_random_mystery_quest(args)
 	if skip_next_hook == quest_types.anomaly_investigation then
@@ -200,7 +200,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 		return;
 	end
 
-	local enemy_id_has_value = nullable_uint32_get_has_value_method:call(Constants.SDK.to_int64(args[6]));
+	local enemy_id_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[6]));
 
 	quest_type = quest_types.anomaly_investigation;
 	quest_vars = {
@@ -222,10 +222,10 @@ end
 --	System.Nullable`1<System.UInt32>	enemyId
 --	snow.data.ContentsIdSystem.ItemId	rewardItem
 --	System.Boolean						isSpecialRandomMystery
-Constants.SDK.hook(req_matchmaking_random_mystery_quest_method, prehook_req_matchmaking_random_mystery_quest);
+sdk.hook(req_matchmaking_random_mystery_quest_method, prehook_req_matchmaking_random_mystery_quest);
 
 local function resetVars(args)
-	if Constants.SDK.to_int64(args[3]) < SessionAttr_Quest then
+	if sdk.to_int64(args[3]) < SessionAttr_Quest then
 		return;
 	end
 
@@ -233,14 +233,14 @@ local function resetVars(args)
 	quest_vars = nil;
 	skip_next_hook = nil;
 end
-Constants.SDK.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), resetVars);
-Constants.SDK.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), resetVars);
-Constants.SDK.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), resetVars);
+sdk.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), resetVars);
+sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), resetVars);
+sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), resetVars);
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
-	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and Constants.SDK.SKIP_ORIGINAL or Constants.SDK.CALL_ORIGINAL;
+	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
 end
 --
-Constants.SDK.hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
-Constants.SDK.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);
+sdk.hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
+sdk.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);
