@@ -11,9 +11,8 @@ local ProgressOwlNestSaveData_type_def = get_SaveData_method:get_return_type();
 local kamuraStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_StackCount");
 local elgadoStackCount_field = ProgressOwlNestSaveData_type_def:get_field("_StackCount2");
 --
-local VillageAreaManager_type_def = Constants.SDK.find_type_definition("snow.VillageAreaManager");
-local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
-local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
+local get__CurrentAreaNo_method = Constants.type_definitions.VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
+local set__CurrentAreaNo_method = Constants.type_definitions.VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
 local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
 local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);

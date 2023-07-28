@@ -3,6 +3,7 @@ local math = math;
 local sdk = sdk;
 local PreHookResult = sdk.PreHookResult;
 local imgui = imgui;
+local imgui_load_font = imgui.load_font;
 local Vector2f = Vector2f;
 local Vector3f = Vector3f;
 local ValueType = ValueType;
@@ -58,28 +59,29 @@ local this = {
     RE = {
         on_frame = re.on_frame
     },
+    Font = imgui_load_font("NotoSansKR-Bold.otf", 22, {
+        0x0020, 0x00FF, -- Basic Latin + Latin Supplement
+        0x2000, 0x206F, -- General Punctuation
+        0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
+        0x3130, 0x318F, -- Hangul Compatibility Jamo
+        0x31F0, 0x31FF, -- Katakana Phonetic Extensions
+        0xFF00, 0xFFEF, -- Half-width characters
+        0x4e00, 0x9FAF, -- CJK Ideograms
+        0xA960, 0xA97F, -- Hangul Jamo Extended-A
+        0xAC00, 0xD7A3, -- Hangul Syllables
+        0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
+        0
+    }),
     isOnVillageStarted = false
 };
 
 this.TRUE_POINTER = this.SDK.to_ptr(true);
 this.FALSE_POINTER = this.SDK.to_ptr(false);
-this.Font = imgui.load_font("NotoSansKR-Bold.otf", 22, {
-    0x0020, 0x00FF, -- Basic Latin + Latin Supplement
-    0x2000, 0x206F, -- General Punctuation
-    0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
-    0x3130, 0x318F, -- Hangul Compatibility Jamo
-    0x31F0, 0x31FF, -- Katakana Phonetic Extensions
-    0xFF00, 0xFFEF, -- Half-width characters
-    0x4e00, 0x9FAF, -- CJK Ideograms
-    0xA960, 0xA97F, -- Hangul Jamo Extended-A
-    0xAC00, 0xD7A3, -- Hangul Syllables
-    0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
-    0
-});
 
 this.type_definitions = {
     CameraManager_type_def = this.SDK.find_type_definition("snow.CameraManager"),
     QuestManager_type_def = this.SDK.find_type_definition("snow.QuestManager"),
+    VillageAreaManager_type_def = this.SDK.find_type_definition("snow.VillageAreaManager"),
     DataManager_type_def = this.SDK.find_type_definition("snow.data.DataManager"),
     EquipDataManager_type_def = this.SDK.find_type_definition("snow.data.EquipDataManager"),
     GuiManager_type_def = this.SDK.find_type_definition("snow.gui.GuiManager"),
@@ -87,6 +89,18 @@ this.type_definitions = {
     PlayerManager_type_def = this.SDK.find_type_definition("snow.player.PlayerManager"),
     WwiseChangeSpaceWatcher_type_def = this.SDK.find_type_definition("snow.wwise.WwiseChangeSpaceWatcher")
 };
+--
+local getTrg_method = this.SDK.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
+local KeyboardKey_type_def = this.SDK.find_type_definition("via.hid.KeyboardKey");
+this.Keys = {
+    Home_key = KeyboardKey_type_def:get_field("Home"):get_data(nil),
+    F5_key = KeyboardKey_type_def:get_field("F5"):get_data(nil),
+    F6_key = KeyboardKey_type_def:get_field("F6"):get_data(nil)
+};
+
+function this.checkKeyTrg(key)
+    return getTrg_method:call(nil, key);
+end
 --
 local get_CurrentStatus_method = this.SDK.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();
@@ -100,6 +114,7 @@ function this.checkGameStatus(checkType)
     if SnowGameManager ~= nil then
         return checkType == get_CurrentStatus_method:call(SnowGameManager);
     end
+    return nil;
 end
 --
 local checkStatus_method = this.type_definitions.QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
@@ -148,7 +163,7 @@ function this.SKIP_ORIGINAL()
     return this.SDK.SKIP_ORIGINAL;
 end
 
-function this.Return_TRUE()
+function this.RETURN_TRUE()
     return this.TRUE_POINTER;
 end
 
