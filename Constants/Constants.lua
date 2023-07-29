@@ -35,8 +35,8 @@ local KeyboardKey_type_def = sdk.find_type_definition("via.hid.KeyboardKey");
 
 this.Keys = {
     Home_key = KeyboardKey_type_def:get_field("Home"):get_data(nil),
-    Q_key = KeyboardKey_type_def:get_field("Q"):get_data(nil),
-    E_key = KeyboardKey_type_def:get_field("E"):get_data(nil)
+    R_key = KeyboardKey_type_def:get_field("R"):get_data(nil),
+    T_key = KeyboardKey_type_def:get_field("T"):get_data(nil)
 };
 
 function this.checkKeyTrg(key)

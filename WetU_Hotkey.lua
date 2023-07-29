@@ -12,8 +12,8 @@ local notifyReset_method = Constants.type_definitions.QuestManager_type_def:get_
 local function villageJump(args)
     local VillageAreaManager = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.VillageAreaManager");
     if get_EnableJump_method:call(VillageAreaManager) == true then
-        local fastTravelType = Constants.checkKeyTrg(Constants.Keys.Q_key) == true and ELGADO_CHICHE
-            or Constants.checkKeyTrg(Constants.Keys.E_key) == true and ELGADO_KITCHEN
+        local fastTravelType = Constants.checkKeyTrg(Constants.Keys.R_key) == true and ELGADO_CHICHE
+            or Constants.checkKeyTrg(Constants.Keys.T_key) == true and ELGADO_KITCHEN
             or nil;
 
         if fastTravelType ~= nil then
