@@ -52,7 +52,7 @@ local NegotiationTypes = {
     NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
     NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
 };
-local Acorn_Id = sdk.find_type_definition("snow.data.ContentsIdSystem.ItemId"):get_field("I_Normal_1041"):get_data(nil);
+local Acorn_Id = Constants.type_definitions.ItemId_type_def:get_field("I_Normal_1041"):get_data(nil);
 local PlayerItemBox = sdk.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
 local SendInventoryResult_type_def = sendInventory_method:get_return_type();
 local SendInventoryResult = {

@@ -32,22 +32,20 @@ local quest_types = {
 	random_anomaly = 5,
 	anomaly_investigation = 6
 };
+
+local I_Unclassified_None = Constants.type_definitions.ItemId_type_def:get_field("I_Unclassified_None"):get_data(nil);
 --
+local isSearching = false;
 local quest_type = nil;
 local quest_vars = nil;
 local skip_next_hook = nil;
 
-local session_manager = nil;
 local function prehook_on_timeout(args)
-	if quest_type == nil then
+	if quest_type == nil or quest_vars == nil or sdk.to_int64(args[3]) ~= SessionAttr_Quest then
 		return;
 	end
 
-	if sdk.to_int64(args[3]) < SessionAttr_Quest then
-		return;
-	end
-
-	local session_manager = sdk.to_managed_object(args[2]);
+	local session_manager = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.SnowSessionManager");
 
 	if quest_type == quest_types.regular then
 		skip_next_hook = quest_types.regular;
@@ -211,7 +209,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 			has_value = enemy_id_has_value,
 			value = enemy_id_has_value == true and nullable_uint32_get_value_method:call(args[6]) or nil
 		},
-		reward_item = Constants.to_uint(args[7]),
+		reward_item = Constants.to_uint(args[7]) or I_Unclassified_None,
 		is_special_random_mystery = Constants.to_bool(args[8])
 	};
 end
@@ -224,18 +222,29 @@ end
 --	System.Boolean						isSpecialRandomMystery
 sdk.hook(req_matchmaking_random_mystery_quest_method, prehook_req_matchmaking_random_mystery_quest);
 
-local function resetVars(args)
-	if sdk.to_int64(args[3]) < SessionAttr_Quest then
-		return;
-	end
+local function onStartSearch()
+	isSearching = true;
+end
+sdk.hook(session_manager_type_def:get_method("routineMatchmakingAutoJoinSession"), nil, onStartSearch);
 
+local function clearVars()
+	isSearching = false;
 	quest_type = nil;
 	quest_vars = nil;
 	skip_next_hook = nil;
 end
-sdk.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), resetVars);
-sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), resetVars);
-sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), resetVars);
+
+local function onCancelSearch(retval)
+	if isSearching == true and Constants.to_bool(retval) == true then
+		clearVars();
+	end
+
+	return retval;
+end
+sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getCancelButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, onCancelSearch);
+sdk.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), clearVars);
+sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), clearVars);
+sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()

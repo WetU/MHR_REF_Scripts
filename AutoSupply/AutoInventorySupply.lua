@@ -152,7 +152,7 @@ function this.Restock(equipDataManager, loadoutIndex)
                 local ShortcutManager = getCustomShortcutSystem_method:call(nil);
                 local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
                 msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                                          or msg .. "\n" .. string.format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
+                    or msg .. "\n" .. string.format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
                 setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
             end
         end

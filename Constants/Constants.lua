@@ -16,9 +16,11 @@ local this = {
         0
     }),
     type_definitions = {
+        Application_type_def = sdk.find_type_definition("via.Application"),
         CameraManager_type_def = sdk.find_type_definition("snow.CameraManager"),
         QuestManager_type_def = sdk.find_type_definition("snow.QuestManager"),
         VillageAreaManager_type_def = sdk.find_type_definition("snow.VillageAreaManager"),
+        ItemId_type_def = sdk.find_type_definition("snow.data.ContentsIdSystem.ItemId"),
         DataManager_type_def = sdk.find_type_definition("snow.data.DataManager"),
         EquipDataManager_type_def = sdk.find_type_definition("snow.data.EquipDataManager"),
         GuiManager_type_def = sdk.find_type_definition("snow.gui.GuiManager"),
@@ -33,8 +35,8 @@ local KeyboardKey_type_def = sdk.find_type_definition("via.hid.KeyboardKey");
 
 this.Keys = {
     Home_key = KeyboardKey_type_def:get_field("Home"):get_data(nil),
-    F5_key = KeyboardKey_type_def:get_field("F5"):get_data(nil),
-    F6_key = KeyboardKey_type_def:get_field("F6"):get_data(nil)
+    Q_key = KeyboardKey_type_def:get_field("Q"):get_data(nil),
+    E_key = KeyboardKey_type_def:get_field("E"):get_data(nil)
 };
 
 function this.checkKeyTrg(key)

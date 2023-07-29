@@ -2,7 +2,7 @@ local Constants = require("Constants.Constants");
 --
 local MaxFps = 119.98;
 --
-local set_MaxFps_method = sdk.find_type_definition("via.Application"):get_method("set_MaxFps(System.Single)"); -- static
+local set_MaxFps_method = Constants.type_definitions.Application_type_def:get_method("set_MaxFps(System.Single)"); -- static
 local changeAllMarkerEnable_method = sdk.find_type_definition("snow.access.ObjectAccessManager"):get_method("changeAllMarkerEnable(System.Boolean)");
 --
 local function applyFps()
@@ -20,5 +20,4 @@ end
 --
 sdk.hook(sdk.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);
 sdk.hook(changeAllMarkerEnable_method, PreHook_changeAllMarkerEnable);
-sdk.hook(sdk.find_type_definition("snow.gui.fsm.questcounter.GuiQuestCounterFsmManager"):get_method("isPressEndQuestCounterOrderStampWithAnim"), Constants.SKIP_ORIGINAL, Constants.RETURN_TRUE);
 sdk.hook(sdk.find_type_definition("snow.enemy.EnemyCharacterBase"):get_method("requestMysteryCoreHitMark(snow.enemy.EnemyDef.PartsGroup, snow.hit.EnemyCalcDamageInfo.AfterCalcInfo_DamageSide)"), Constants.SKIP_ORIGINAL);
