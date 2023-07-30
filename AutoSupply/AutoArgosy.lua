@@ -59,18 +59,16 @@ local SendInventoryResult = {
 local cacheNegotiationData = nil;
 --
 local function buildCache(tradeFunc)
-    if cacheNegotiationData ~= nil then
-        return;
-    end
+    if cacheNegotiationData == nil then
+        cacheNegotiationData = {};
 
-    cacheNegotiationData = {};
-
-    for i, v in ipairs(NegotiationTypes) do
-        local NegotiationData = getNegotiationData_method:call(tradeFunc, v);
-        cacheNegotiationData[i] = {
-            Count = NegotiationData_get_Count_method:call(NegotiationData),
-            Cost = get_Cost_method:call(NegotiationData)
-        };
+        for i, v in ipairs(NegotiationTypes) do
+            local NegotiationData = getNegotiationData_method:call(tradeFunc, v);
+            cacheNegotiationData[i] = {
+                Count = NegotiationData_get_Count_method:call(NegotiationData),
+                Cost = get_Cost_method:call(NegotiationData)
+            };
+        end
     end
 end
 

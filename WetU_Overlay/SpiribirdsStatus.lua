@@ -146,15 +146,13 @@ end
 
 local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
-    if isMasterPlayer_method:call(sdk.to_managed_object(args[2])) ~= true then
-        return;
-    end
+    if isMasterPlayer_method:call(sdk.to_managed_object(args[2])) == true then
+        if this.SpiribirdsHudDataCreated ~= true then
+            this.CreateData();
+        end
 
-    if this.SpiribirdsHudDataCreated ~= true then
-        this.CreateData();
+        subBuffType = sdk.to_int64(args[3]);
     end
-
-    subBuffType = sdk.to_int64(args[3]);
 end
 local function PostHook_subLvBuffFromEnemy(retval)
     if subBuffType ~= nil and Constants.to_bool(retval) == true then
@@ -175,25 +173,22 @@ local function PostHook_subLvBuffFromEnemy(retval)
 end
 
 local function PreHook_updateEquipSkill211(args)
-    if firstHook == false and skipUpdate == true then
-        return;
-    end
+    if firstHook == true or skipUpdate ~= true then
+        local PlayerQuestBase = sdk.to_managed_object(args[2]);
 
-    local PlayerQuestBase = sdk.to_managed_object(args[2]);
-    if isMasterPlayer_method:call(PlayerQuestBase) ~= true then
-        return;
-    end
+        if isMasterPlayer_method:call(PlayerQuestBase) == true then
+            if firstHook == true then
+                firstHook = false;
 
-    if firstHook == true then
-        firstHook = false;
-        if get_IsInTrainingArea_method:call(PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(PlayerQuestBase) ~= true then
-            skipUpdate = true;
-            this.SpiribirdsCall_Timer = "향응 비활성 지역";
-            return;
+                if get_IsInTrainingArea_method:call(PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(PlayerQuestBase) ~= true then
+                    skipUpdate = true;
+                    this.SpiribirdsCall_Timer = "향응 비활성 지역";
+                end
+            else
+                getCallTimer(PlayerQuestBase);
+            end
         end
     end
-
-    getCallTimer(PlayerQuestBase);
 end
 
 local addBuffType = nil;

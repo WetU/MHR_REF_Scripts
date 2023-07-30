@@ -71,38 +71,36 @@ end
 
 local function handleReward(args)
     local GuiOtomoSpyUnitMainControll = sdk.to_managed_object(args[2]);
-    if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) ~= ItemReceive then
-        return;
-    end
+    if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == ItemReceive then
+        local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
 
-    local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
+        local PageCursor = get__PageCursor_method:call(RewardListCursor);
+        local PageMax = getPageMax_method:call(PageCursor);
 
-    local PageCursor = get__PageCursor_method:call(RewardListCursor);
-    local PageMax = getPageMax_method:call(PageCursor);
+        local currentIndex = get__Index_method:call(RewardListCursor);
 
-    local currentIndex = get__Index_method:call(RewardListCursor);
+        local isChanged = false;
 
-    local isChanged = false;
-
-    if get_pageNo_method:call(PageCursor) ~= PageMax then
-        set_pageNo_method:call(PageCursor, PageMax);
-        if isChanged == false then
-            isChanged = true;
+        if get_pageNo_method:call(PageCursor) ~= PageMax then
+            set_pageNo_method:call(PageCursor, PageMax);
+            if isChanged == false then
+                isChanged = true;
+            end
         end
-    end
 
-    if currentIndex.x ~= 0.0 or currentIndex.y ~= 0.0 then
-        set__Index_method:call(RewardListCursor, ReceiveAllButton_Index);
-        if isChanged == false then
-            isChanged = true;
+        if currentIndex.x ~= 0.0 or currentIndex.y ~= 0.0 then
+            set__Index_method:call(RewardListCursor, ReceiveAllButton_Index);
+            if isChanged == false then
+                isChanged = true;
+            end
         end
-    end
 
-    if isChanged == true then
-        updateRewardList_method:call(GuiOtomoSpyUnitMainControll);
-    end
+        if isChanged == true then
+            updateRewardList_method:call(GuiOtomoSpyUnitMainControll);
+        end
 
-    isReceiveReady = true;
+        isReceiveReady = true;
+    end
 end
 
 local function PreHook_getDecideButtonRep()

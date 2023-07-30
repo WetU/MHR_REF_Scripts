@@ -57,6 +57,7 @@ function this.checkGameStatus(checkType)
     if SnowGameManager ~= nil then
         return checkType == get_CurrentStatus_method:call(SnowGameManager);
     end
+
     return nil;
 end
 --

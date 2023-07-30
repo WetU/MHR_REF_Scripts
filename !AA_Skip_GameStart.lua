@@ -17,24 +17,18 @@ local notifyActionEnd_method = sdk.find_type_definition("via.behaviortree.Action
 local Movie = nil;
 local function PreHook_play(args)
 	local GuiGameStartFsmManager = sdk.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
-	if GuiGameStartFsmManager == nil then
-		return;
+	if GuiGameStartFsmManager ~= nil then
+		local GameStartState = get_GameStartState_method:call(sdk.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager"));
+		if GameStartState ~= nil and GameStartState >= 0 and GameStartState <= 7 then
+			Movie = sdk.to_managed_object(args[2]);
+		end
 	end
-
-	local GameStartState = get_GameStartState_method:call(sdk.get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager"));
-	if GameStartState == nil or GameStartState < 0 or GameStartState > 7 then
-		return;
-	end
-
-	Movie = sdk.to_managed_object(args[2]);
 end
 local function PostHook_play()
-	if Movie == nil then
-		return;
+	if Movie ~= nil then
+		seek_method:call(Movie, get_DurationTime_method:call(Movie));
+		Movie = nil;
 	end
-
-	seek_method:call(Movie, get_DurationTime_method:call(Movie));
-	Movie = nil;
 end
 --
 local function ClearAction(args)
