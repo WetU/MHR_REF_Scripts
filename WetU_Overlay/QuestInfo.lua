@@ -5,9 +5,6 @@ local this = {
     DeathCount = nil
 };
 --
-local getQuestLife_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestLife");
-local getDeathNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getDeathNum");
-
 local getQuestMaxTimeMin_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestMaxTimeMin");
 local isQuestMaxTimeUnlimited_method = Constants.type_definitions.QuestManager_type_def:get_method("isQuestMaxTimeUnlimited");
 local getQuestElapsedTimeSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestElapsedTimeSec");
@@ -30,10 +27,10 @@ local function updateDeathCount(questManager)
     end
 
     if curQuestLife == nil then
-        curQuestLife = getQuestLife_method:call(questManager);
+        curQuestLife = Constants.getQuestLife(questManager);
     end
 
-    this.DeathCount = string.format("다운 횟수: %d / %d", getDeathNum_method:call(questManager), curQuestLife);
+    this.DeathCount = string.format("다운 횟수: %d / %d", Constants.getDeathNum(questManager), curQuestLife);
 end
 
 function this.onQuestStart()

@@ -104,6 +104,25 @@ function this.getQuestMapNo(questManager)
     return getMapNo_method:call(questManager);
 end
 --
+local getQuestLife_method = this.type_definitions.QuestManager_type_def:get_method("getQuestLife");
+local getDeathNum_method = this.type_definitions.QuestManager_type_def:get_method("getDeathNum");
+
+function this.getQuestLife(questManager)
+    if questManager == nil then
+        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    end
+
+    return getQuestLife_method:call(questManager);
+end
+
+function this.getDeathNum(questManager)
+    if questManager == nil then
+        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    end
+
+    return getDeathNum_method:call(questManager);
+end
+--
 function this.SKIP_ORIGINAL()
     return sdk.PreHookResult.SKIP_ORIGINAL;
 end
