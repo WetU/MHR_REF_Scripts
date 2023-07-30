@@ -11,7 +11,7 @@ local createNekotaku_method = sdk.find_type_definition("snow.NekotakuManager"):g
 --
 local StagePointManager_type_def = sdk.find_type_definition("snow.stage.StagePointManager");
 local get_FastTravelPointList_method = StagePointManager_type_def:get_method("get_FastTravelPointList");
-local TentPositionList_field = StagePointManager_type_def:get_field("_TentPositionList");
+local getTentPosition_method = StagePointManager_type_def:get_method("getTentPosition(snow.stage.StageDef.CampType)");
 
 local FastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
 local FastTravelPointList_get_Count_method = FastTravelPointList_type_def:get_method("get_Count");
@@ -21,61 +21,95 @@ local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():
 
 local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)");
 
-local TentPositionList_type_def = TentPositionList_field:get_type();
-local TentPositionList_get_Count_method = TentPositionList_type_def:get_method("get_Count");
-local TentPositionList_get_Item_method = TentPositionList_type_def:get_method("get_Item(System.Int32)");
+local Nullable_via_vec3_type_def = getTentPosition_method:get_return_type();
+local get_HasValue_method = Nullable_via_vec3_type_def:get_method("get_HasValue");
+local get_Value_method = Nullable_via_vec3_type_def:get_method("get_Value");
 --
 local StageManager_type_def = sdk.find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
+local checkSubCampUnlocked_method = StageManager_type_def:get_method("checkSubCampUnlocked(snow.stage.StageDef.SubCampId)");
 --
+local CampType_type_def = sdk.find_type_definition("snow.stage.StageDef.CampType");
+local CampType = {
+    ["BaseCamp"] = CampType_type_def:get_field("BaseCamp"):get_data(nil),
+    ["SubCamp1"] = CampType_type_def:get_field("SubCamp1"):get_data(nil),
+    ["SubCamp2"] = CampType_type_def:get_field("SubCamp2"):get_data(nil)
+};
+
 local AreaMoveQuest_Die = sdk.find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
+local SubCampId_type_def = sdk.find_type_definition("snow.stage.StageDef.SubCampId");
+local SubCampId = {};
 local campList = {};
 
 for mapName, mapNo in pairs(Constants.QuestMapList) do
+    local subcampId = nil;
     local campPosition = nil;
 
     if mapName == "ShrineRuins" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m01_00"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(236.707, 174.37, -510.568)
         };
 
     elseif mapName == "SandyPlains" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m02_00"):get_data(nil),
+            SubCampId_type_def:get_field("SubCamp_m02_01"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(-117.699, -45.653, -233.201),
             Vector3f.new(116.07, -63.316, -428.018)
         };
 
     elseif mapName == "FloodedForest" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m03_00"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(207.968, 90.447, 46.081)
         };
 
     elseif mapName == "FrostIslands" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m04_00"):get_data(nil),
+            SubCampId_type_def:get_field("SubCamp_m04_01"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(-94.171, 2.744, -371.947),
             Vector3f.new(103.986, 26, -496.863)
         };
 
     elseif mapName == "LavaCaverns" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m05_00"):get_data(nil),
+            SubCampId_type_def:get_field("SubCamp_m05_01"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(244.252, 147.122, -537.940),
             Vector3f.new(-40.000, 81.136, -429.201)
         };
 
     elseif mapName == "Jungle" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m31_00"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(3.854, 32.094, -147.152)
         };
 
     elseif mapName == "Citadel" then
+        subcampId = {
+            SubCampId_type_def:get_field("SubCamp_m32_00"):get_data(nil)
+        };
         campPosition = {
             Vector3f.new(107.230, 94.988, -254.308)
         };
     end
 
-    if campPosition ~= nil then
-        campList[mapNo] = campPosition;
-    end
+    SubCampId[mapNo] = subcampId;
+    campList[mapNo] = campPosition;
 end
 --
 local skipCreateNeko = false;
@@ -85,6 +119,30 @@ local nekoTaku = nil;
 
 local function getCurrentPosition()
     return get_Position_method:call(GetTransform_method:call(sdk.get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
+end
+
+local function getCamps(stagePointManager, mapNo)
+    local StageManager = sdk.get_managed_singleton("snow.stage.StageManager");
+
+    local baseCamp = getTentPosition_method:call(stagePointManager, CampType["BaseCamp"]);
+    local camps = {
+        [1] = get_HasValue_method:call(baseCamp) == true and get_Value_method:call(baseCamp) or nil
+    };
+
+    local subcampIds = SubCampId[mapNo];
+
+    for i = 1, #subcampIds, 1 do
+        camps[i + 1] = nil;
+
+        if checkSubCampUnlocked_method:call(StageManager, subcampIds[i]) == true then
+            local subCamp = getTentPosition_method:call(stagePointManager, CampType["SubCamp" .. tostring(i)]);
+            if get_HasValue_method:call(subCamp) == true then
+                camps[i + 1] = get_Value_method:call(subCamp);
+            end
+        end
+    end
+
+    return camps;
 end
 
 local function getFastTravelPt(stagePointManager, index)
@@ -97,35 +155,37 @@ local function getFastTravelPt(stagePointManager, index)
 end
 
 local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
-    local currentPos = getCurrentPosition();
-
     local nearestCamp = nil;
     local nearestDistance = nil;
     local nearestCampIndex = nil;
+    local currentPos = getCurrentPosition();
 
-    for i = 0, TentPositionList_get_Count_method:call(camps) - 1, 1 do
-        local camp = TentPositionList_get_Item_method:call(camps, i);
-        local distance = calcDistance_method:call(nil, currentPos, camp);
-        if i == 0 or (distance < nearestDistance and camp.x ~= 0.0) then
-            nearestCamp = camp;
-            nearestDistance = distance;
-            nearestCampIndex = i;
+    for i = 1, #camps, 1 do
+        local camp = camps[i];
+        if camp ~= nil then
+            local distance = calcDistance_method:call(nil, currentPos, camp);
+            if i == 1 or (distance < nearestDistance) then
+                nearestCamp = camp;
+                nearestDistance = distance;
+                nearestCampIndex = i - 1;
+            end
         end
     end
 
-    if nearestCampIndex == nil then
+    if nearestCampIndex == nil or nearestCampIndex == 0 then
         return;
     end
 
     local fastTravelPt = getFastTravelPt(stagePointManager, nearestCampIndex);
+
     if fastTravelPt == nil and nearestCamp ~= nil then
         fastTravelPt = nearestCamp;
     end
 
-    if nearestCampIndex ~= 0 and fastTravelPt ~= nil then
+    if fastTravelPt ~= nil then
         skipCreateNeko = true;
         skipWarpNeko = true;
-        reviveCamp = Vector3f.new(fastTravelPt.x, fastTravelPt.y, fastTravelPt.z);
+        reviveCamp = fastTravelPt;
         nekoTaku = nekoTakuPos[nearestCampIndex];
         if nekoTaku == nil and reviveCamp ~= nil then
             nekoTaku = reviveCamp;
@@ -134,19 +194,19 @@ local function findNearestCamp(stagePointManager, camps, nekoTakuPos)
 end
 --
 local function PreHook_startToPlayPlayerDieMusic()
-    local nekoTakuItem = campList[Constants.getQuestMapNo(nil)];
+    local questMapNo = Constants.getQuestMapNo(nil);
+    local nekoTakuItem = campList[questMapNo];
     if nekoTakuItem == nil then
         return;
     end
 
     local StagePointManager = sdk.get_managed_singleton("snow.stage.StagePointManager");
-    local camps = TentPositionList_field:get_data(StagePointManager);
 
     skipCreateNeko = false;
     skipWarpNeko = false;
     reviveCamp = nil;
     nekoTaku = nil;
-    findNearestCamp(StagePointManager, camps, nekoTakuItem);
+    findNearestCamp(StagePointManager, getCamps(StagePointManager, questMapNo), nekoTakuItem);
 end
 
 local function PreHook_createNekotaku(args)
