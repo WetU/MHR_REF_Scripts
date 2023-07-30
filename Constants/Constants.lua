@@ -66,7 +66,7 @@ this.QuestStatus = {
     Success = sdk.find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
 };
 
-function this.checkQuestStatus(questManager, checkType)
+function this.checkQuestStatus(nullable_questManager, checkType)
     if questManager == nil then
         questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
@@ -96,7 +96,7 @@ this.QuestMapList = {
     ["Citadel"] = MapNoType_type_def:get_field("No32"):get_data(nil)  -- 요새 고원
 };
 
-function this.getQuestMapNo(questManager)
+function this.getQuestMapNo(nullable_questManager)
     if questManager == nil then
         questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
@@ -107,7 +107,7 @@ end
 local getQuestLife_method = this.type_definitions.QuestManager_type_def:get_method("getQuestLife");
 local getDeathNum_method = this.type_definitions.QuestManager_type_def:get_method("getDeathNum");
 
-function this.getQuestLife(questManager)
+function this.getQuestLife(nullable_questManager)
     if questManager == nil then
         questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
@@ -115,7 +115,7 @@ function this.getQuestLife(questManager)
     return getQuestLife_method:call(questManager);
 end
 
-function this.getDeathNum(questManager)
+function this.getDeathNum(nullable_questManager)
     if questManager == nil then
         questManager = sdk.get_managed_singleton("snow.QuestManager");
     end

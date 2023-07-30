@@ -22,10 +22,6 @@ local function Terminate()
 end
 
 local function updateDeathCount(questManager)
-    if questManager == nil then
-        questManager = sdk.get_managed_singleton("snow.QuestManager");
-    end
-
     if curQuestLife == nil then
         curQuestLife = Constants.getQuestLife(questManager);
     end
@@ -35,16 +31,17 @@ end
 
 function this.onQuestStart()
     local QuestManager = sdk.get_managed_singleton("snow.QuestManager");
+
     updateDeathCount(QuestManager);
 
     local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(QuestManager);
 
-    if isQuestMaxTimeUnlimited_method:call(QuestManager) == false then
-        curQuestMaxTimeMin = getQuestMaxTimeMin_method:call(QuestManager);
-        this.QuestTimer = getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec) .. " / " .. string.format("%d분", curQuestMaxTimeMin);
-    else
+    if isQuestMaxTimeUnlimited_method:call(QuestManager) == true then
         curQuestMaxTimeMin = nil;
         this.QuestTimer = getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec);
+    else
+        curQuestMaxTimeMin = getQuestMaxTimeMin_method:call(QuestManager);
+        this.QuestTimer = getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec) .. " / " .. string.format("%d분", curQuestMaxTimeMin);
     end
 end
 

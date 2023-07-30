@@ -41,27 +41,7 @@ local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type(
 local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name");
 
 local SycleTypes_Quest = sdk.find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
------------ Equipment Loadout Managementt ----
-local function GetCurrentWeaponType()
-    return playerWeaponType_field:get_data(findMasterPlayer_method:call(sdk.get_managed_singleton("snow.player.PlayerManager")));
-end
-
-local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
-    return PlEquipMySetList_get_Item_method:call(PlEquipMySetList_field:get_data(equipDataManager), loadoutIndex);
-end
-
-local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
-    return get_Name_method:call(GetEquipmentLoadout(equipDataManager, loadoutIndex));
-end
-
-local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
-    return isSamePlEquipPack_method:call(GetEquipmentLoadout(equipDataManager, loadoutIndex));
-end
-
---------------- Temporary Data ----------------
-local lastHitLoadoutIndex = -1;
-
----------------  Localization  ----------------
+--
 local LocalizedStrings = {
     WeaponNames = {
         [0] = "대검",
@@ -91,6 +71,24 @@ local LocalizedStrings = {
     PaletteApplied = "팔레트 [<COL YEL>%s</COL>] 적용",
     PaletteListEmpty = "팔레트 설정이 비어있습니다"
 };
+--
+local lastHitLoadoutIndex = nil;
+
+local function GetCurrentWeaponType()
+    return playerWeaponType_field:get_data(findMasterPlayer_method:call(sdk.get_managed_singleton("snow.player.PlayerManager")));
+end
+
+local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
+    return PlEquipMySetList_get_Item_method:call(PlEquipMySetList_field:get_data(equipDataManager), loadoutIndex);
+end
+
+local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
+    return get_Name_method:call(GetEquipmentLoadout(equipDataManager, loadoutIndex));
+end
+
+local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
+    return isSamePlEquipPack_method:call(GetEquipmentLoadout(equipDataManager, loadoutIndex));
+end
 
 local function GetWeaponName(weaponType)
     return weaponType == nil and "<ERROR>:GetWeaponName failed" or LocalizedStrings.WeaponNames[weaponType];
@@ -106,14 +104,13 @@ local function FromDefault(itemName, mismatch)
     return msg .. string.format(LocalizedStrings.FromDefault, itemName);
 end
 
----------------      CORE      ----------------
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     local loadoutMismatch = false;
     if expectedLoadoutIndex ~= nil then
         lastHitLoadoutIndex = expectedLoadoutIndex;
         return "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
     else
-		if lastHitLoadoutIndex ~= -1 and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
+		if lastHitLoadoutIndex ~= nil and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
             return "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex), nil;
         end
 

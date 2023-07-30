@@ -37,33 +37,27 @@ sdk.hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_upd
 -- Skip Dango Song Main Function
 --CookDemo
 local function PreHook_CookingDemoUpdate(args)
-	if CookingDemoState_field:get_data(sdk.to_managed_object(args[2])) ~= CookingDemoState_Demo_Update then
-		return;
+	if CookingDemoState_field:get_data(sdk.to_managed_object(args[2])) == CookingDemoState_Demo_Update then
+		reqFinish_method:call(get_KitchenCookDemoHandler_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
 	end
-
-	reqFinish_method:call(get_KitchenCookDemoHandler_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
 end
 sdk.hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate);
 --EatDemo
 local showDangoLog = false;
 
 local function PreHook_EatingDemoUpdate(args)
-	if EatingDemoState_field:get_data(sdk.to_managed_object(args[2])) ~= EatingDemoState_Demo_Update then
-		return;
+	if EatingDemoState_field:get_data(sdk.to_managed_object(args[2])) == EatingDemoState_Demo_Update then
+		reqFinish_method:call(get_KitchenEatDemoHandler_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
+		showDangoLog = true;
 	end
-
-	reqFinish_method:call(get_KitchenEatDemoHandler_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
-	showDangoLog = true;
 end
 sdk.hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate);
 
 local function PostHook_requestAutoSaveAll()
-	if showDangoLog ~= true then
-		return;
+	if showDangoLog == true then
+		showDangoLog = false;
+		reqDangoLogStart_method:call(sdk.get_managed_singleton("snow.gui.GuiManager"), get_KitchenDangoLogParam_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 5.0);
 	end
-
-	showDangoLog = false;
-	reqDangoLogStart_method:call(sdk.get_managed_singleton("snow.gui.GuiManager"), get_KitchenDangoLogParam_method:call(sdk.get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 5.0);
 end
 sdk.hook(sdk.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
 --BBQ

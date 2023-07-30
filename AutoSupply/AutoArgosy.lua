@@ -44,14 +44,10 @@ local getItemBox_method = Constants.type_definitions.DataManager_type_def:get_me
 local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
 --
 local NegotiationTypes_type_def = get_NegotiationType_method:get_return_type();
-local NegotiationTypes = {
-    NegotiationTypes_type_def:get_field("Negotiation_000"):get_data(nil),
-    NegotiationTypes_type_def:get_field("Negotiation_001"):get_data(nil),
-    NegotiationTypes_type_def:get_field("Negotiation_002"):get_data(nil),
-    NegotiationTypes_type_def:get_field("Negotiation_003"):get_data(nil),
-    NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
-    NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
-};
+local NegotiationTypes = {};
+for i = 0, 5, 1 do
+    NegotiationTypes[i] = NegotiationTypes_type_def:get_field("Negotiation_00" .. tostring(i)):get_data(nil);
+end
 local Acorn_Id = Constants.type_definitions.ItemId_type_def:get_field("I_Normal_1041"):get_data(nil);
 local PlayerItemBox = sdk.find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
 local SendInventoryResult_type_def = sendInventory_method:get_return_type();
@@ -69,8 +65,8 @@ local function buildCache(tradeFunc)
 
     cacheNegotiationData = {};
 
-    for i = 1, #NegotiationTypes, 1 do
-        local NegotiationData = getNegotiationData_method:call(tradeFunc, NegotiationTypes[i]);
+    for i, v in ipairs(NegotiationTypes) do
+        local NegotiationData = getNegotiationData_method:call(tradeFunc, v);
         cacheNegotiationData[i] = {
             Count = NegotiationData_get_Count_method:call(NegotiationData),
             Cost = get_Cost_method:call(NegotiationData)
@@ -97,7 +93,7 @@ function this.autoArgosy()
         local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
         if get_NegotiationCount_method:call(TradeOrder) == 1 then
             local addCount = acornAvailable == true and (1 + AcornAddCount) or 1;
-            local NegotiationData = cacheNegotiationData[get_NegotiationType_method:call(TradeOrder) + 1];
+            local NegotiationData = cacheNegotiationData[get_NegotiationType_method:call(TradeOrder)];
             if get_Point_method:call(nil) >= NegotiationData.Cost then
                 addCount = addCount + NegotiationData.Count;
                 subPoint_method:call(nil, Cost);

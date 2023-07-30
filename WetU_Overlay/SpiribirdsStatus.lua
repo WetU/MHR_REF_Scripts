@@ -57,7 +57,7 @@ local LvBuff = {
 --
 local NormalLvBuffCageData_BuffTypes_type_def = sdk.find_type_definition("snow.data.NormalLvBuffCageData.BuffTypes");
 local BuffTypes = {};
-for _, v in pairs(this.Buffs) do
+for _, v in ipairs(this.Buffs) do
     BuffTypes[v] = NormalLvBuffCageData_BuffTypes_type_def:get_field(v):get_data(nil);
 end
 --
@@ -161,7 +161,7 @@ local function PostHook_subLvBuffFromEnemy(retval)
         if subBuffType == LvBuff.Rainbow then
             hasRainbow = false;
 
-            for _, v in pairs(this.Buffs) do
+            for _, v in ipairs(this.Buffs) do
                 this.AcquiredCounts[v] = 0;
                 this.AcquiredValues[v] = 0;
             end
@@ -219,12 +219,7 @@ local function PostHook_addLvBuffCnt()
             this.AcquiredValues[k] = v;
         end
 
-        addBuffType = nil;
-        PlayerManager_obj = nil;
-        return;
-    end
-
-    if addBuffType ~= nil then
+    elseif addBuffType ~= nil then
         getBuffParameters(sdk.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager_obj, addBuffType);
     end
 

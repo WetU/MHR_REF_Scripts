@@ -27,12 +27,8 @@ local function PreHook_updateQuestEndFlow(args)
 
 	if endFlow == EndFlow.WaitEndTimer then
 		if Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.Success) == true then
-			if (Constants.checkKeyTrg(Constants.Keys.Home_key) == true and getTotalJoinNum_method:call(QuestManager) == 1) or getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 then
+			if getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 or (Constants.checkKeyTrg(Constants.Keys.Home_key) == true and getTotalJoinNum_method:call(QuestManager) == 1) then
 				nextEndFlowToCameraDemo_method:call(QuestManager);
-			end
-		else
-			if Constants.checkKeyTrg(Constants.Keys.Home_key) == true then
-				QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 			end
 		end
 

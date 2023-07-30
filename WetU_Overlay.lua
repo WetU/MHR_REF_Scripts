@@ -11,67 +11,69 @@ end
 sdk.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
 local function drawHarvestMoonTimer()
-    if HarvestMoonTimer.CircleTimer == nil then
-        return;
-    end
+    if HarvestMoonTimer.CircleTimer ~= nil then
+        imgui.push_font(Constants.Font);
 
-    imgui.push_font(Constants.Font);
-    if imgui.begin_window("원월", nil, 4096 + 64 + 512) == true then
-        imgui.text(HarvestMoonTimer.CircleTimer);
-        imgui.end_window();
-    end
+        if imgui.begin_window("원월", nil, 4096 + 64 + 512) == true then
+            imgui.text(HarvestMoonTimer.CircleTimer);
+            imgui.end_window();
+        end
 
-    imgui.pop_font();
+        imgui.pop_font();
+    end
 end
 
 local function drawOtomoSpyUnit()
-    if OtomoSpyUnit.currentStep == nil then
-        return;
-    end
+    if OtomoSpyUnit.currentStep ~= nil then
+        imgui.push_font(Constants.Font);
 
-    imgui.push_font(Constants.Font);
-    if imgui.begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
-        imgui.text(OtomoSpyUnit.currentStep);
-        imgui.end_window();
-    end
+        if imgui.begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
+            imgui.text(OtomoSpyUnit.currentStep);
+            imgui.end_window();
+        end
 
-    imgui.pop_font();
+        imgui.pop_font();
+    end
 end
 
 local function drawQuestInfo()
-    if QuestInfo.QuestTimer == nil and QuestInfo.DeathCount == nil then
-        return;
-    end
+    if QuestInfo.QuestTimer ~= nil then
+        imgui.push_font(Constants.Font);
 
-    imgui.push_font(Constants.Font);
-    if imgui.begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
-        if QuestInfo.QuestTimer ~= nil then
+        if imgui.begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
             imgui.text(QuestInfo.QuestTimer);
+
+            if QuestInfo.DeathCount ~= nil then
+                imgui.text(QuestInfo.DeathCount);
+            end
+
+            imgui.end_window();
         end
 
-        if QuestInfo.DeathCount ~= nil then
+        imgui.pop_font();
+    elseif QuestInfo.DeathCount ~= nil then
+        imgui.push_font(Constants.Font);
+
+        if imgui.begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
             imgui.text(QuestInfo.DeathCount);
+            imgui.end_window();
         end
 
-        imgui.end_window();
+        imgui.pop_font();
     end
-
-    imgui.pop_font();
 end
 
 local function drawSpiribirdsStatus()
-    if SpiribirdsStatus.SpiribirdsHudDataCreated == nil and SpiribirdsStatus.SpiribirdsCall_Timer == nil then
-        return;
-    end
+    if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
+        imgui.push_font(Constants.Font);
 
-    imgui.push_font(Constants.Font);
-    if imgui.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
-        if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
+        if imgui.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
             if imgui.begin_table("종류", 3, 2097152) == true then
                 imgui.table_setup_column("유형", 8, 25.0);
                 imgui.table_setup_column("횟수", 8, 20.0);
                 imgui.table_setup_column("수치", 8, 25.0);
                 imgui.table_headers_row();
+
                 for i = 1, #SpiribirdsStatus.Buffs, 1 do
                     local buffType = SpiribirdsStatus.Buffs[i];
                     imgui.table_next_row();
@@ -82,6 +84,7 @@ local function drawSpiribirdsStatus()
                     imgui.table_next_column();
                     imgui.text(tostring(SpiribirdsStatus.AcquiredValues[buffType]) .. "/" .. tostring(SpiribirdsStatus.StatusBuffLimits[buffType]));
                 end
+
                 imgui.end_table();
             end
 
@@ -89,14 +92,21 @@ local function drawSpiribirdsStatus()
                 imgui.spacing();
                 imgui.text(SpiribirdsStatus.SpiribirdsCall_Timer);
             end
-        else
-            imgui.text(SpiribirdsStatus.SpiribirdsCall_Timer);
+
+            imgui.end_window();
         end
 
-        imgui.end_window();
-    end
+        imgui.pop_font();
+    elseif SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
+        imgui.push_font(Constants.Font);
 
-    imgui.pop_font();
+        if imgui.begin_window("인혼조", nil, 4096 + 64 + 512) == true then
+            imgui.text(SpiribirdsStatus.SpiribirdsCall_Timer);
+            imgui.end_window();
+        end
+
+        imgui.pop_font();
+    end
 end
 
 local function drawMain()

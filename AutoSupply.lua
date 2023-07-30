@@ -23,16 +23,14 @@ sdk.hook(sdk.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_met
 local function onVillageStart()
     AutoTicketsSupply.talkHandler();
 
-    if Constants.isOnVillageStarted == true then
-        return;
+    if Constants.isOnVillageStarted ~= true then
+        Constants.isOnVillageStarted = true;
+        CohootSupply.Supply();
+        if AutoArgosy.autoArgosy() == true then
+            SendMessage("교역 아이템을 받았습니다");
+        end
+        SendMessage(InventorySupply.Restock(sdk.get_managed_singleton("snow.data.EquipDataManager"), nil));
     end
-
-    Constants.isOnVillageStarted = true;
-    CohootSupply.Supply();
-    if AutoArgosy.autoArgosy() == true then
-        SendMessage("교역 아이템을 받았습니다");
-    end
-    SendMessage(InventorySupply.Restock(sdk.get_managed_singleton("snow.data.EquipDataManager"), nil));
 end
 sdk.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
 --
