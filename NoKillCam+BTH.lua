@@ -3,8 +3,8 @@ local Constants = require("Constants.Constants");
 local DemoEnd_method = sdk.find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
 local getQuestReturnTimerSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestReturnTimerSec");
-local getTotalJoinNum_method = Constants.type_definitions.QuestManager_type_def:get_method("getTotalJoinNum");
 local nextEndFlowToCameraDemo_method = Constants.type_definitions.QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
+local getQuestPlayerCount_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestPlayerCount");
 local EndFlow_field = Constants.type_definitions.QuestManager_type_def:get_field("_EndFlow");
 
 local EndFlow_type_def = EndFlow_field:get_type();
@@ -27,7 +27,7 @@ local function PreHook_updateQuestEndFlow(args)
 
 	if endFlow == EndFlow.WaitEndTimer then
 		if Constants.checkQuestStatus(QuestManager, Constants.QuestStatus.Success) == true then
-			if getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 or (Constants.checkKeyTrg(Constants.Keys.Home_key) == true and getTotalJoinNum_method:call(QuestManager) == 1) then
+			if getQuestReturnTimerSec_method:call(QuestManager) <= 0.005 or (Constants.checkKeyTrg(Constants.Keys.Home_key) == true and getQuestPlayerCount_method:call(QuestManager) == 1) then
 				nextEndFlowToCameraDemo_method:call(QuestManager);
 			end
 		end

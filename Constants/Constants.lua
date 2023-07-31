@@ -124,6 +124,12 @@ function this.getDeathNum(nullable_questManager)
     return getDeathNum_method:call(nullable_questManager);
 end
 --
+local reqAddChatInfomation_method = sdk.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
+
+function this.SendMessage(text)
+    reqAddChatInfomation_method:call(sdk.get_managed_singleton("snow.gui.ChatManager"), text, 2289944406);
+end
+--
 function this.SKIP_ORIGINAL()
     return sdk.PreHookResult.SKIP_ORIGINAL;
 end

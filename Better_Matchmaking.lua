@@ -248,6 +248,11 @@ sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.net
 local function PreHook_setOpenNetworkErrorWindowSelection()
 	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
 end
---
+
 sdk.hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
 sdk.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);
+--
+local function onKicked()
+	Constants.SendMessage("세션에서 추방당했습니다");
+end
+sdk.hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
