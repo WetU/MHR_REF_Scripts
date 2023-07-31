@@ -36,7 +36,6 @@ local function PreHook_startToPlayPlayerDieMusic()
         for _, campMapNo in pairs(Constants.QuestMapList) do
             if questMapNo == campMapNo then
                 local nearestDistance = nil;
-                local nearestCampIndex = nil;
 
                 local currentPos = get_Position_method:call(GetTransform_method:call(sdk.get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
                 local FastTravelPointList = get_FastTravelPointList_method:call(sdk.get_managed_singleton("snow.stage.StagePointManager"));
@@ -44,20 +43,12 @@ local function PreHook_startToPlayPlayerDieMusic()
                 for i = 0, FastTravelPointList_get_Count_method:call(FastTravelPointList) - 1, 1 do
                     local Point = Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(FastTravelPointList, i)), 0);
                     local distance = calcDistance_method:call(nil, currentPos, Point);
-                    if i == 0 or distance < nearestDistance then
-                        reviveCamp = Point;
+                    if i == 0 or (distance < nearestDistance) then
                         nearestDistance = distance;
-                        nearestCampIndex = i;
+                        skipCreateNeko = true;
+                        skipWarpNeko = true;
+                        reviveCamp = Point;
                     end
-                end
-
-                if nearestCampIndex ~= nil and nearestCampIndex ~= 0 then
-                    skipCreateNeko = true;
-                    skipWarpNeko = true;
-                else
-                    skipCreateNeko = false;
-                    skipWarpNeko = false;
-                    reviveCamp = nil;
                 end
 
                 break;
