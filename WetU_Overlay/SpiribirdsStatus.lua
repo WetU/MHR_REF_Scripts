@@ -132,16 +132,20 @@ function this.onQuestStart()
     end
 end
 
-local PlayerQuestBase_start = nil;
-local function PreHook_PlayerQuestBase_start(args)
-    PlayerQuestBase_start = sdk.to_managed_object(args[2]);
-end
-local function PostHook_PlayerQuestBase_start()
-    if isMasterPlayer_method:call(PlayerQuestBase_start) == true then
-        this.CreateData();
+local PreHook_PlayerQuestBase_start = nil;
+local PostHook_PlayerQuestBase_start = nil;
+do
+    local PlayerQuestBase = nil;
+    function PreHook_PlayerQuestBase_start(args)
+        PlayerQuestBase = sdk.to_managed_object(args[2]);
     end
+    function PostHook_PlayerQuestBase_start()
+        if isMasterPlayer_method:call(PlayerQuestBase) == true then
+            this.CreateData();
+        end
 
-    PlayerQuestBase_start = nil;
+        PlayerQuestBase = nil;
+    end
 end
 
 local subBuffType = nil;
@@ -192,34 +196,38 @@ local function PreHook_updateEquipSkill211(args)
 end
 
 local addBuffType = nil;
-local PlayerManager_obj = nil;
-local function PreHook_addLvBuffCnt(args)
-    if this.SpiribirdsHudDataCreated ~= true then
-        this.CreateData();
-    end
-
-    addBuffType = sdk.to_int64(args[4]);
-
-    if addBuffType == LvBuff.Rainbow then
-        hasRainbow = true;
-        addBuffType = nil;
-    else
-        PlayerManager_obj = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.player.PlayerManager");
-    end
-end
-local function PostHook_addLvBuffCnt()
-    if hasRainbow == true then
-        for k, v in pairs(this.StatusBuffLimits) do
-            this.AcquiredCounts[k] = this.BirdsMaxCounts[k];
-            this.AcquiredValues[k] = v;
+local PreHook_addLvBuffCnt = nil;
+local PostHook_addLvBuffCnt = nil;
+do
+    local PlayerManager = nil;
+    function PreHook_addLvBuffCnt(args)
+        if this.SpiribirdsHudDataCreated ~= true then
+            this.CreateData();
         end
 
-    elseif addBuffType ~= nil then
-        getBuffParameters(sdk.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager_obj, addBuffType);
-    end
+        addBuffType = sdk.to_int64(args[4]);
 
-    addBuffType = nil;
-    PlayerManager_obj = nil;
+        if addBuffType == LvBuff.Rainbow then
+            hasRainbow = true;
+            addBuffType = nil;
+        else
+            PlayerManager = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.player.PlayerManager");
+        end
+    end
+    function PostHook_addLvBuffCnt()
+        if hasRainbow == true then
+            for k, v in pairs(this.StatusBuffLimits) do
+                this.AcquiredCounts[k] = this.BirdsMaxCounts[k];
+                this.AcquiredValues[k] = v;
+            end
+
+        elseif addBuffType ~= nil then
+            getBuffParameters(sdk.get_managed_singleton("snow.data.EquipDataManager"), PlayerManager, addBuffType);
+        end
+
+        addBuffType = nil;
+        PlayerManager = nil;
+    end
 end
 
 function this.init()
