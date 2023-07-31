@@ -126,8 +126,12 @@ end
 --
 local reqAddChatInfomation_method = sdk.find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
-function this.SendMessage(text)
-    reqAddChatInfomation_method:call(sdk.get_managed_singleton("snow.gui.ChatManager"), text, 2289944406);
+function this.SendMessage(nullable_chatManager, text)
+    if nullable_chatManager == nil then
+        nullable_chatManager = sdk.get_managed_singleton("snow.gui.ChatManager");
+    end
+
+    reqAddChatInfomation_method:call(nullable_chatManager, text, 2289944406);
 end
 --
 function this.SKIP_ORIGINAL()
