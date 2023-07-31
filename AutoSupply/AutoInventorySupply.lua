@@ -131,9 +131,10 @@ end
 function this.Restock(equipDataManager, loadoutIndex)
     local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
     local ItemMySet = get_ItemMySet_method:call(nil);
-    local msg = "";
     local loadout = getData_method:call(ItemMySet, DefaultSet);
     local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+    local msg = string.format(LocalizedStrings.OutOfStock, itemLoadoutName);
+
     if isEnoughItem_method:call(loadout) == true then
         applyItemMySet_method:call(ItemMySet, DefaultSet);
         msg = matchedType == "Loadout" and string.format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
@@ -141,6 +142,7 @@ function this.Restock(equipDataManager, loadoutIndex)
             or FromDefault(itemLoadoutName, loadoutMismatch);
 
         local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+
         if paletteIndex == nil then
             msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
         else
@@ -153,8 +155,6 @@ function this.Restock(equipDataManager, loadoutIndex)
                 setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
             end
         end
-    else
-        msg = string.format(LocalizedStrings.OutOfStock, itemLoadoutName);
     end
 
     return msg;

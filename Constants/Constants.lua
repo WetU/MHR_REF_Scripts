@@ -68,11 +68,11 @@ this.QuestStatus = {
 };
 
 function this.checkQuestStatus(nullable_questManager, checkType)
-    if questManager == nil then
-        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    if nullable_questManager == nil then
+        nullable_questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
-    return checkStatus_method:call(questManager, checkType);
+    return checkStatus_method:call(nullable_questManager, checkType);
 end
 --
 local set_FadeMode_method = sdk.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
@@ -98,30 +98,30 @@ this.QuestMapList = {
 };
 
 function this.getQuestMapNo(nullable_questManager)
-    if questManager == nil then
-        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    if nullable_questManager == nil then
+        nullable_questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
-    return getMapNo_method:call(questManager);
+    return getMapNo_method:call(nullable_questManager);
 end
 --
 local getQuestLife_method = this.type_definitions.QuestManager_type_def:get_method("getQuestLife");
 local getDeathNum_method = this.type_definitions.QuestManager_type_def:get_method("getDeathNum");
 
 function this.getQuestLife(nullable_questManager)
-    if questManager == nil then
-        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    if nullable_questManager == nil then
+        nullable_questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
-    return getQuestLife_method:call(questManager);
+    return getQuestLife_method:call(nullable_questManager);
 end
 
 function this.getDeathNum(nullable_questManager)
-    if questManager == nil then
-        questManager = sdk.get_managed_singleton("snow.QuestManager");
+    if nullable_questManager == nil then
+        nullable_questManager = sdk.get_managed_singleton("snow.QuestManager");
     end
 
-    return getDeathNum_method:call(questManager);
+    return getDeathNum_method:call(nullable_questManager);
 end
 --
 function this.SKIP_ORIGINAL()

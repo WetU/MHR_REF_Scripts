@@ -35,7 +35,6 @@ local function PreHook_startToPlayPlayerDieMusic()
 
         for _, campMapNo in pairs(Constants.QuestMapList) do
             if questMapNo == campMapNo then
-                local nearestCampPos = nil;
                 local nearestDistance = nil;
                 local nearestCampIndex = nil;
 
@@ -46,7 +45,7 @@ local function PreHook_startToPlayPlayerDieMusic()
                     local Point = Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(FastTravelPointList, i)), 0);
                     local distance = calcDistance_method:call(nil, currentPos, Point);
                     if i == 0 or distance < nearestDistance then
-                        nearestCampPos = Point;
+                        reviveCamp = Point;
                         nearestDistance = distance;
                         nearestCampIndex = i;
                     end
@@ -55,7 +54,10 @@ local function PreHook_startToPlayPlayerDieMusic()
                 if nearestCampIndex ~= nil and nearestCampIndex ~= 0 then
                     skipCreateNeko = true;
                     skipWarpNeko = true;
-                    reviveCamp = nearestCampPos;
+                else
+                    skipCreateNeko = false;
+                    skipWarpNeko = false;
+                    reviveCamp = nil;
                 end
 
                 break;
