@@ -39,12 +39,18 @@ local function PreHook_startToPlayPlayerDieMusic()
 
                 local currentPos = get_Position_method:call(GetTransform_method:call(sdk.get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
                 local FastTravelPointList = get_FastTravelPointList_method:call(sdk.get_managed_singleton("snow.stage.StagePointManager"));
+                local pointMaxCount = FastTravelPointList_get_Count_method:call(FastTravelPointList) - 1;
 
-                for i = 0, FastTravelPointList_get_Count_method:call(FastTravelPointList) - 1, 1 do
+                for i = 0, pointMaxCount, 1 do
                     local Point = Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(FastTravelPointList, i)), 0);
                     local distance = calcDistance_method:call(nil, currentPos, Point);
-                    if i == 0 or (distance < nearestDistance) then
+                    if i == 0 then
                         nearestDistance = distance;
+                    elseif distance < nearestDistance then
+                        if i < pointMaxCount then
+                            nearestDistance = distance;
+                        end
+
                         skipCreateNeko = true;
                         skipWarpNeko = true;
                         reviveCamp = Point;
