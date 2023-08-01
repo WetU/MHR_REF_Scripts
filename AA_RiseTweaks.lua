@@ -8,7 +8,7 @@ local changeAllMarkerEnable_method = sdk.find_type_definition("snow.access.Objec
 local function applyFps()
 	set_MaxFps_method:call(nil, MAX_FPS);
 end
-
+-- todo : args[3] = Constants.TRUE_POINTER;
 local function PreHook_changeAllMarkerEnable(args)
 	if Constants.to_bool(args[3]) ~= true then
 		changeAllMarkerEnable_method:call(sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.access.ObjectAccessManager"), true);
