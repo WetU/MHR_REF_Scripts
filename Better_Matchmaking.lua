@@ -243,7 +243,7 @@ sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getCancelBu
 sdk.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
-
+-- todo : search 종료 시점 함수 더 찾기
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
 	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
