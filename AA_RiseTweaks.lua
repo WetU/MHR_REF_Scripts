@@ -9,7 +9,9 @@ local function applyFps()
 end
 
 local function PreHook_changeAllMarkerEnable(args)
-	args[3] = Constants.TRUE_POINTER;
+	if Constants.to_bool(args[3]) ~= true then
+		args[3] = Constants.TRUE_POINTER;
+	end
 end
 --
 sdk.hook(sdk.find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);

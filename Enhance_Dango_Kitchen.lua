@@ -1,7 +1,9 @@
 local Constants = require("Constants.Constants");
+
 -- Auto Dango Ticket
 local MealFunc_type_def = sdk.find_type_definition("snow.facility.kitchen.MealFunc");
 local setMealTicketFlag_method = MealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
+
 -- Skip Dango Song cache
 local GuiKitchen_BBQ_type_def = sdk.find_type_definition("snow.gui.GuiKitchen_BBQ");
 local getDemoState_method = GuiKitchen_BBQ_type_def:get_method("getDemoState");
@@ -29,11 +31,13 @@ local EatingDemoState_field = GuiKitchenEatingEventDemoFsmAction_type_def:get_fi
 local EatingDemoState_Demo_Update = EatingDemoState_field:get_type():get_field("Demo_Update"):get_data(nil);
 
 local reqFinish_method = get_KitchenCookDemoHandler_method:get_return_type():get_method("reqFinish(System.Single)");
+
 -- Auto Dango Ticket
 local function PreHook_updateList(args)
 	setMealTicketFlag_method:call(sdk.to_managed_object(args[2]), true);
 end
 sdk.hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);
+
 -- Skip Dango Song Main Function
 --CookDemo
 local function PreHook_CookingDemoUpdate(args)
@@ -42,6 +46,7 @@ local function PreHook_CookingDemoUpdate(args)
 	end
 end
 sdk.hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate);
+
 --EatDemo
 local showDangoLog = false;
 
@@ -60,6 +65,7 @@ local function PostHook_requestAutoSaveAll()
 	end
 end
 sdk.hook(sdk.find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
+
 --BBQ
 local function PreHook_BBQ_updatePlayDemo(args)
 	local GuiKitchen_BBQ = sdk.to_managed_object(args[2]);
