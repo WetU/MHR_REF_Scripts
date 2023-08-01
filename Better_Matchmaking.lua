@@ -36,56 +36,41 @@ local quest_types = {
 local I_Unclassified_None = Constants.type_definitions.ItemId_type_def:get_field("I_Unclassified_None"):get_data(nil);
 --
 local isSearching = false;
-local quest_type = nil;
 local quest_vars = nil;
 local skip_next_hook = nil;
 
 local function prehook_on_timeout(args)
-	if quest_type ~= nil and quest_vars ~= nil and sdk.to_int64(args[3]) == SessionAttr_Quest then
+	if quest_vars ~= nil and sdk.to_int64(args[3]) == SessionAttr_Quest then
 		local session_manager = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.SnowSessionManager");
 
-		if quest_type == quest_types.regular then
+		if quest_vars.quest_type == quest_types.regular then
 			skip_next_hook = quest_types.regular;
 			req_matchmaking_method:call(session_manager, quest_vars.quest_id);
 
-		elseif quest_type == quest_types.random then
+		elseif quest_vars.quest_type == quest_types.random then
 			skip_next_hook = quest_types.random;
 			req_matchmaking_random_method:call(session_manager, quest_vars.my_hunter_rank);
 
-		elseif quest_type == quest_types.rampage then
+		elseif quest_vars.quest_type == quest_types.rampage then
 			skip_next_hook = quest_types.rampage;
+			req_matchmaking_hyakuryu_method:call(session_manager, quest_vars.difficulty, quest_vars.quest_level, quest_vars.target_enemy);
 
-			local quest_level_pointer = ValueType.new(nullable_uint32_type_def);
-			nullable_uint32_constructor_method:call(quest_level_pointer, quest_vars.quest_level.value);
-			quest_level_pointer:set_field("_HasValue", quest_vars.quest_level.has_value);
-
-			local target_enemy_pointer = ValueType.new(nullable_uint32_type_def);
-			nullable_uint32_constructor_method:call(target_enemy_pointer, quest_vars.target_enemy.value);
-			target_enemy_pointer:set_field("_HasValue", quest_vars.target_enemy.has_value);
-
-			req_matchmaking_hyakuryu_method:call(session_manager, quest_vars.difficulty, quest_level_pointer, target_enemy_pointer);
-
-		elseif quest_type == quest_types.random_master_rank then
+		elseif quest_vars.quest_type == quest_types.random_master_rank then
 			skip_next_hook = quest_types.random_master_rank;
 			req_matchmaking_random_master_rank_method:call(session_manager, quest_vars.my_hunter_rank, quest_vars.my_master_rank);
 
-		elseif quest_type == quest_types.random_anomaly then
+		elseif quest_vars.quest_type == quest_types.random_anomaly then
 			skip_next_hook = quest_types.random_anomaly;
 			req_matchmaking_random_mystery_method:call(session_manager, quest_vars.my_hunter_rank, quest_vars.my_master_rank, quest_vars.anomaly_research_level);
 
-		elseif quest_type == quest_types.anomaly_investigation then
+		elseif quest_vars.quest_type == quest_types.anomaly_investigation then
 			skip_next_hook = quest_types.anomaly_investigation;
-
-			local enemy_id_pointer = ValueType.new(nullable_uint32_type_def);
-			nullable_uint32_constructor_method:call(enemy_id_pointer, quest_vars.enemy_id.value);
-			enemy_id_pointer:set_field("_HasValue", quest_vars.enemy_id.has_value);
-
 			req_matchmaking_random_mystery_quest_method:call(
 				session_manager,
 				quest_vars.min_level,
 				quest_vars.max_level,
 				quest_vars.party_limit,
-				enemy_id_pointer,
+				quest_vars.enemy_id,
 				quest_vars.reward_item,
 				quest_vars.is_special_random_mystery
 			);
@@ -102,8 +87,8 @@ local function prehook_req_matchmaking(args)
 		return;
 	end
 
-	quest_type = quest_types.regular;
 	quest_vars = {
+		quest_type = quest_types.regular,
 		quest_id = Constants.to_uint(args[3])
 	};
 end
@@ -117,8 +102,8 @@ local function prehook_req_matchmaking_random(args)
 		return;
 	end
 
-	quest_type = quest_types.random;
 	quest_vars = {
+		quest_type = quest_types.random,
 		my_hunter_rank = Constants.to_uint(args[3])
 	};
 end
@@ -133,19 +118,22 @@ local function prehook_req_matchmaking_hyakuryu(args)
 	end
 
 	local quest_level_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[4]));
+
+	local quest_level_pointer = ValueType.new(nullable_uint32_type_def);
+	nullable_uint32_constructor_method:call(quest_level_pointer, quest_level_has_value == true and nullable_uint32_get_value_method:call(args[4]) or nil);
+	quest_level_pointer:set_field("_HasValue", quest_level_has_value);
+
 	local target_enemy_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[5]));
 
-	quest_type = quest_types.rampage;
+	local target_enemy_pointer = ValueType.new(nullable_uint32_type_def);
+	nullable_uint32_constructor_method:call(target_enemy_pointer, target_enemy_has_value == true and nullable_uint32_get_value_method:call(args[5]) or nil);
+	target_enemy_pointer:set_field("_HasValue", target_enemy_has_value);
+
 	quest_vars = {
+		quest_type = quest_types.rampage,
 		difficulty = Constants.to_uint(args[3]),
-		quest_level = {
-			has_value = quest_level_has_value,
-			value = quest_level_has_value == true and nullable_uint32_get_value_method:call(args[4]) or nil
-		},
-		target_enemy = {
-			has_value = target_enemy_has_value,
-			value = target_enemy_has_value == true and nullable_uint32_get_value_method:call(args[5]) or nil
-		}
+		quest_level = quest_level_pointer,
+		target_enemy = target_enemy_pointer
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionHyakuryu
@@ -160,8 +148,8 @@ local function prehook_req_matchmaking_random_master_rank(args)
 		return;
 	end
 
-	quest_type = quest_types.random_master_rank;
 	quest_vars = {
+		quest_type = quest_types.random_master_rank,
 		my_hunter_rank = Constants.to_uint(args[3]),
 		my_master_rank = Constants.to_uint(args[4])
 	};
@@ -177,8 +165,8 @@ local function prehook_req_matchmaking_random_mystery(args)
 		return;
 	end
 
-	quest_type = quest_types.random_anomaly;
 	quest_vars = {
+		quest_type = quest_types.random_anomaly,
 		my_hunter_rank = Constants.to_uint(args[3]),
 		my_master_rank = Constants.to_uint(args[4]),
 		anomaly_research_level = Constants.to_uint(args[5])
@@ -198,15 +186,16 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 
 	local enemy_id_has_value = nullable_uint32_get_has_value_method:call(sdk.to_int64(args[6]));
 
-	quest_type = quest_types.anomaly_investigation;
+	local enemy_id_pointer = ValueType.new(nullable_uint32_type_def);
+	nullable_uint32_constructor_method:call(enemy_id_pointer, enemy_id_has_value == true and nullable_uint32_get_value_method:call(args[6]) or nil);
+	enemy_id_pointer:set_field("_HasValue", enemy_id_has_value);
+
 	quest_vars = {
+		quest_type = quest_types.anomaly_investigation,
 		min_level = Constants.to_uint(args[3]),
 		max_level = Constants.to_uint(args[4]),
 		party_limit = Constants.to_uint(args[5]),
-		enemy_id = {
-			has_value = enemy_id_has_value,
-			value = enemy_id_has_value == true and nullable_uint32_get_value_method:call(args[6]) or nil
-		},
+		enemy_id = enemy_id_pointer,
 		reward_item = Constants.to_uint(args[7]) or I_Unclassified_None,
 		is_special_random_mystery = Constants.to_bool(args[8])
 	};
@@ -240,10 +229,15 @@ local function onCancelSearch(retval)
 	return retval;
 end
 sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getCancelButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, onCancelSearch);
-sdk.hook(session_manager_type_def:get_method("funcOnJoinMemberByMatchmaking(snow.network.session.SessionAttr, System.Int32)"), clearVars);
+sdk.hook(session_manager_type_def:get_method("funcOnCompletedMatchmaking(snow.network.session.SessionAttr)"), nil, clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
--- todo : search 종료 시점 함수 더 찾기
+
+local function onKicked()
+	Constants.SendMessage(nil, "세션에서 추방당했습니다");
+end
+sdk.hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
+
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
 	return Constants.checkGameStatus(Constants.GameStatusType.Quest) == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
@@ -251,8 +245,3 @@ end
 
 sdk.hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
 sdk.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);
---
-local function onKicked()
-	Constants.SendMessage(nil, "세션에서 추방당했습니다");
-end
-sdk.hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);

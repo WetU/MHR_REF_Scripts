@@ -44,13 +44,10 @@ function this.get_currentStepCount()
     local OtomoSpyUnitManager = sdk.get_managed_singleton("snow.data.OtomoSpyUnitManager");
     if OtomoSpyUnitManager ~= nil then
         local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
-        if isOperating == true then
-            this.currentStep = string.format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager));
-            return;
-        elseif isOperating == false then
-            this.currentStep = "활동 없음";
-            return;
-        end
+        this.currentStep = isOperating == true and string.format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
+            or isOperating == false and "활동 없음"
+            or nil;
+        return;
     end
 
     Terminate();

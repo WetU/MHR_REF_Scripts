@@ -89,7 +89,7 @@ local function PreHook_setPlWarpInfo_Nekotaku(args)
     end
 end
 
-local function PreHook_createNekotaku(args)
+local function PreHook_CreateNekotaku(args)
     if reviveCampPos ~= nil then
         local campPos = reviveCampPos;
         reviveCampPos = nil;
@@ -100,4 +100,4 @@ end
 
 sdk.hook(sdk.find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), PreHook_startToPlayPlayerDieMusic);
 sdk.hook(StageManager_type_def:get_method("setPlWarpInfo_Nekotaku"), PreHook_setPlWarpInfo_Nekotaku);
-sdk.hook(CreateNekotaku_method, PreHook_createNekotaku);
+sdk.hook(CreateNekotaku_method, PreHook_CreateNekotaku);

@@ -81,25 +81,27 @@ function this.autoArgosy()
     local DataManager = sdk.get_managed_singleton("snow.data.DataManager");
     local TradeFunc = get_TradeFunc_method:call(sdk.get_managed_singleton("snow.facility.TradeCenterFacility"));
     local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
-
     buildCache(TradeFunc);
-    local updateCount = false;
+
+    local countUpdated = false;
     local isReceived = false;
     local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
-    local possibleAddCount = acornAvailable == true and (1 + AcornAddCount) or 1;
+    local addCount = acornAvailable == true and (1 + AcornAddCount) or 1;
 
     for i = 0, TradeOrderList_get_Count_method:call(TradeOrderList) - 1, 1 do
         local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
         if get_NegotiationCount_method:call(TradeOrder) == 1 then
-            local orderAddCount = possibleAddCount;
+            local addNegoCount = addCount;
             local NegotiationData = cacheNegotiationData[get_NegotiationType_method:call(TradeOrder)];
+
             if get_Point_method:call(nil) >= NegotiationData.Cost then
-                orderAddCount = orderAddCount + NegotiationData.Count;
+                addNegoCount = addNegoCount + NegotiationData.Count;
                 subPoint_method:call(nil, Cost);
             end
-            if orderAddCount > 1 then
-                setNegotiationCount_method:call(TradeOrder, orderAddCount);
-                updateCount = true;
+
+            if addNegoCount > 1 then
+                setNegotiationCount_method:call(TradeOrder, addNegoCount);
+                countUpdated = true;
             end
         end
 
@@ -120,13 +122,14 @@ function this.autoArgosy()
                 end
             end
         end
+
         if inventoryReceived == true then
             initialize_method:call(TradeOrder);
             isReceived = isReceived or inventoryReceived;
         end
     end
 
-    if acornAvailable == true and updateCount == true then
+    if acornAvailable == true and countUpdated == true then
         sub_method:call(acornInventoryData, 1, true);
     end
 
