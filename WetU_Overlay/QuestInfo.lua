@@ -20,7 +20,7 @@ local function Terminate()
     curQuestLife = nil;
     curQuestMaxTimeMin = nil;
 end
-
+-- todo: 탐색 퀘스트 QuestLife 무한
 local function updateDeathCount(questManager)
     if curQuestLife == nil then
         curQuestLife = Constants.getQuestLife(questManager);
