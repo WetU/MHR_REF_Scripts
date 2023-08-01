@@ -86,18 +86,19 @@ function this.autoArgosy()
     local updateCount = false;
     local isReceived = false;
     local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
+    local possibleAddCount = acornAvailable == true and (1 + AcornAddCount) or 1;
 
     for i = 0, TradeOrderList_get_Count_method:call(TradeOrderList) - 1, 1 do
         local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
         if get_NegotiationCount_method:call(TradeOrder) == 1 then
-            local addCount = acornAvailable == true and (1 + AcornAddCount) or 1;
+            local orderAddCount = possibleAddCount;
             local NegotiationData = cacheNegotiationData[get_NegotiationType_method:call(TradeOrder)];
             if get_Point_method:call(nil) >= NegotiationData.Cost then
-                addCount = addCount + NegotiationData.Count;
+                orderAddCount = orderAddCount + NegotiationData.Count;
                 subPoint_method:call(nil, Cost);
             end
-            if addCount > 1 then
-                setNegotiationCount_method:call(TradeOrder, addCount);
+            if orderAddCount > 1 then
+                setNegotiationCount_method:call(TradeOrder, orderAddCount);
                 updateCount = true;
             end
         end
