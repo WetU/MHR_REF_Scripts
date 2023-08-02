@@ -62,7 +62,7 @@ local function buildCache(tradeFunc)
     if cacheNegotiationData == nil then
         cacheNegotiationData = {};
 
-        for i, v in ipairs(NegotiationTypes) do
+        for i, v in pairs(NegotiationTypes) do
             local NegotiationData = getNegotiationData_method:call(tradeFunc, v);
             cacheNegotiationData[i] = {
                 Count = NegotiationData_get_Count_method:call(NegotiationData),
