@@ -9,8 +9,8 @@ local ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get
 local notifyReset_method = Constants.type_definitions.QuestManager_type_def:get_method("notifyReset");
 -- Village AreaMove shortcut
 local function villageJump(args)
-    local fastTravelType = Constants.checkKeyTrg(Constants.Keys.R_key) == true and ELGADO_CHICHE
-        or Constants.checkKeyTrg(Constants.Keys.T_key) == true and ELGADO_KITCHEN
+    local fastTravelType = Constants.checkKeyTrg(Constants.Keys.F5_key) == true and ELGADO_CHICHE
+        or Constants.checkKeyTrg(Constants.Keys.F6_key) == true and ELGADO_KITCHEN
         or nil;
 
     if fastTravelType ~= nil then

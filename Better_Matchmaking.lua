@@ -229,7 +229,7 @@ local function onCancelSearch(retval)
 	return retval;
 end
 sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getCancelButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, onCancelSearch);
-sdk.hook(session_manager_type_def:get_method("funcOnCompletedMatchmaking(snow.network.session.SessionAttr)"), nil, clearVars);
+sdk.hook(session_manager_type_def:get_method("funcOnCompletedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), clearVars);
 sdk.hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 
@@ -237,6 +237,7 @@ local function onKicked()
 	Constants.SendMessage(nil, "세션에서 추방당했습니다");
 end
 sdk.hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
+sdk.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
@@ -244,4 +245,3 @@ local function PreHook_setOpenNetworkErrorWindowSelection()
 end
 
 sdk.hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
-sdk.hook(session_manager_type_def:get_method("reqOnlineWarning"), Constants.SKIP_ORIGINAL);

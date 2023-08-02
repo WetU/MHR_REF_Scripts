@@ -40,5 +40,4 @@ local function PreHook_updateQuestEndFlow(args)
 	end
 end
 sdk.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
-sdk.hook(Constants.type_definitions.GuiManager_type_def:get_method("isEndQuestEndStampAnim"), nil, Constants.RETURN_TRUE);
 sdk.hook(sdk.find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), Constants.SKIP_ORIGINAL, Constants.RETURN_TRUE);
