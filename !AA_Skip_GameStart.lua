@@ -7,12 +7,11 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 
-local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL;
 local RETURN_TRUE_func = Constants.RETURN_TRUE;
 local ClearFade = Constants.ClearFade;
 --
 local type_definitions = Constants.type_definitions;
-hook(type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), SKIP_ORIGINAL_func, RETURN_TRUE_func);
+hook(type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
 
 if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
 	local Movie_type_def = find_type_definition("via.movie.Movie");

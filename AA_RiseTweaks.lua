@@ -10,8 +10,7 @@ local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL;
 --
 local MAX_FPS = 119.98;
 --
-local Application_type_def = Constants.type_definitions.Application_type_def;
-local set_MaxFps_method = Application_type_def:get_method("set_MaxFps(System.Single)"); -- static
+local set_MaxFps_method = Constants.type_definitions.Application_type_def:get_method("set_MaxFps(System.Single)"); -- static
 --
 local function applyFps()
 	set_MaxFps_method:call(nil, MAX_FPS);

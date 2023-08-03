@@ -12,7 +12,6 @@ local hook = Constants.sdk.hook;
 --
 local type_definitions = Constants.type_definitions;
 local to_uint = Constants.to_uint;
---
 local SendMessage = Constants.SendMessage;
 --
 local Restock = InventorySupply.Restock;

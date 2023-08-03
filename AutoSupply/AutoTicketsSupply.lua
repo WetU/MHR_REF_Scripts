@@ -10,8 +10,8 @@ local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 --
 local this = {
-    talkHandler = false,
-    init = false
+    init = false,
+    talkHandler = false
 };
 --
 local supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");

@@ -10,8 +10,6 @@ local to_int64 = Constants.sdk.to_int64;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
-local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
-local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
 local hook = Constants.sdk.hook;
 
 local Vector2f_new = Constants.Vector2f.new;
@@ -81,9 +79,6 @@ local function skipReturnAnimation()
     isReturnAnimation = true;
 end
 
-local function PreHook_getDecideButtonTrg()
-    return isReturnAnimation == true and SKIP_ORIGINAL or CALL_ORIGINAL;
-end
 local function PostHook_getDecideButtonTrg(retval)
     return isReturnAnimation == true and TRUE_POINTER or retval;
 end
@@ -127,9 +122,6 @@ local function handleReward(args)
     end
 end
 
-local function PreHook_getDecideButtonRep()
-    return isReceiveReady == true and SKIP_ORIGINAL or CALL_ORIGINAL;
-end
 local function PostHook_getDecideButtonRep(retval)
     return isReceiveReady == true and TRUE_POINTER or retval;
 end
@@ -151,10 +143,10 @@ this.init = function()
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
     hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
-    hook(StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
+    hook(StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_getDecideButtonTrg);
     hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardListCursor"), handleReward);
-    hook(StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonRep, PostHook_getDecideButtonRep);
+    hook(StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_getDecideButtonRep);
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
     hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end

@@ -7,7 +7,6 @@ local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
 local tostring = Constants.lua.tostring;
 
-local type_definitions = Constants.type_definitions;
 local Font = Constants.Font;
 
 local hook = Constants.sdk.hook;
@@ -27,6 +26,8 @@ local end_table = Constants.imgui.end_table;
 local text = Constants.imgui.text;
 local text_colored = Constants.imgui.text_colored;
 local spacing = Constants.imgui.spacing;
+
+local checkGameStatus = Constants.checkGameStatus;
 --
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
@@ -34,7 +35,7 @@ local function onQuestStart()
     QuestInfo_onQuestStart();
     SpiribirdsStatus_onQuestStart();
 end
-hook(type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
+hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
 local function drawHarvestMoonTimer()
     local CircleTimer = HarvestMoonTimer.CircleTimer;
@@ -166,7 +167,6 @@ OtomoSpyUnit.init();
 QuestInfo.init();
 SpiribirdsStatus.init();
 
-local checkGameStatus = Constants.checkGameStatus;
 if checkGameStatus(Constants.GameStatusType.Village) == true then
     OtomoSpyUnit.get_currentStepCount();
 elseif checkGameStatus(Constants.GameStatusType.Quest) == true then

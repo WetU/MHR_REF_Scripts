@@ -1,8 +1,6 @@
 local require = require;
 local Constants = require("Constants.Constants");
 
-local pairs = Constants.lua.pairs;
-
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
@@ -19,8 +17,8 @@ local BBQ_DemoHandler_field = GuiKitchen_BBQ_type_def:get_field("_DemoHandler");
 
 local BBQ_DemoState_type_def = getDemoState_method:get_return_type();
 local BBQ_DemoState = {
-	["Update"] = BBQ_DemoState_type_def:get_field("Update"):get_data(nil),
-	["ResultDemoUpdate"] = BBQ_DemoState_type_def:get_field("ResultDemoUpdate"):get_data(nil)
+	[BBQ_DemoState_type_def:get_field("Update"):get_data(nil)] = true,
+	[BBQ_DemoState_type_def:get_field("ResultDemoUpdate"):get_data(nil)] = true
 };
 
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
@@ -77,13 +75,9 @@ hook(find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll
 --BBQ
 local function PreHook_BBQ_updatePlayDemo(args)
 	local GuiKitchen_BBQ = to_managed_object(args[2]);
-	local DemoState = getDemoState_method:call(GuiKitchen_BBQ);
 
-	for _, v in pairs(BBQ_DemoState) do
-		if DemoState == v then
-			reqFinish_method:call(BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ), 0.0);
-			break;
-		end
+	if BBQ_DemoState[getDemoState_method:call(GuiKitchen_BBQ)] == true then
+		reqFinish_method:call(BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ), 0.0);
 	end
 end
 hook(GuiKitchen_BBQ_type_def:get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo);

@@ -8,15 +8,15 @@ local math_max = Constants.lua.math_max;
 
 local string_format = Constants.lua.string_format;
 
-local getQuestMapNo = Constants.getQuestMapNo;
-local QuestMapList = Constants.QuestMapList;
-local to_bool = Constants.to_bool;
-
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
+
+local getQuestMapNo = Constants.getQuestMapNo;
+local QuestMapList = Constants.QuestMapList;
+local to_bool = Constants.to_bool;
 --
 local this = {
     init = false,

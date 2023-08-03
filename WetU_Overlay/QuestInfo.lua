@@ -8,6 +8,9 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
+
+local getQuestLife = Constants.getQuestLife;
+local getDeathNum = Constants.getDeathNum;
 --
 local this = {
     init = false,
@@ -16,17 +19,13 @@ local this = {
     DeathCount = nil
 };
 --
-local type_definitions = Constants.type_definitions;
-local QuestManager_type_def = type_definitions.QuestManager_type_def;
+local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local getQuestMaxTimeMin_method = QuestManager_type_def:get_method("getQuestMaxTimeMin");
 local isQuestMaxTimeUnlimited_method = QuestManager_type_def:get_method("isQuestMaxTimeUnlimited");
 local getQuestElapsedTimeSec_method = QuestManager_type_def:get_method("getQuestElapsedTimeSec");
 local isTourQuest_method = QuestManager_type_def:get_method("isTourQuest");
 --
 local getClearTimeFormatText_method = find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
---
-local getQuestLife = Constants.getQuestLife;
-local getDeathNum = Constants.getDeathNum;
 --
 local isTourQuest = false;
 local curQuestLife = nil;

@@ -14,7 +14,7 @@ local Home_key = Constants.Keys.Home_key;
 
 local ClearFade = Constants.ClearFade;
 
-local RETURN_TRUE = Constants.RETURN_TRUE;
+local RETURN_TRUE_func = Constants.RETURN_TRUE;
 --
 local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
@@ -61,4 +61,4 @@ local function PreHook_updateQuestEndFlow(args)
 	end
 end
 hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
-hook(find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, RETURN_TRUE);
+hook(find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, RETURN_TRUE_func);
