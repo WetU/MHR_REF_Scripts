@@ -1,14 +1,36 @@
+local require = require;
 local Constants = require("Constants.Constants");
+
+local string_format = Constants.lua.string_format;
+
+local TRUE_POINTER = Constants.TRUE_POINTER;
+local Village = Constants.GameStatusType.Village;
+
+local to_int64 = Constants.sdk.to_int64;
+local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
+local to_managed_object = Constants.sdk.to_managed_object;
+local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
+local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
+local hook = Constants.sdk.hook;
+
+local Vector2f_new = Constants.Vector2f.new;
 --
 local this = {
-    currentStep = nil
+    init = false,
+    currentStep = nil,
+    get_currentStepCount = false
 };
 --
-local OtomoSpyUnitManager_type_def = sdk.find_type_definition("snow.data.OtomoSpyUnitManager");
+local type_definitions = Constants.type_definitions;
+local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
+local QuestManager_type_def = type_definitions.QuestManager_type_def;
+
+local OtomoSpyUnitManager_type_def = find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
 local get_NowStepCount_method = OtomoSpyUnitManager_type_def:get_method("get_NowStepCount");
 
-local GuiOtomoSpyUnitMainControll_type_def = sdk.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitMainControll");
+local GuiOtomoSpyUnitMainControll_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitMainControll");
 local setBoostItem_method = GuiOtomoSpyUnitMainControll_type_def:get_method("setBoostItem");
 local updateRewardList_method = GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardList");
 local RewardListCursor_field = GuiOtomoSpyUnitMainControll_type_def:get_field("RewardListCursor");
@@ -24,10 +46,10 @@ local get_pageNo_method = PageCursor_type_def:get_method("get_pageNo");
 local set_pageNo_method = PageCursor_type_def:get_method("set_pageNo(System.Int32)");
 local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
 
-local GuiOtomoSpyUnitReturn_type_def = sdk.find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
+local GuiOtomoSpyUnitReturn_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
 --
 local ItemReceive = spyOpenType_field:get_type():get_field("ItemReceive"):get_data(nil);
-local ReceiveAllButton_Index = Vector2f.new(0.0, 0.0);
+local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 --
 local isReturnAnimation = false;
 local isReceiveReady = false;
@@ -37,14 +59,14 @@ local function Terminate()
 end
 
 local function setBoostItem(args)
-    setBoostItem_method:call(sdk.to_managed_object(args[2]));
+    setBoostItem_method:call(to_managed_object(args[2]));
 end
 
-function this.get_currentStepCount()
-    local OtomoSpyUnitManager = sdk.get_managed_singleton("snow.data.OtomoSpyUnitManager");
+local function get_currentStepCount()
+    local OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
     if OtomoSpyUnitManager ~= nil then
         local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
-        this.currentStep = isOperating == true and string.format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
+        this.currentStep = isOperating == true and string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
             or isOperating == false and "활동 없음"
             or nil;
         return;
@@ -53,15 +75,17 @@ function this.get_currentStepCount()
     Terminate();
 end
 
+this.get_currentStepCount = get_currentStepCount;
+
 local function skipReturnAnimation()
     isReturnAnimation = true;
 end
 
 local function PreHook_getDecideButtonTrg()
-    return isReturnAnimation == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
+    return isReturnAnimation == true and SKIP_ORIGINAL or CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonTrg(retval)
-    return isReturnAnimation == true and Constants.TRUE_POINTER or retval;
+    return isReturnAnimation == true and TRUE_POINTER or retval;
 end
 
 local function PreHook_endOtomoSpyUnitReturn()
@@ -70,7 +94,7 @@ local function PreHook_endOtomoSpyUnitReturn()
 end
 
 local function handleReward(args)
-    local GuiOtomoSpyUnitMainControll = sdk.to_managed_object(args[2]);
+    local GuiOtomoSpyUnitMainControll = to_managed_object(args[2]);
     if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == ItemReceive then
         local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
 
@@ -104,10 +128,10 @@ local function handleReward(args)
 end
 
 local function PreHook_getDecideButtonRep()
-    return isReceiveReady == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
+    return isReceiveReady == true and SKIP_ORIGINAL or CALL_ORIGINAL;
 end
 local function PostHook_getDecideButtonRep(retval)
-    return isReceiveReady == true and Constants.TRUE_POINTER or retval;
+    return isReceiveReady == true and TRUE_POINTER or retval;
 end
 
 local function PreHook_addAllGameItemtoBox()
@@ -115,24 +139,24 @@ local function PreHook_addAllGameItemtoBox()
 end
 
 local function onChangedGameStatus(args)
-    if sdk.to_int64(args[3]) == Constants.GameStatusType.Village then
-        this.get_currentStepCount();
+    if to_int64(args[3]) == Village then
+        get_currentStepCount();
     else
         Terminate();
         Constants.isOnVillageStarted = false;
     end
 end
 
-function this.init()
-    sdk.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
-    sdk.hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, this.get_currentStepCount);
-    sdk.hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
-    sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
-    sdk.hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);
-    sdk.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardListCursor"), handleReward);
-    sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonRep, PostHook_getDecideButtonRep);
-    sdk.hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
-    sdk.hook(Constants.type_definitions.QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+this.init = function()
+    hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
+    hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
+    hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
+    hook(StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonTrg, PostHook_getDecideButtonTrg);
+    hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);
+    hook(GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardListCursor"), handleReward);
+    hook(StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), PreHook_getDecideButtonRep, PostHook_getDecideButtonRep);
+    hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
+    hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
 --
 return this;

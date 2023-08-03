@@ -1,16 +1,32 @@
+local require = require;
 local Constants = require("Constants.Constants");
+
+local tostring = Constants.lua.tostring;
+local string_format = Constants.lua.string_format;
+
+local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
+local to_managed_object = Constants.sdk.to_managed_object;
+local hook = Constants.sdk.hook;
 --
 local this = {
+    init = false,
+    onQuestStart = false,
     QuestTimer = nil,
     DeathCount = nil
 };
 --
-local getQuestMaxTimeMin_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestMaxTimeMin");
-local isQuestMaxTimeUnlimited_method = Constants.type_definitions.QuestManager_type_def:get_method("isQuestMaxTimeUnlimited");
-local getQuestElapsedTimeSec_method = Constants.type_definitions.QuestManager_type_def:get_method("getQuestElapsedTimeSec");
-local isTourQuest_method = Constants.type_definitions.QuestManager_type_def:get_method("isTourQuest");
+local type_definitions = Constants.type_definitions;
+local QuestManager_type_def = type_definitions.QuestManager_type_def;
+local getQuestMaxTimeMin_method = QuestManager_type_def:get_method("getQuestMaxTimeMin");
+local isQuestMaxTimeUnlimited_method = QuestManager_type_def:get_method("isQuestMaxTimeUnlimited");
+local getQuestElapsedTimeSec_method = QuestManager_type_def:get_method("getQuestElapsedTimeSec");
+local isTourQuest_method = QuestManager_type_def:get_method("isTourQuest");
 --
-local getClearTimeFormatText_method = sdk.find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
+local getClearTimeFormatText_method = find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
+--
+local getQuestLife = Constants.getQuestLife;
+local getDeathNum = Constants.getDeathNum;
 --
 local isTourQuest = false;
 local curQuestLife = nil;
@@ -26,44 +42,44 @@ end
 
 local function updateDeathCount(questManager)
     if curQuestLife == nil then
-        curQuestLife = isTourQuest == true and "제한 없음" or Constants.getQuestLife(questManager);
+        curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(questManager);
     end
 
-    this.DeathCount = string.format("다운 횟수: %d / %s", Constants.getDeathNum(questManager), curQuestLife);
+    this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(questManager), curQuestLife);
 end
 
-function this.onQuestStart()
-    local QuestManager = sdk.get_managed_singleton("snow.QuestManager");
+this.onQuestStart = function()
+    local QuestManager = get_managed_singleton("snow.QuestManager");
     isTourQuest = isTourQuest_method:call(QuestManager);
     updateDeathCount(QuestManager);
 
     local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(QuestManager);
     curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
-    this.QuestTimer = string.format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
+    this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
 end
 
 local PreHook_questForfeit = nil;
 local PostHook_questForfeit = nil;
 do
     local QuestManager = nil;
-    function PreHook_questForfeit(args)
-        QuestManager = sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.QuestManager");
+    PreHook_questForfeit = function(args)
+        QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
     end
-    function PostHook_questForfeit()
+    PostHook_questForfeit = function()
         updateDeathCount(QuestManager);
         QuestManager = nil;
     end
 end
 
 local function PreHook_updateQuestTime(args)
-    local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(sdk.to_managed_object(args[2]) or sdk.get_managed_singleton("snow.QuestManager"));
-    this.QuestTimer = string.format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
+    local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
+    this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
 end
 
-function this.init()
-    sdk.hook(Constants.type_definitions.QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
-    sdk.hook(Constants.type_definitions.QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
-    sdk.hook(Constants.type_definitions.QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
+this.init = function()
+    hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
+    hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
+    hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
 --
 return this;

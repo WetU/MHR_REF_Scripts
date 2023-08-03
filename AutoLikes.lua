@@ -1,6 +1,13 @@
+local require = require;
 local Constants = require("Constants.Constants");
+
+local find_type_definition = Constants.sdk.find_type_definition;
+local to_managed_object = Constants.sdk.to_managed_object;
+local hook = Constants.sdk.hook;
+
+local TRUE_POINTER = Constants.TRUE_POINTER;
 -- Cache
-local GoodRelationship_type_def = sdk.find_type_definition("snow.gui.GuiHud_GoodRelationship");
+local GoodRelationship_type_def = find_type_definition("snow.gui.GuiHud_GoodRelationship");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");
 local gaugeAngleY_field = GoodRelationship_type_def:get_field("_gaugeAngleY");
 local WaitTime_field = GoodRelationship_type_def:get_field("WaitTime");
@@ -16,7 +23,7 @@ local GoodRelationshipHud = nil;
 local sendReady = false;
 
 local function PreHook_updatePlayerInfo(args)
-	GoodRelationshipHud = sdk.to_managed_object(args[2]);
+	GoodRelationshipHud = to_managed_object(args[2]);
 	if gaugeAngleY_field:get_data(GoodRelationshipHud) ~= 360.0 then
 		GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
 	end
@@ -45,17 +52,14 @@ local function PostHook_updatePlayerInfo()
 	GoodRelationshipHud = nil;
 end
 
-local function PreHook_isOperationOn()
-	return sendReady == true and sdk.PreHookResult.SKIP_ORIGINAL or sdk.PreHookResult.CALL_ORIGINAL;
-end
 local function PostHook_isOperationOn(retval)
-	return sendReady == true and Constants.TRUE_POINTER or retval;
+	return sendReady == true and TRUE_POINTER or retval;
 end
 
 local function PreHook_sendGood()
 	sendReady = false;
 end
 --
-sdk.hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), PreHook_updatePlayerInfo, PostHook_updatePlayerInfo);
-sdk.hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), PreHook_isOperationOn, PostHook_isOperationOn);
-sdk.hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);
+hook(GoodRelationship_type_def:get_method("updatePlayerInfo"), PreHook_updatePlayerInfo, PostHook_updatePlayerInfo);
+hook(Constants.type_definitions.StmGuiInput_type_def:get_method("isOperationOn(snow.StmInputManager.UI_INPUT, snow.StmInputManager.UI_INPUT)"), nil, PostHook_isOperationOn);
+hook(GoodRelationship_type_def:get_method("sendGood"), PreHook_sendGood);
