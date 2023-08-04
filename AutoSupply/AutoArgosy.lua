@@ -50,12 +50,12 @@ local findInventoryData_method = getItemBox_method:get_return_type():get_method(
 --
 local NegotiationTypes_type_def = get_NegotiationType_method:get_return_type();
 local NegotiationTypes = {
-    [0] = NegotiationTypes_type_def:get_field("Negotiation_000"):get_data(nil),
-    [1] = NegotiationTypes_type_def:get_field("Negotiation_001"):get_data(nil),
-    [2] = NegotiationTypes_type_def:get_field("Negotiation_002"):get_data(nil),
-    [3] = NegotiationTypes_type_def:get_field("Negotiation_003"):get_data(nil),
-    [4] = NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
-    [5] = NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
+    NegotiationTypes_type_def:get_field("Negotiation_000"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_001"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_002"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_003"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_004"):get_data(nil),
+    NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
 };
 
 local Acorn_Id = Constants.type_definitions.ItemId_type_def:get_field("I_Normal_1041"):get_data(nil);
@@ -68,40 +68,29 @@ local SendInventoryResult = {
 --
 local cacheNegotiationData = nil;
 --
+local function mkTable()
+    local table = {
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+    };
+
+    return table;
+end
 local function buildCache(tradeFunc)
     if cacheNegotiationData == nil then
         cacheNegotiationData = {
-            [0] = {
-                Count = false,
-                Cost = false
-            },
-            [1] = {
-                Count = false,
-                Cost = false
-            },
-            [2] = {
-                Count = false,
-                Cost = false
-            },
-            [3] = {
-                Count = false,
-                Cost = false
-            },
-            [4] = {
-                Count = false,
-                Cost = false
-            },
-            [5] = {
-                Count = false,
-                Cost = false
-            }
+            Count = mkTable(),
+            Cost = mkTable()
         };
 
-        for i, v in pairs(NegotiationTypes) do
-            local NegotiationData = getNegotiationData_method:call(tradeFunc, v);
-            local cacheData = cacheNegotiationData[i];
-            cacheData.Count = NegotiationData_get_Count_method:call(NegotiationData);
-            cacheData.Cost = get_Cost_method:call(NegotiationData);
+        for i = 1, 6, 1 do
+            local NegotiationData = getNegotiationData_method:call(tradeFunc, NegotiationTypes[i]);
+            cacheNegotiationData.Count[i] = NegotiationData_get_Count_method:call(NegotiationData);
+            cacheNegotiationData.Cost[i] = get_Cost_method:call(NegotiationData);
         end
     end
 end
@@ -127,11 +116,13 @@ local this = {
             local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
             if get_NegotiationCount_method:call(TradeOrder) == 1 then
                 local addNegoCount = addCount;
-                local NegotiationData = cacheNegotiationData[get_NegotiationType_method:call(TradeOrder)];
+                local NegotiationType = get_NegotiationType_method:call(TradeOrder) + 1;
+                local NegotiationCountData = cacheNegotiationData.Count[NegotiationType];
+                local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
 
-                if get_Point_method:call(nil) >= NegotiationData.Cost then
-                    addNegoCount = addNegoCount + NegotiationData.Count;
-                    subPoint_method:call(nil, NegotiationData.Cost);
+                if get_Point_method:call(nil) >= NegotiationCostData then
+                    addNegoCount = addNegoCount + NegotiationCountData;
+                    subPoint_method:call(nil, NegotiationCostData);
                 end
 
                 if addNegoCount > 1 then
@@ -164,7 +155,7 @@ local this = {
             end
         end
 
-        if acornAvailable == true and countUpdated == true then
+        if addCount > 1 and countUpdated == true then
             sub_method:call(acornInventoryData, 1, true);
         end
 

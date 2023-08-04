@@ -10,11 +10,11 @@ local checkQuestStatus = Constants.checkQuestStatus;
 local Success = Constants.QuestStatus.Success;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-local Home_key = Constants.Keys.Home_key;
+local Home = Constants.Keys.Home;
 
 local ClearFade = Constants.ClearFade;
 
-local RETURN_TRUE_func = Constants.RETURN_TRUE;
+local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 --
 local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
@@ -40,7 +40,7 @@ hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):ge
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
 	if checkQuestStatus(questManager, Success) == true then
-		if getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home_key) == true and getQuestPlayerCount_method:call(questManager) == 1) then
+		if getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1) then
 			nextEndFlowToCameraDemo_method:call(questManager);
 		end
 	end

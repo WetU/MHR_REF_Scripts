@@ -104,6 +104,17 @@ local function Terminate()
     skipUpdate = false;
 end
 
+local function mkTable()
+    local table = {
+        Atk = true,
+        Def = true,
+        Vital = true,
+        Stamina = true
+    };
+
+    return table;
+end
+
 local function createData()
     local PlayerManager = get_managed_singleton("snow.player.PlayerManager");
     hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
@@ -111,30 +122,10 @@ local function createData()
     local EquipDataManager = get_managed_singleton("snow.data.EquipDataManager");
     local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
 
-    this.StatusBuffLimits = {
-        Atk = false,
-        Def = false,
-        Vital = false,
-        Stamina = false
-    };
-    this.BirdsMaxCounts = {
-        Atk = false,
-        Def = false,
-        Vital = false,
-        Stamina = false
-    };
-    this.AcquiredCounts = {
-        Atk = false,
-        Def = false,
-        Vital = false,
-        Stamina = false
-    };
-    this.AcquiredValues = {
-        Atk = false,
-        Def = false,
-        Vital = false,
-        Stamina = false
-    };
+    this.StatusBuffLimits = mkTable();
+    this.BirdsMaxCounts = mkTable();
+    this.AcquiredCounts = mkTable();
+    this.AcquiredValues = mkTable();
 
     for k, v in pairs(BuffTypes) do
         local LvBuffType = LvBuff[k];

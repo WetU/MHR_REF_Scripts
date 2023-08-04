@@ -7,7 +7,7 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 
-local RETURN_TRUE_func = Constants.RETURN_TRUE;
+local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 local ClearFade = Constants.ClearFade;
 --
 hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);

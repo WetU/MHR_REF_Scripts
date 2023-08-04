@@ -6,7 +6,7 @@ local find_type_definition = Constants.sdk.find_type_definition;
 
 local to_bool = Constants.to_bool;
 local TRUE_POINTER = Constants.TRUE_POINTER;
-local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL;
+local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 --
 local MAX_FPS = 119.98;
 --

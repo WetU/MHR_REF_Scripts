@@ -7,8 +7,8 @@ local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-local F5_key = Constants.Keys.F5_key;
-local F6_key = Constants.Keys.F6_key;
+local F5 = Constants.Keys.F5;
+local F6 = Constants.Keys.F6;
 --
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
@@ -21,8 +21,8 @@ local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 -- Village AreaMove shortcut
 local function villageJump(args)
-    local fastTravelType = checkKeyTrg(F5_key) == true and ELGADO_CHICHE
-        or checkKeyTrg(F6_key) == true and ELGADO_KITCHEN
+    local fastTravelType = checkKeyTrg(F5) == true and ELGADO_CHICHE
+        or checkKeyTrg(F6) == true and ELGADO_KITCHEN
         or nil;
 
     if fastTravelType ~= nil then
@@ -33,7 +33,7 @@ hook(VillageAreaManager_type_def:get_method("update"), villageJump);
 
 -- Reset Quest shortcut
 local function onUpdateNormalQuest(args)
-	if checkKeyTrg(F5_key) == true then
+	if checkKeyTrg(F5) == true then
 		notifyReset_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
 	end
 end

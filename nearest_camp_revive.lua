@@ -42,28 +42,28 @@ local AreaMoveQuest_Die = find_type_definition("snow.stage.StageManager.AreaMove
 local QuestMapList = Constants.QuestMapList;
 local SubCampRevivalPos = {
     [QuestMapList.ShrineRuins] = {
-        [1] = Vector3f_new(236.707, 174.37, -510.568)
+        Vector3f_new(236.707, 174.37, -510.568)
     },
     [QuestMapList.SandyPlains] = {
-        [1] = Vector3f_new(-117.699, -45.653, -233.201),
-        [2] = Vector3f_new(116.07, -63.316, -428.018)
+        Vector3f_new(-117.699, -45.653, -233.201),
+        Vector3f_new(116.07, -63.316, -428.018)
     },
     [QuestMapList.FloodedForest] = {
-        [1] = Vector3f_new(207.968, 90.447, 46.081)
+        Vector3f_new(207.968, 90.447, 46.081)
     },
     [QuestMapList.FrostIslands] = {
-        [1] = Vector3f_new(-94.171, 2.744, -371.947),
-        [2] = Vector3f_new(103.986, 26.0, -496.863)
+        Vector3f_new(-94.171, 2.744, -371.947),
+        Vector3f_new(103.986, 26.0, -496.863)
     },
     [QuestMapList.LavaCaverns] = {
-        [1] = Vector3f_new(244.252, 147.122, -537.940),
-        [2] = Vector3f_new(-40.000, 81.136, -429.201)
+        Vector3f_new(244.252, 147.122, -537.940),
+        Vector3f_new(-40.000, 81.136, -429.201)
     },
     [QuestMapList.Jungle] = {
-        [1] = Vector3f_new(3.854, 32.094, -147.152)
+        Vector3f_new(3.854, 32.094, -147.152)
     },
     [QuestMapList.Citadel] = {
-        [1] = Vector3f_new(107.230, 94.988, -254.308)
+        Vector3f_new(107.230, 94.988, -254.308)
     }
 };
 --

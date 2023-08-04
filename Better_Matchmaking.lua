@@ -15,7 +15,7 @@ local to_bool = Constants.to_bool;
 
 local SendMessage = Constants.SendMessage;
 
-local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL;
+local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 
 local checkGameStatus = Constants.checkGameStatus;
 
