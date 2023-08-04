@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 local HarvestMoonTimer = require("WetU_Overlay.HarvestMoonTimer");
 local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
@@ -142,6 +142,7 @@ local function drawSpiribirdsStatus()
         end
 
         pop_font();
+
     elseif SpiribirdsCall_Timer ~= nil then
         push_font(Font);
 

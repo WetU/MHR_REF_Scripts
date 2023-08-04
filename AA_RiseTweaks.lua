@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local hook = Constants.sdk.hook;

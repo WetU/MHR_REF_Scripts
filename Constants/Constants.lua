@@ -1,10 +1,12 @@
-local math = math;
-local string = string;
+local _G = _G;
 
-local imgui = imgui;
+local math = _G.math;
+local string = _G.string;
+
+local imgui = _G.imgui;
 local load_font = imgui.load_font;
 
-local sdk = sdk;
+local sdk = _G.sdk;
 local to_ptr = sdk.to_ptr;
 local to_int64 = sdk.to_int64;
 local find_type_definition = sdk.find_type_definition;
@@ -12,24 +14,24 @@ local get_managed_singleton = sdk.get_managed_singleton;
 local PreHookResult = sdk.PreHookResult;
 local SKIP_ORIGINAL = PreHookResult.SKIP_ORIGINAL;
 
-local re = re;
+local re = _G.re;
 
-local Vector2f = Vector2f;
-local Vector3f = Vector3f;
-local ValueType = ValueType;
+local Vector2f = _G.Vector2f;
+local Vector3f = _G.Vector3f;
 
 local TRUE_POINTER = to_ptr(true);
 local QuestManager_type_def = find_type_definition("snow.QuestManager");
 
 local this = {
     lua = {
-        pairs = pairs,
-        ipairs = ipairs,
-        tostring = tostring,
+        pairs = _G.pairs,
+        ipairs = _G.ipairs,
+        tostring = _G.tostring,
         math_min = math.min,
         math_max = math.max,
         string_format = string.format
     },
+
     sdk = {
         hook = sdk.hook,
         hook_vtable = sdk.hook_vtable,
@@ -43,8 +45,8 @@ local this = {
         SKIP_ORIGINAL = SKIP_ORIGINAL,
         CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL
     },
+
     imgui = {
-        load_font = load_font,
         push_font = imgui.push_font,
         pop_font = imgui.pop_font,
         begin_window = imgui.begin_window,
@@ -59,21 +61,24 @@ local this = {
         text_colored = imgui.text_colored,
         spacing = imgui.spacing
     },
+
     re = {
         on_frame = re.on_frame
     },
+
     Vector2f = {
         new = Vector2f.new
     },
+
     Vector3f = {
         new = Vector3f.new
     },
-    ValueType = {
-        new = ValueType.new
-    },
+
     isOnVillageStarted = false,
+
     TRUE_POINTER = TRUE_POINTER,
     FALSE_POINTER = to_ptr(false),
+
     Font = load_font("NotoSansKR-Bold.otf", 22, {
         0x0020, 0x00FF, -- Basic Latin + Latin Supplement
         0x2000, 0x206F, -- General Punctuation

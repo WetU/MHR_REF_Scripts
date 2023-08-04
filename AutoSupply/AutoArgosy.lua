@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local pairs = Constants.lua.pairs;
@@ -6,8 +6,6 @@ local pairs = Constants.lua.pairs;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
-local type_definitions = Constants.type_definitions;
-
 local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
 local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
@@ -44,7 +42,7 @@ local isEmpty_method = Inventory_type_def:get_method("isEmpty");
 local sub_method = Inventory_type_def:get_method("sub(System.UInt32, System.Boolean)");
 local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
 
-local DataManager_type_def = type_definitions.DataManager_type_def;
+local DataManager_type_def = Constants.type_definitions.DataManager_type_def;
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
 local getItemBox_method = DataManager_type_def:get_method("getItemBox");
 
@@ -60,7 +58,7 @@ local NegotiationTypes = {
     [5] = NegotiationTypes_type_def:get_field("Negotiation_005"):get_data(nil)
 };
 
-local Acorn_Id = type_definitions.ItemId_type_def:get_field("I_Normal_1041"):get_data(nil);
+local Acorn_Id = Constants.type_definitions.ItemId_type_def:get_field("I_Normal_1041"):get_data(nil);
 local PlayerItemBox = find_type_definition("snow.data.InventoryData.InventoryType"):get_field("PlayerItemBox"):get_data(nil);
 local SendInventoryResult_type_def = sendInventory_method:get_return_type();
 local SendInventoryResult = {

@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
@@ -35,7 +35,7 @@ local EndFlow = {
 local function skipKillCamera()
 	DemoEnd_method:call(get_managed_singleton("snow.camera.DemoCamera"));
 end
-hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Update(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform)"), skipKillCamera);
+hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipKillCamera);
 
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
@@ -46,6 +46,10 @@ local function onWaitEndTimer(questManager)
 	end
 end
 
+local function clearEndFlowTimer(questManager)
+	questManager:set_field("_QuestEndFlowTimer", 0.0);
+end
+
 local function PreHook_updateQuestEndFlow(args)
 	local QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
 	local endFlow = EndFlow_field:get_data(QuestManager);
@@ -54,7 +58,7 @@ local function PreHook_updateQuestEndFlow(args)
 		onWaitEndTimer(QuestManager);
 
 	elseif endFlow == EndFlow.CameraDemo then
-		QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+		clearEndFlowTimer(QuestManager);
 
 	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
 		ClearFade();

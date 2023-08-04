@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local pairs = Constants.lua.pairs;
@@ -50,8 +50,7 @@ local this = {
     }
 };
 --
-local type_definitions = Constants.type_definitions;
-local EquipDataManager_type_def = type_definitions.EquipDataManager_type_def;
+local EquipDataManager_type_def = Constants.type_definitions.EquipDataManager_type_def;
 local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
 local addLvBuffCount_method = EquipDataManager_type_def:get_method("addLvBuffCount(snow.data.NormalLvBuffCageData.BuffTypes, System.Int32)"); -- static
 local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)");
@@ -59,7 +58,7 @@ local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("
 
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 --
-local PlayerManager_type_def = type_definitions.PlayerManager_type_def;
+local PlayerManager_type_def = Constants.type_definitions.PlayerManager_type_def;
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
 local PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");

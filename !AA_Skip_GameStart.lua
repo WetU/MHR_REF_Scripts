@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
@@ -10,10 +10,9 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local RETURN_TRUE_func = Constants.RETURN_TRUE;
 local ClearFade = Constants.ClearFade;
 --
-local type_definitions = Constants.type_definitions;
-hook(type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
+hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
 
-if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
+if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
 	local Movie_type_def = find_type_definition("via.movie.Movie");
 	local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
 	local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
@@ -26,7 +25,7 @@ if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil
 	local function PreHook_play(args)
 		local GuiGameStartFsmManager = get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager ~= nil then
-			local GameStartState = get_GameStartState_method:call(get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager"));
+			local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
 			if GameStartState ~= nil and GameStartState >= 0 and GameStartState <= 7 then
 				Movie = to_managed_object(args[2]);
 			end

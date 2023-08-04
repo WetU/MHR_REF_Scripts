@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
@@ -12,8 +12,6 @@ local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
 
 local to_uint = Constants.to_uint;
 local to_bool = Constants.to_bool;
-
-local ValueType_new = Constants.ValueType.new;
 
 local SendMessage = Constants.SendMessage;
 

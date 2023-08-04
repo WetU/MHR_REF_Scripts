@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
@@ -6,13 +6,12 @@ local string_format = Constants.lua.string_format;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
-local DefaultSet = 0
+local DefaultSet = 0;
 --
-local type_definitions = Constants.type_definitions;
-local findMasterPlayer_method = type_definitions.PlayerManager_type_def:get_method("findMasterPlayer");
+local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer");
 local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
 
-local get_ItemMySet_method = type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static
+local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static
 
 local ItemMySet_type_def = get_ItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
@@ -27,7 +26,7 @@ local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type();
 local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
 local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
 
-local PlEquipMySetList_field = type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
+local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
 local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
 
@@ -74,7 +73,9 @@ local LocalizedStrings = {
 
     PaletteNilError = "<COL RED>오류</COL>：팔레트 미설정",
     PaletteApplied = "팔레트 [<COL YEL>%s</COL>] 적용",
-    PaletteListEmpty = "팔레트 설정이 비어있습니다"
+    PaletteListEmpty = "팔레트 설정이 비어있습니다",
+
+    WeaponTypeNilError = "<ERROR>:GetWeaponName failed"
 };
 --
 local lastHitLoadoutIndex = nil;
@@ -96,7 +97,7 @@ local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
 end
 
 local function GetWeaponName(weaponType)
-    return weaponType == nil and "<ERROR>:GetWeaponName failed" or LocalizedStrings.WeaponNames[weaponType];
+    return weaponType == nil and LocalizedStrings.WeaponTypeNilError or LocalizedStrings.WeaponNames[weaponType];
 end
 
 local function FromWeaponType(equipName, itemName, mismatch)

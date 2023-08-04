@@ -1,4 +1,4 @@
-local require = require;
+local require = _G.require;
 local Constants = require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
@@ -16,13 +16,12 @@ local Vector2f_new = Constants.Vector2f.new;
 --
 local this = {
     init = false,
-    currentStep = nil,
-    get_currentStepCount = false
+    get_currentStepCount = false,
+    currentStep = nil
 };
 --
-local type_definitions = Constants.type_definitions;
-local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
-local QuestManager_type_def = type_definitions.QuestManager_type_def;
+local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
+local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 
 local OtomoSpyUnitManager_type_def = find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
@@ -90,6 +89,7 @@ end
 
 local function handleReward(args)
     local GuiOtomoSpyUnitMainControll = to_managed_object(args[2]);
+
     if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == ItemReceive then
         local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
 
