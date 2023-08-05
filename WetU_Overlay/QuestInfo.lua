@@ -8,6 +8,7 @@ local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
+local checkGameStatus = Constants.checkGameStatus;
 local getQuestLife = Constants.getQuestLife;
 local getDeathNum = Constants.getDeathNum;
 --
@@ -78,6 +79,9 @@ local function Terminate()
 end
 
 local function init()
+    if checkGameStatus(Constants.GameStatusType.Quest) == true then
+        QuestInfo_onQuestStart();
+    end
     hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
     hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
     hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);

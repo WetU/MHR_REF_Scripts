@@ -9,8 +9,8 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
+local to_int64 = Constants.sdk.to_int64;
 --
-local to_uint = Constants.to_uint;
 local SendMessage = Constants.SendMessage;
 --
 local Restock = InventorySupply.Restock;
@@ -22,7 +22,7 @@ local cohootSupply = CohootSupply.Supply;
 local autoArgosy = AutoArgosy.autoArgosy;
 --
 local function PreHook_applyEquipMySet(args)
-    SendMessage(nil, Restock(to_managed_object(args[2]) or get_managed_singleton("snow.data.EquipDataManager"), to_uint(args[3])));
+    SendMessage(nil, Restock(to_managed_object(args[2]) or get_managed_singleton("snow.data.EquipDataManager"), to_int64(args[3])));
 end
 hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet);
 --

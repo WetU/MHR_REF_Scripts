@@ -85,6 +85,7 @@ local function drawQuestInfo()
         end
 
         pop_font();
+
     elseif DeathCount ~= nil then
         push_font(Font);
 
@@ -167,9 +168,3 @@ HarvestMoonTimer.init();
 OtomoSpyUnit.init();
 QuestInfo.init();
 SpiribirdsStatus.init();
-
-if checkGameStatus(Constants.GameStatusType.Village) == true then
-    OtomoSpyUnit.get_currentStepCount();
-elseif checkGameStatus(Constants.GameStatusType.Quest) == true then
-    QuestInfo_onQuestStart();
-end

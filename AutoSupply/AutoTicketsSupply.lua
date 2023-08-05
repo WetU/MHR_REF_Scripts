@@ -121,13 +121,9 @@ local function talkHandler()
     end
 end
 --
-local function GetTicket(ticketType)
-    Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), ticketType);
-end
-
 local function PostHook_checkPickItem_V02Ticket(retval)
     if to_bool(retval) == true then
-        GetTicket(TicketType.V02Ticket);
+        Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), TicketType.V02Ticket);
         return FALSE_POINTER;
     end
 
@@ -135,7 +131,7 @@ local function PostHook_checkPickItem_V02Ticket(retval)
 end
 local function PostHook_checkPickItem_MysteryTicket(retval)
     if to_bool(retval) == true then
-        GetTicket(TicketType.MysteryTicket);
+        Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), TicketType.MysteryTicket);
         return FALSE_POINTER;
     end
 
@@ -143,7 +139,7 @@ local function PostHook_checkPickItem_MysteryTicket(retval)
 end
 --[[local function PostHook_checkPickItem_VillageTicket(retval)
     if to_bool(retval) == true then
-        GetTicket(TicketType.Village);
+        Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), TicketType.Village);
         return FALSE_POINTER;
     end
 
@@ -151,7 +147,7 @@ end
 end
 local function PostHook_checkPickItem_GuildTicket(retval)
     if to_bool(retval) == true then
-        GetTicket(TicketType.Hall);
+        Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), TicketType.Hall);
         return FALSE_POINTER;
     end
 

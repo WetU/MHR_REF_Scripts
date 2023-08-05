@@ -76,6 +76,11 @@ local LocalizedStrings = {
 
     WeaponTypeNilError = "<ERROR>:GetWeaponName failed"
 };
+
+local MATCH_TYPE = {
+    1, -- Loadout
+    2  -- WeaponType
+};
 --
 local lastHitLoadoutIndex = nil;
 
@@ -112,21 +117,21 @@ end
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
     if expectedLoadoutIndex ~= nil then
         lastHitLoadoutIndex = expectedLoadoutIndex;
-        return "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
+        return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
     else
 		if lastHitLoadoutIndex ~= nil and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
-            return "Loadout", GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex), nil;
+            return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex), nil;
         end
 
         for i = 0, 223, 1 do
             if EquipmentLoadoutIsEquipped(equipDataManager, i) == true then
                 lastHitLoadoutIndex = i;
-                return "Loadout", GetEquipmentLoadoutName(equipDataManager, i), nil;
+                return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, i), nil;
             end
         end
     end
 
-    return "WeaponType", GetWeaponName(GetCurrentWeaponType()), true;
+    return MATCH_TYPE[2], GetWeaponName(GetCurrentWeaponType()), true;
 end
 --
 local this = {
@@ -141,23 +146,21 @@ local this = {
             if isEnoughItem_method:call(loadout) == true then
                 local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
                 applyItemMySet_method:call(ItemMySet, DefaultSet);
-                msg = matchedType == "Loadout" and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
-                    or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
+                msg = matchedType == MATCH_TYPE[1] and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
+                    or matchedType == MATCH_TYPE[2] and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
                     or FromDefault(itemLoadoutName, loadoutMismatch);
 
                 local paletteIndex = get_PaletteSetIndex_method:call(loadout);
 
                 if paletteIndex == nil then
                     msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
-                else
-                    if get_HasValue_method:call(paletteIndex) == true then
-                        local radialSetIndex = get_Value_method:call(paletteIndex);
-                        local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-                        local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
-                        msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                            or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
-                        setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
-                    end
+                elseif get_HasValue_method:call(paletteIndex) == true then
+                    local radialSetIndex = get_Value_method:call(paletteIndex);
+                    local ShortcutManager = getCustomShortcutSystem_method:call(nil);
+                    local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+                    msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
+                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
+                    setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                 end
             end
 

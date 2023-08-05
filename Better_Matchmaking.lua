@@ -9,11 +9,8 @@ local to_valuetype = Constants.sdk.to_valuetype;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
 local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
 
-local to_uint = Constants.to_uint;
 local to_bool = Constants.to_bool;
-
 local SendMessage = Constants.SendMessage;
-
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 
 local checkGameStatus = Constants.checkGameStatus;
@@ -104,7 +101,7 @@ local function prehook_req_matchmaking(args)
 
 	quest_vars = {
 		quest_type = regular,
-		quest_id = to_uint(args[3])
+		quest_id = to_int64(args[3])
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSession
@@ -121,7 +118,7 @@ local function prehook_req_matchmaking_random(args)
 
 	quest_vars = {
 		quest_type = random,
-		my_hunter_rank = to_uint(args[3])
+		my_hunter_rank = to_int64(args[3])
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandom
@@ -138,7 +135,7 @@ local function prehook_req_matchmaking_hyakuryu(args)
 
 	quest_vars = {
 		quest_type = rampage,
-		difficulty = to_uint(args[3]),
+		difficulty = to_int64(args[3]),
 		quest_level = to_valuetype(args[4], nullable_uint32_type_def),
 		target_enemy = to_valuetype(args[5], nullable_uint32_type_def)
 	};
@@ -159,8 +156,8 @@ local function prehook_req_matchmaking_random_master_rank(args)
 
 	quest_vars = {
 		quest_type = random_master_rank,
-		my_hunter_rank = to_uint(args[3]),
-		my_master_rank = to_uint(args[4])
+		my_hunter_rank = to_int64(args[3]),
+		my_master_rank = to_int64(args[4])
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandomMasterRank
@@ -178,9 +175,9 @@ local function prehook_req_matchmaking_random_mystery(args)
 
 	quest_vars = {
 		quest_type = random_anomaly,
-		my_hunter_rank = to_uint(args[3]),
-		my_master_rank = to_uint(args[4]),
-		anomaly_research_level = to_uint(args[5])
+		my_hunter_rank = to_int64(args[3]),
+		my_master_rank = to_int64(args[4]),
+		anomaly_research_level = to_int64(args[5])
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionRandomMystery
@@ -199,11 +196,11 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 
 	quest_vars = {
 		quest_type = anomaly_investigation,
-		min_level = to_uint(args[3]),
-		max_level = to_uint(args[4]),
-		party_limit = to_uint(args[5]),
+		min_level = to_int64(args[3]),
+		max_level = to_int64(args[4]),
+		party_limit = to_int64(args[5]),
 		enemy_id = to_valuetype(args[6], nullable_uint32_type_def),
-		reward_item = to_uint(args[7]) or I_Unclassified_None,
+		reward_item = to_int64(args[7]) or I_Unclassified_None,
 		is_special_random_mystery = to_bool(args[8])
 	};
 end

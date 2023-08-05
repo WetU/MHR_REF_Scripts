@@ -5,6 +5,7 @@ local ipairs = Constants.lua.ipairs;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
+local to_int64 = Constants.sdk.to_int64;
 local to_float = Constants.sdk.to_float;
 local hook = Constants.sdk.hook;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
@@ -14,7 +15,6 @@ local Vector3f_new = Constants.Vector3f.new;
 local getDeathNum = Constants.getDeathNum;
 local getQuestLife = Constants.getQuestLife;
 local getQuestMapNo = Constants.getQuestMapNo;
-local to_byte = Constants.to_byte;
 --
 local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):get_method("calcDistance(via.vec3, via.vec3)"); -- static
 --
@@ -110,7 +110,7 @@ local function PreHook_CreateNekotaku(args)
     if reviveCampPos ~= nil then
         local campPos = reviveCampPos;
         reviveCampPos = nil;
-        CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_byte(args[3]), campPos, to_float(args[5]));
+        CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_int64(args[3]), campPos, to_float(args[5]));
         return SKIP_ORIGINAL;
     end
 end

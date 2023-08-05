@@ -12,6 +12,7 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
 local Vector2f_new = Constants.Vector2f.new;
+local checkGameStatus = Constants.checkGameStatus;
 --
 local this = {
     init = true,
@@ -139,6 +140,9 @@ local function onChangedGameStatus(args)
 end
 
 local function init()
+    if checkGameStatus(Constants.GameStatusType.Village) == true then
+        get_currentStepCount();
+    end
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
     hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
