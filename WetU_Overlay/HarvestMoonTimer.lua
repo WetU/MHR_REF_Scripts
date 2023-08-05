@@ -7,9 +7,9 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 --
-local getMasterPlayerIndex_method = find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayerIndex"); -- static
+local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
 --
-local LongSwordShell010_type_def = find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):get_return_type():get_method("get_Item(System.Int32)"):get_return_type();
+local LongSwordShell010_type_def = find_type_definition("snow.shell.LongSwordShell010");
 local update_method = LongSwordShell010_type_def:get_method("update");
 local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
@@ -50,8 +50,10 @@ local function PostHook()
     LongSwordShell010 = nil;
 end
 
-this.init = function()
+local function init()
     hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
 end
+
+this.init = init;
 --
 return this;

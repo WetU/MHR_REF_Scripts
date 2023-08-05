@@ -172,5 +172,4 @@ if checkGameStatus(Constants.GameStatusType.Village) == true then
     OtomoSpyUnit.get_currentStepCount();
 elseif checkGameStatus(Constants.GameStatusType.Quest) == true then
     QuestInfo_onQuestStart();
-    SpiribirdsStatus.CreateData();
 end

@@ -11,6 +11,7 @@ local ResetState_None = find_type_definition("snow.camera.PlayerCamera.ResetStat
 local get_MarionetteCameraType_method = Constants.type_definitions.CameraManager_type_def:get_method("get_MarionetteCameraType");
 local MarionetteCameraType_type_def = get_MarionetteCameraType_method:get_return_type();
 local NotResetTypes = {
+	[MarionetteCameraType_type_def:get_field("FreeRun"):get_data(nil)] = true,
 	[MarionetteCameraType_type_def:get_field("GetOff"):get_data(nil)] = true,
 	[MarionetteCameraType_type_def:get_field("GetOffTryAgainInput"):get_data(nil)] = true,
 	[MarionetteCameraType_type_def:get_field("GetOffFreeRun"):get_data(nil)] = true

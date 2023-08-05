@@ -30,18 +30,19 @@ local EndFlow = {
 	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
 	WaitFadeOut = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
--- Skip Kill Camera
-local function skipKillCamera()
+-- Skip Demo Camera
+local function skipDemo()
 	DemoEnd_method:call(get_managed_singleton("snow.camera.DemoCamera"));
 end
-hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipKillCamera);
+hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
+hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_ResultFailed"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
+hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_ResultRetire"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
+hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_ResultSuccess"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
 
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
-	if checkQuestStatus(questManager, Success) == true then
-		if getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1) then
-			nextEndFlowToCameraDemo_method:call(questManager);
-		end
+	if checkQuestStatus(questManager, Success) == true and (getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
+		nextEndFlowToCameraDemo_method:call(questManager);
 	end
 end
 

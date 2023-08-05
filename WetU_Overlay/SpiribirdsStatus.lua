@@ -12,6 +12,7 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
+local hook_vtable = Constants.sdk.hook_vtable;
 local to_int64 = Constants.sdk.to_int64;
 
 local getQuestMapNo = Constants.getQuestMapNo;
@@ -61,7 +62,10 @@ local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_t
 local PlayerManager_type_def = Constants.type_definitions.PlayerManager_type_def;
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
-local PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
+local getMasterPlayer_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayer"); -- static
+
+local PlayerQuestBase_type_def = getMasterPlayer_method:get_return_type();
+local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
@@ -175,6 +179,11 @@ end
 
 this.onQuestStart = onQuestStart;
 
+local function init_Data(playerQuestBase)
+    createData();
+    hook_vtable(playerQuestBase, onDestroy_method, nil, Terminate);
+end
+
 local PreHook_PlayerQuestBase_start = nil;
 local PostHook_PlayerQuestBase_start = nil;
 do
@@ -184,7 +193,7 @@ do
     end
     PostHook_PlayerQuestBase_start = function()
         if isMasterPlayer_method:call(PlayerQuestBase) == true then
-            createData();
+            init_Data(PlayerQuestBase);
         end
 
         PlayerQuestBase = nil;
@@ -274,11 +283,15 @@ do
 end
 
 local function init()
+    local MasterPlayerQuestBase = getMasterPlayer_method:call(nil);
+    if MasterPlayerQuestBase ~= nil then
+        init_Data(MasterPlayerQuestBase);
+    end
+
     hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
     hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
     hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
-    hook(PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, Terminate);
 end
 
 this.init = init;
