@@ -41,7 +41,7 @@ hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_ResultSuccess")
 
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
-	if checkQuestStatus(questManager, Success) == true and (getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
+	if (getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) and checkQuestStatus(questManager, Success) == true then
 		nextEndFlowToCameraDemo_method:call(questManager);
 	end
 end
@@ -50,19 +50,28 @@ local function clearEndFlowTimer(questManager)
 	questManager:set_field("_QuestEndFlowTimer", 0.0);
 end
 
-local function PreHook_updateQuestEndFlow(args)
-	local QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
-	local endFlow = EndFlow_field:get_data(QuestManager);
+local function EndFlow_body(questManager)
+	local endFlow = EndFlow_field:get_data(questManager);
 
 	if endFlow == EndFlow.WaitEndTimer then
-		onWaitEndTimer(QuestManager);
+		onWaitEndTimer(questManager);
 
 	elseif endFlow == EndFlow.CameraDemo then
-		clearEndFlowTimer(QuestManager);
+		clearEndFlowTimer(questManager);
 
 	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
 		ClearFade();
 	end
 end
-hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
+
+local QuestManager = nil;
+local function PreHook_updateQuestEndFlow(args)
+	QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+	EndFlow_body(QuestManager);
+end
+local function PostHook_updateQuestEndFlow()
+	EndFlow_body(QuestManager);
+	QuestManager = nil;
+end
+hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
 hook(find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, RETURN_TRUE_func);

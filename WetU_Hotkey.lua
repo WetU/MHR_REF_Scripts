@@ -19,21 +19,41 @@ local ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 -- Village AreaMove shortcut
-local function villageJump(args)
+local function jump_Body(villageAreaManager)
     local fastTravelType = checkKeyTrg(F5) == true and ELGADO_CHICHE
         or checkKeyTrg(F6) == true and ELGADO_KITCHEN
         or nil;
 
     if fastTravelType ~= nil then
-        fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), fastTravelType);
+        fastTravel_method:call(villageAreaManager, fastTravelType);
     end
 end
-hook(VillageAreaManager_type_def:get_method("update"), villageJump);
+
+local VillageAreaManager = nil;
+local function PreHook_villageJump(args)
+    VillageAreaManager = to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager");
+    jump_Body(VillageAreaManager);
+end
+local function PostHook_villageJump()
+    jump_Body(VillageAreaManager);
+    VillageAreaManager = nil;
+end
+hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageJump, PostHook_villageJump);
 
 -- Reset Quest shortcut
-local function onUpdateNormalQuest(args)
-	if checkKeyTrg(F5) == true then
-		notifyReset_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
+local function reset_Body(questManager)
+    if checkKeyTrg(F5) == true then
+		notifyReset_method:call(questManager);
 	end
 end
-hook(QuestManager_type_def:get_method("updateNormalQuest"), onUpdateNormalQuest);
+
+local QuestManager = nil;
+local function PreHook_updateNormalQuest(args)
+    QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+	reset_Body(QuestManager);
+end
+local function PostHook_updateNormalQuest()
+    reset_Body(QuestManager);
+    QuestManager = nil;
+end
+hook(QuestManager_type_def:get_method("updateNormalQuest"), PreHook_updateNormalQuest, PostHook_updateNormalQuest);

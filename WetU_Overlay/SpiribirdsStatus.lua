@@ -228,21 +228,35 @@ local function PostHook_subLvBuffFromEnemy(retval)
     return retval;
 end
 
-local function PreHook_updateEquipSkill211(args)
-    if firstHook == true or skipUpdate ~= true then
-        local PlayerQuestBase = to_managed_object(args[2]);
-
-        if isMasterPlayer_method:call(PlayerQuestBase) == true then
+local PreHook_updateEquipSkill211 = nil;
+local PostHook_updateEquipSkill211 = nil;
+do
+    local function updateEquipSkill211_Body(playerQuestBase)
+        if isMasterPlayer_method:call(playerQuestBase) == true then
             if firstHook == true then
                 firstHook = false;
 
-                if get_IsInTrainingArea_method:call(PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(PlayerQuestBase) ~= true then
+                if get_IsInTrainingArea_method:call(playerQuestBase) == true or IsEnableStage_Skill211_field:get_data(playerQuestBase) ~= true then
                     skipUpdate = true;
                     this.SpiribirdsCall_Timer = "향응 비활성 지역";
                 end
             else
-                getCallTimer(PlayerQuestBase);
+                getCallTimer(playerQuestBase);
             end
+        end
+    end
+
+    local PlayerQuestBase = nil;
+    PreHook_updateEquipSkill211 = function(args)
+        if firstHook == true or skipUpdate ~= true then
+            PlayerQuestBase = to_managed_object(args[2]);
+            updateEquipSkill211_Body(PlayerQuestBase);
+        end
+    end
+    PostHook_updateEquipSkill211 = function()
+        if PlayerQuestBase ~= nil then
+            updateEquipSkill211_Body(PlayerQuestBase);
+            PlayerQuestBase = nil;
         end
     end
 end
@@ -290,7 +304,7 @@ local function init()
 
     hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
-    hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
+    hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211, PostHook_updateEquipSkill211);
     hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
 end
 

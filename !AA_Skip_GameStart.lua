@@ -1,6 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
 local hook = Constants.sdk.hook;
+local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 --
 if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
@@ -44,6 +45,7 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 		hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, ClearFade);
 	end
 	--
+	hook(StmGuiInput_type_def:get_method("getTitleDispSkipTrg"), nil, RETURN_TRUE_func);
 	hook(Movie_type_def:get_method("play"), PreHook_play, PostHook_play);
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("update(via.behaviortree.ActionArg)"), ClearFade);
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), ClearFade);
@@ -53,4 +55,4 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), Create_hook_vtable);
 end
 
-hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
+hook(StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
