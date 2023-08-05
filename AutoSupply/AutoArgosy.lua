@@ -1,7 +1,5 @@
 local Constants = _G.require("Constants.Constants");
 
-local pairs = Constants.lua.pairs;
-
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --

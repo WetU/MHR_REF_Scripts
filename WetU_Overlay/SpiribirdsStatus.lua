@@ -1,6 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
 local pairs = Constants.lua.pairs;
+local ipairs = Constants.lua.ipairs;
 
 local math_min = Constants.lua.math_min;
 local math_max = Constants.lua.math_max;
