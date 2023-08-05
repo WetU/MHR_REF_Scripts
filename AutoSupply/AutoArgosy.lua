@@ -95,7 +95,8 @@ end
 
 local function isAcornEnough(dataManager)
     local acornInventoryData = findInventoryData_method:call(getItemBox_method:call(dataManager), Acorn_Id);
-    return acornInventoryData, Inventory_get_Count_method:call(acornInventoryData) > 0;
+    local isAvailable = not isEmpty_method:call(acornInventoryData);
+    return acornInventoryData, isAvailable;
 end
 
 local this = {
