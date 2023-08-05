@@ -1,18 +1,12 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
-
-local to_bool = Constants.to_bool;
-local FALSE_POINTER = Constants.FALSE_POINTER;
+local Constants = _G.require("Constants.Constants");
 
 local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
---
-local this = {
-    init = false,
-    talkHandler = false
-};
+
+local to_bool = Constants.to_bool;
+local FALSE_POINTER = Constants.FALSE_POINTER;
 --
 local supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
@@ -20,20 +14,20 @@ local Otomo_supply_method = find_type_definition("snow.progress.ProgressOtomoTic
 --
 local TicketType_type_def = find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
 local TicketType = {
-    Village = TicketType_type_def:get_field("Village"):get_data(nil),
-    Hall = TicketType_type_def:get_field("Hall"):get_data(nil),
+    --Village = TicketType_type_def:get_field("Village"):get_data(nil),
+    --Hall = TicketType_type_def:get_field("Hall"):get_data(nil),
     V02Ticket = TicketType_type_def:get_field("V02Ticket"):get_data(nil),
     MysteryTicket = TicketType_type_def:get_field("MysteryTicket"):get_data(nil)
 };
 local Ticket_supply_method = find_type_definition("snow.progress.ProgressTicketSupplyManager"):get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
 --
-local ProgressEc019UnlockItemManager_type_def = find_type_definition("snow.progress.ProgressEc019UnlockItemManager");
+--[[local ProgressEc019UnlockItemManager_type_def = find_type_definition("snow.progress.ProgressEc019UnlockItemManager");
 local Ec019_supply_method = ProgressEc019UnlockItemManager_type_def:get_method("supply");
-local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method("supplyMR");
+local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method("supplyMR");]]
 --
-local SwitchAction_supply_method = find_type_definition("snow.progress.ProgressSwitchActionSupplyManager"):get_method("supply");
+--local SwitchAction_supply_method = find_type_definition("snow.progress.ProgressSwitchActionSupplyManager"):get_method("supply");
 --
-local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");
+--local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");
 --
 local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
@@ -96,20 +90,6 @@ local function get_IsMysteryResearchRequestClear()
     return get_IsClear_method:call(get_LaboReward_method:call(getMysteryLaboFacility_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
 end
 --
-local function GetTicket(ticketType)
-    Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), ticketType);
-    return FALSE_POINTER;
-end
-
-local function getNoteReward(retval)
-    if to_bool(retval) == true then
-        Note_supply_method:call(get_managed_singleton("snow.progress.ProgressNoteRewardManager"));
-        return FALSE_POINTER;
-    end
-
-    return retval;
-end
---
 local CommercialNpcTalkMessageCtrl = nil;
 local MysteryLaboNpcTalkMessageCtrl = nil;
 
@@ -128,7 +108,7 @@ local function PostHook_getTalkTarget()
     NpcTalkMessageCtrl = nil;
 end
 
-this.talkHandler = function()
+local function talkHandler()
     if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
         CommercialNpcTalkMessageCtrl = nil;
     end
@@ -140,105 +120,147 @@ this.talkHandler = function()
         MysteryLaboNpcTalkMessageCtrl = nil;
     end
 end
+--
+local function GetTicket(ticketType)
+    Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), ticketType);
+end
 
-this.init = function()
+local function PostHook_checkPickItem_V02Ticket(retval)
+    if to_bool(retval) == true then
+        GetTicket(TicketType.V02Ticket);
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+local function PostHook_checkPickItem_MysteryTicket(retval)
+    if to_bool(retval) == true then
+        GetTicket(TicketType.MysteryTicket);
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+--[[local function PostHook_checkPickItem_VillageTicket(retval)
+    if to_bool(retval) == true then
+        GetTicket(TicketType.Village);
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+local function PostHook_checkPickItem_GuildTicket(retval)
+    if to_bool(retval) == true then
+        GetTicket(TicketType.Hall);
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end]]
+
+local function PostHook_checkSupplyItem_OtomoTicket(retval)
+    if to_bool(retval) == true then
+        Otomo_supply_method:call(get_managed_singleton("snow.progress.ProgressOtomoTicketManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+
+--[[local function PostHook_checkSupplyItem_Ec019(retval)
+    if to_bool(retval) == true then
+        Ec019_supply_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+local function PostHook_checkSupplyItem_Ec019MR(retval)
+    if to_bool(retval) == true then
+        Ec019_supplyMR_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end]]
+
+--[[local function PostHook_checkSwitchAction_EnableSupply_Smithy(retval)
+    if to_bool(retval) == true then
+        SwitchAction_supply_method:call(get_managed_singleton("snow.progress.ProgressSwitchActionSupplyManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end]]
+
+local function PostHook_checkSupplyItem_GoodReward(retval)
+    if to_bool(retval) == true then
+        supplyReward_method:call(get_managed_singleton("snow.progress.ProgressGoodRewardManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+
+local function PostHook_checkSupplyItem_BBQReward(retval)
+    if to_bool(retval) == true then
+        outputTicket_method:call(get_BbqFunc_method:call(get_Kitchen_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end
+
+--[[local function getNoteReward(retval)
+    if to_bool(retval) == true then
+        Note_supply_method:call(get_managed_singleton("snow.progress.ProgressNoteRewardManager"));
+        return FALSE_POINTER;
+    end
+
+    return retval;
+end]]
+
+local function PostHook_checkMysteryResearchRequestEnd(retval)
+    if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+        MysteryResearchRequestEnd = false;
+        resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
+        set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
+        set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
+        MysteryLaboNpcTalkMessageCtrl = nil;
+        return FALSE_POINTER;
+    end
+
+    MysteryResearchRequestEnd = to_bool(retval);
+    return retval;
+end
+
+local function PostHook_checkCommercialStuff(retval)
+    CommercialStuff = to_bool(retval);
+    return retval;
+end
+
+local function init()
     hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
     hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_V02Ticket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            GetTicket(TicketType.V02Ticket);
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_MysteryTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            GetTicket(TicketType.MysteryTicket);
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_VillageTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            GetTicket(TicketType.Village);
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_GuildTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            GetTicket(TicketType.Hall);
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_OtomoTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            Otomo_supply_method:call(get_managed_singleton("snow.progress.ProgressOtomoTicketManager"));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_Ec019(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            Ec019_supply_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_Ec019MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            Ec019_supplyMR_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSwitchAction_EnableSupply_Smithy(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            SwitchAction_supply_method:call(get_managed_singleton("snow.progress.ProgressSwitchActionSupplyManager"));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_GoodReward(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            supplyReward_method:call(get_managed_singleton("snow.progress.ProgressGoodRewardManager"));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_BBQReward(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if to_bool(retval) == true then
-            outputTicket_method:call(get_BbqFunc_method:call(get_Kitchen_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
-            return FALSE_POINTER;
-        end
-
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
-            MysteryResearchRequestEnd = false;
-            resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
-            set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
-            set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
-            MysteryLaboNpcTalkMessageCtrl = nil;
-            return FALSE_POINTER;
-        end
-
-        MysteryResearchRequestEnd = to_bool(retval);
-        return retval;
-    end);
-    hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, function(retval)
-        CommercialStuff = to_bool(retval);
-        return retval;
-    end);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_V02Ticket(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkPickItem_V02Ticket);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_MysteryTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkPickItem_MysteryTicket);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_VillageTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkPickItem_VillageTicket);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkPickItem_GuildTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkPickItem_GuildTicket);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_OtomoTicket(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSupplyItem_OtomoTicket);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_Ec019(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSupplyItem_Ec019);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_Ec019MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSupplyItem_Ec019MR);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkSwitchAction_EnableSupply_Smithy(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSwitchAction_EnableSupply_Smithy);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_GoodReward(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSupplyItem_GoodReward);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkSupplyItem_BBQReward(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkSupplyItem_BBQReward);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
+    --hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
+    hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
 end
+--
+local this = {
+    init = init,
+    talkHandler = talkHandler
+};
 --
 return this;

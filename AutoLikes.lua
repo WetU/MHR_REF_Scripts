@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
@@ -19,37 +18,38 @@ local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(S
 
 local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field("_Enable");
 -- Main Function
+local MAX_ANGLE_Y = 360.0;
+local NO_WAIT_TIME = 0.0;
+
 local GoodRelationshipHud = nil;
 local sendReady = false;
 
 local function PreHook_updatePlayerInfo(args)
 	GoodRelationshipHud = to_managed_object(args[2]);
 
-	if gaugeAngleY_field:get_data(GoodRelationshipHud) ~= 360.0 then
-		GoodRelationshipHud:set_field("_gaugeAngleY", 360.0);
+	if gaugeAngleY_field:get_data(GoodRelationshipHud) ~= MAX_ANGLE_Y then
+		GoodRelationshipHud:set_field("_gaugeAngleY", MAX_ANGLE_Y);
 	end
 
-	if WaitTime_field:get_data(GoodRelationshipHud) ~= 0.0 then
-		GoodRelationshipHud:set_field("WaitTime", 0.0);
+	if WaitTime_field:get_data(GoodRelationshipHud) ~= NO_WAIT_TIME then
+		GoodRelationshipHud:set_field("WaitTime", NO_WAIT_TIME);
 	end
 end
 
 local function PostHook_updatePlayerInfo()
-	if GoodRelationshipHud ~= nil then
-		if sendReady ~= true then
-			local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
+	if sendReady ~= true then
+		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 
-			for i = 0, PlInfos_get_Count_method:call(OtherPlayerInfos) - 1, 1 do
-				local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
-				OtherPlayerInfo:set_field("_good", PlInfo_Enable_field:get_data(OtherPlayerInfo));
-				PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
-			end
-
-			sendReady = true;
+		for i = 0, PlInfos_get_Count_method:call(OtherPlayerInfos) - 1, 1 do
+			local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+			OtherPlayerInfo:set_field("_good", PlInfo_Enable_field:get_data(OtherPlayerInfo));
+			PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
 		end
 
-		GoodRelationshipHud = nil;
+		sendReady = true;
 	end
+
+	GoodRelationshipHud = nil;
 end
 
 local function PostHook_isOperationOn(retval)

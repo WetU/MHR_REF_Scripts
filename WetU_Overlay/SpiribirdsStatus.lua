@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local pairs = Constants.lua.pairs;
 
@@ -19,9 +18,9 @@ local QuestMapList = Constants.QuestMapList;
 local to_bool = Constants.to_bool;
 --
 local this = {
-    init = false,
-    CreateData = false,
-    onQuestStart = false,
+    init = true,
+    CreateData = true,
+    onQuestStart = true,
 
     SpiribirdsHudDataCreated = nil,
     SpiribirdsCall_Timer = nil,
@@ -273,12 +272,15 @@ do
     end
 end
 
-this.init = function()
+local function init()
     hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
     hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
     hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
     hook(PlayerManager_type_def:get_method("clearLvBuffCnt"), nil, Terminate);
 end
+
+this.init = init;
+    
 --
 return this;

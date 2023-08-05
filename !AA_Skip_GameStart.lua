@@ -1,18 +1,15 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
-local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
-local hook_vtable = Constants.sdk.hook_vtable;
-
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
-local ClearFade = Constants.ClearFade;
 --
-hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);
-
 if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
+	local find_type_definition = Constants.sdk.find_type_definition;
+	local get_managed_singleton = Constants.sdk.get_managed_singleton;
+	local to_managed_object = Constants.sdk.to_managed_object;
+	local hook_vtable = Constants.sdk.hook_vtable;
+	local ClearFade = Constants.ClearFade;
+
 	local Movie_type_def = find_type_definition("via.movie.Movie");
 	local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
 	local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
@@ -46,7 +43,7 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 		local obj = to_managed_object(args[2]);
 		hook_vtable(obj, obj:get_type_definition():get_method("update(via.behaviortree.ActionArg)"), ClearAction, ClearFade);
 	end
-
+	--
 	hook(Movie_type_def:get_method("play"), PreHook_play, PostHook_play);
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CautionFadeIn"):get_method("update(via.behaviortree.ActionArg)"), ClearFade);
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_CAPCOMLogoFadeIn"):get_method("update(via.behaviortree.ActionArg)"), ClearFade);
@@ -55,3 +52,5 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_AutoSaveCaution_Action"):get_method("update(via.behaviortree.ActionArg)"), ClearAction);
 	hook(find_type_definition("snow.gui.fsm.title.GuiGameStartFsm_HealthCautionFadeIn"):get_method("start(via.behaviortree.ActionArg)"), Create_hook_vtable);
 end
+
+hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getTitlePressAnyButton"), nil, RETURN_TRUE_func);

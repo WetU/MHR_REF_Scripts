@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
@@ -111,7 +110,6 @@ local function FromDefault(itemName, mismatch)
 end
 
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
-    local loadoutMismatch = false;
     if expectedLoadoutIndex ~= nil then
         lastHitLoadoutIndex = expectedLoadoutIndex;
         return "Loadout", GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
@@ -126,44 +124,45 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
                 return "Loadout", GetEquipmentLoadoutName(equipDataManager, i), nil;
             end
         end
-
-        loadoutMismatch = true;
     end
 
-    return "WeaponType", GetWeaponName(GetCurrentWeaponType()), loadoutMismatch;
+    return "WeaponType", GetWeaponName(GetCurrentWeaponType()), true;
 end
 --
 local this = {
     Restock = function(equipDataManager, loadoutIndex)
         local ItemMySet = get_ItemMySet_method:call(nil);
         local loadout = getData_method:call(ItemMySet, DefaultSet);
-        local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
-        local msg = string_format(LocalizedStrings.OutOfStock, itemLoadoutName);
 
-        if isEnoughItem_method:call(loadout) == true then
-            local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
-            applyItemMySet_method:call(ItemMySet, DefaultSet);
-            msg = matchedType == "Loadout" and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
-                or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
-                or FromDefault(itemLoadoutName, loadoutMismatch);
+        if loadout ~= nil then
+            local itemLoadoutName = PlItemPouchMySetData_get_Name_method:call(loadout);
+            local msg = string_format(LocalizedStrings.OutOfStock, itemLoadoutName);
 
-            local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+            if isEnoughItem_method:call(loadout) == true then
+                local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
+                applyItemMySet_method:call(ItemMySet, DefaultSet);
+                msg = matchedType == "Loadout" and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
+                    or matchedType == "WeaponType" and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
+                    or FromDefault(itemLoadoutName, loadoutMismatch);
 
-            if paletteIndex == nil then
-                msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
-            else
-                if get_HasValue_method:call(paletteIndex) == true then
-                    local radialSetIndex = get_Value_method:call(paletteIndex);
-                    local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-                    local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
-                    msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
-                    setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
+                local paletteIndex = get_PaletteSetIndex_method:call(loadout);
+
+                if paletteIndex == nil then
+                    msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
+                else
+                    if get_HasValue_method:call(paletteIndex) == true then
+                        local radialSetIndex = get_Value_method:call(paletteIndex);
+                        local ShortcutManager = getCustomShortcutSystem_method:call(nil);
+                        local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+                        msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
+                            or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
+                        setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
+                    end
                 end
             end
-        end
 
-        return msg;
+            return msg;
+        end
     end
 };
 --

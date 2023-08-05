@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local ipairs = Constants.lua.ipairs;
 

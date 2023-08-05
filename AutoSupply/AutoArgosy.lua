@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local pairs = Constants.lua.pairs;
 
@@ -80,6 +79,7 @@ local function mkTable()
 
     return table;
 end
+
 local function buildCache(tradeFunc)
     if cacheNegotiationData == nil then
         cacheNegotiationData = {

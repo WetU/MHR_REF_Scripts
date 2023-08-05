@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
@@ -21,7 +20,7 @@ local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_meth
 local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
 local this = {
-    init = false,
+    init = true,
     CircleTimer = nil
 };
 --

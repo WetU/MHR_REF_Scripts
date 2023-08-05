@@ -7,11 +7,11 @@ local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
 local tostring = Constants.lua.tostring;
 
-local Font = Constants.Font;
-
 local hook = Constants.sdk.hook;
 
 local on_frame = Constants.re.on_frame;
+
+local Font = Constants.Font;
 
 local push_font = Constants.imgui.push_font;
 local pop_font = Constants.imgui.pop_font;

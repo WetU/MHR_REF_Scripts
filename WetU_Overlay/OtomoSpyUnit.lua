@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
@@ -15,8 +14,8 @@ local hook = Constants.sdk.hook;
 local Vector2f_new = Constants.Vector2f.new;
 --
 local this = {
-    init = false,
-    get_currentStepCount = false,
+    init = true,
+    get_currentStepCount = true,
     currentStep = nil
 };
 --
@@ -139,7 +138,7 @@ local function onChangedGameStatus(args)
     end
 end
 
-this.init = function()
+local function init()
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
     hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
     hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
@@ -150,5 +149,7 @@ this.init = function()
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
     hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
+
+this.init = init;
 --
 return this;

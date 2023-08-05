@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local tostring = Constants.lua.tostring;
 local string_format = Constants.lua.string_format;
@@ -13,8 +12,8 @@ local getQuestLife = Constants.getQuestLife;
 local getDeathNum = Constants.getDeathNum;
 --
 local this = {
-    init = false,
-    onQuestStart = false,
+    init = true,
+    onQuestStart = true,
     QuestTimer = nil,
     DeathCount = nil
 };
@@ -31,14 +30,6 @@ local isTourQuest = false;
 local curQuestLife = nil;
 local curQuestMaxTimeMin = nil;
 
-local function Terminate()
-    this.QuestTimer = nil;
-    this.DeathCount = nil;
-    isTourQuest = false;
-    curQuestLife = nil;
-    curQuestMaxTimeMin = nil;
-end
-
 local function updateDeathCount(questManager)
     if curQuestLife == nil then
         curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(questManager);
@@ -47,7 +38,7 @@ local function updateDeathCount(questManager)
     this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(questManager), curQuestLife);
 end
 
-this.onQuestStart = function()
+local function onQuestStart()
     local QuestManager = get_managed_singleton("snow.QuestManager");
     isTourQuest = isTourQuest_method:call(QuestManager);
     updateDeathCount(QuestManager);
@@ -56,6 +47,9 @@ this.onQuestStart = function()
     curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
     this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
 end
+
+this.onQuestStart = onQuestStart;
+    
 
 local PreHook_questForfeit = nil;
 local PostHook_questForfeit = nil;
@@ -75,10 +69,21 @@ local function PreHook_updateQuestTime(args)
     this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
 end
 
-this.init = function()
+local function Terminate()
+    this.QuestTimer = nil;
+    this.DeathCount = nil;
+    isTourQuest = false;
+    curQuestLife = nil;
+    curQuestMaxTimeMin = nil;
+end
+
+local function init()
     hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
     hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
     hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
+
+this.init = init;
+    
 --
 return this;

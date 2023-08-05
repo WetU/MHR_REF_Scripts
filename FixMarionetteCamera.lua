@@ -1,7 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
-
-local ipairs = Constants.lua.ipairs;
+local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_ptr = Constants.sdk.to_ptr;

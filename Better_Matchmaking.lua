@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
@@ -18,6 +17,7 @@ local SendMessage = Constants.SendMessage;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 
 local checkGameStatus = Constants.checkGameStatus;
+local Quest_type = Constants.GameStatusType.Quest;
 
 -- Region lock fix
 local session_steam_type_def = find_type_definition("via.network.SessionSteam");
@@ -42,12 +42,12 @@ local nullable_uint32_type_def = find_type_definition("System.Nullable`1<System.
 local SessionAttr_Quest = find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
 --
 local quest_types = {
-	regular = 1,
-	random = 2,
-	rampage = 3,
-	random_master_rank = 4,
-	random_anomaly = 5,
-	anomaly_investigation = 6
+	"regular",
+	"random",
+	"rampage",
+	"random_master_rank",
+	"random_anomaly",
+	"anomaly_investigation"
 };
 
 local I_Unclassified_None = Constants.type_definitions.ItemId_type_def:get_field("I_Unclassified_None"):get_data(nil);
@@ -60,28 +60,24 @@ local function prehook_on_timeout(args)
 	if quest_vars ~= nil and to_int64(args[3]) == SessionAttr_Quest then
 		local session_manager = to_managed_object(args[2]) or get_managed_singleton("snow.SnowSessionManager");
 
-		if quest_vars.quest_type == quest_types.regular then
-			skip_next_hook = quest_types.regular;
+		local questType = quest_vars.quest_type;
+		skip_next_hook = questType;
+		if questType == quest_types[1] then
 			req_matchmaking_method:call(session_manager, quest_vars.quest_id);
 
-		elseif quest_vars.quest_type == quest_types.random then
-			skip_next_hook = quest_types.random;
+		elseif questType == quest_types[2] then
 			req_matchmaking_random_method:call(session_manager, quest_vars.my_hunter_rank);
 
-		elseif quest_vars.quest_type == quest_types.rampage then
-			skip_next_hook = quest_types.rampage;
+		elseif questType == quest_types[3] then
 			req_matchmaking_hyakuryu_method:call(session_manager, quest_vars.difficulty, quest_vars.quest_level, quest_vars.target_enemy);
 
-		elseif quest_vars.quest_type == quest_types.random_master_rank then
-			skip_next_hook = quest_types.random_master_rank;
+		elseif questType == quest_types[4] then
 			req_matchmaking_random_master_rank_method:call(session_manager, quest_vars.my_hunter_rank, quest_vars.my_master_rank);
 
-		elseif quest_vars.quest_type == quest_types.random_anomaly then
-			skip_next_hook = quest_types.random_anomaly;
+		elseif questType == quest_types[5] then
 			req_matchmaking_random_mystery_method:call(session_manager, quest_vars.my_hunter_rank, quest_vars.my_master_rank, quest_vars.anomaly_research_level);
 
-		elseif quest_vars.quest_type == quest_types.anomaly_investigation then
-			skip_next_hook = quest_types.anomaly_investigation;
+		elseif questType == quest_types[6] then
 			req_matchmaking_random_mystery_quest_method:call(
 				session_manager,
 				quest_vars.min_level,
@@ -99,13 +95,15 @@ end
 hook(session_manager_type_def:get_method("funcOnTimeoutMatchmaking(snow.network.session.SessionAttr)"), prehook_on_timeout);
 
 local function prehook_req_matchmaking(args)
-	if skip_next_hook == quest_types.regular then
+	local regular = quest_types[1];
+
+	if skip_next_hook == regular then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.regular,
+		quest_type = regular,
 		quest_id = to_uint(args[3])
 	};
 end
@@ -114,13 +112,15 @@ end
 hook(req_matchmaking_method, prehook_req_matchmaking);
 
 local function prehook_req_matchmaking_random(args)
-	if skip_next_hook == quest_types.random then
+	local random = quest_types[2];
+
+	if skip_next_hook == random then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.random,
+		quest_type = random,
 		my_hunter_rank = to_uint(args[3])
 	};
 end
@@ -129,13 +129,15 @@ end
 hook(req_matchmaking_random_method, prehook_req_matchmaking_random);
 
 local function prehook_req_matchmaking_hyakuryu(args)
-	if skip_next_hook == quest_types.rampage then
+	local rampage = quest_types[3];
+
+	if skip_next_hook == rampage then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.rampage,
+		quest_type = rampage,
 		difficulty = to_uint(args[3]),
 		quest_level = to_valuetype(args[4], nullable_uint32_type_def),
 		target_enemy = to_valuetype(args[5], nullable_uint32_type_def)
@@ -148,13 +150,15 @@ end
 hook(req_matchmaking_hyakuryu_method, prehook_req_matchmaking_hyakuryu);
 
 local function prehook_req_matchmaking_random_master_rank(args)
-	if skip_next_hook == quest_types.random_master_rank then
+	local random_master_rank = quest_types[4];
+
+	if skip_next_hook == random_master_rank then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.random_master_rank,
+		quest_type = random_master_rank,
 		my_hunter_rank = to_uint(args[3]),
 		my_master_rank = to_uint(args[4])
 	};
@@ -165,13 +169,15 @@ end
 hook(req_matchmaking_random_master_rank_method, prehook_req_matchmaking_random_master_rank);
 
 local function prehook_req_matchmaking_random_mystery(args)
-	if skip_next_hook == quest_types.random_anomaly then
+	local random_anomaly = quest_types[5];
+
+	if skip_next_hook == random_anomaly then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.random_anomaly,
+		quest_type = random_anomaly,
 		my_hunter_rank = to_uint(args[3]),
 		my_master_rank = to_uint(args[4]),
 		anomaly_research_level = to_uint(args[5])
@@ -184,13 +190,15 @@ end
 hook(req_matchmaking_random_mystery_method, prehook_req_matchmaking_random_mystery);
 
 local function prehook_req_matchmaking_random_mystery_quest(args)
-	if skip_next_hook == quest_types.anomaly_investigation then
+	local anomaly_investigation = quest_types[6];
+
+	if skip_next_hook == anomaly_investigation then
 		skip_next_hook = nil;
 		return;
 	end
 
 	quest_vars = {
-		quest_type = quest_types.anomaly_investigation,
+		quest_type = anomaly_investigation,
 		min_level = to_uint(args[3]),
 		max_level = to_uint(args[4]),
 		party_limit = to_uint(args[5]),
@@ -215,7 +223,6 @@ hook(session_manager_type_def:get_method("routineMatchmakingAutoJoinSession"), n
 
 local function clearVars()
 	isSearching = false;
-	quest_type = nil;
 	quest_vars = nil;
 	skip_next_hook = nil;
 end
@@ -239,7 +246,6 @@ hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.Sess
 hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func);
 
 -- misc fixes
-local Quest_type = Constants.GameStatusType.Quest;
 local function PreHook_setOpenNetworkErrorWindowSelection()
 	return checkGameStatus(Quest_type) == true and SKIP_ORIGINAL or CALL_ORIGINAL;
 end

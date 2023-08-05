@@ -1,5 +1,4 @@
-local require = _G.require;
-local Constants = require("Constants.Constants");
+local Constants = _G.require("Constants.Constants");
 
 local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
