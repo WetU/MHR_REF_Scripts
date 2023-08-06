@@ -70,7 +70,6 @@ local reviveCampPos = nil;
 
 local function PreHook_startToPlayPlayerDieMusic()
     reviveCampPos = nil;
-
     local QuestManager = get_managed_singleton("snow.QuestManager");
 
     if getDeathNum(QuestManager) < getQuestLife(QuestManager) then
@@ -81,11 +80,13 @@ local function PreHook_startToPlayPlayerDieMusic()
             local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")), 0)), 0));
 
             if #subCamps > 1 then
-                for _, subCampPos in ipairs(subCamps) do
+                for i, subCampPos in ipairs(subCamps) do
                     local distance = calcDistance_method:call(nil, currentPos, subCampPos);
 
                     if distance < nearestDistance then
-                        nearestDistance = distance;
+                        if i == 1 then
+                            nearestDistance = distance;
+                        end
                         reviveCampPos = subCampPos;
                     end
                 end

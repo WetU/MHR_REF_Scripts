@@ -7,6 +7,7 @@ local hook = Constants.sdk.hook;
 
 -- Auto Dango Ticket
 local MealFunc_type_def = find_type_definition("snow.facility.kitchen.MealFunc");
+local getMealTicketFlag_method = MealFunc_type_def:get_method("getMealTicketFlag");
 local setMealTicketFlag_method = MealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 
 -- Skip Dango Song cache
@@ -39,7 +40,10 @@ local reqFinish_method = get_KitchenCookDemoHandler_method:get_return_type():get
 
 -- Auto Dango Ticket
 local function PreHook_updateList(args)
-	setMealTicketFlag_method:call(to_managed_object(args[2]), true);
+	local MealFunc = to_managed_object(args[2]);
+	if getMealTicketFlag_method:call(MealFunc) == false then
+		setMealTicketFlag_method:call(MealFunc, true);
+	end
 end
 hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);
 
@@ -64,6 +68,7 @@ hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behavio
 
 --EatDemo
 local showDangoLog = false;
+
 local function eatingDemo_Body(obj)
 	if EatingDemoState_field:get_data(obj) == EatingDemoState_Demo_Update then
 		reqFinish_method:call(get_KitchenEatDemoHandler_method:call(get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
