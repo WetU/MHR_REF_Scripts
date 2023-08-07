@@ -10,21 +10,26 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 	local to_managed_object = Constants.sdk.to_managed_object;
 	local hook_vtable = Constants.sdk.hook_vtable;
 	local ClearFade = Constants.ClearFade;
-
+	--
 	local Movie_type_def = find_type_definition("via.movie.Movie");
 	local seek_method = Movie_type_def:get_method("seek(System.UInt64)");
 	local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
-
+	--
 	local get_GameStartState_method = find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
-
+	local GameStartState_type_def = get_GameStartState_method:get_return_type();
+	local GameStartState = {
+		Caution = GameStartState_type_def:get_field("Caution"):get_data(nil),
+		Nvidia_Logo = GameStartState_type_def:get_field("Nvidia_Logo"):get_data(nil)
+	};
+	--
 	local notifyActionEnd_method = find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 	--
 	local Movie = nil;
 	local function PreHook_play(args)
 		local GuiGameStartFsmManager = get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager ~= nil then
-			local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
-			if GameStartState ~= nil and GameStartState >= 0 and GameStartState <= 7 then
+			local gameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
+			if gameStartState ~= nil and gameStartState >= GameStartState.Caution and gameStartState <= GameStartState.Nvidia_Logo then
 				Movie = to_managed_object(args[2]);
 			end
 		end
