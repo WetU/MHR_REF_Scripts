@@ -32,18 +32,18 @@ end
 hook(find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local function onVillageStart()
-    talkHandler();
-
     if Constants.isOnVillageStarted ~= true then
         Constants.isOnVillageStarted = true;
+        local ChatManager = get_managed_singleton("snow.gui.ChatManager");
 
         cohootSupply();
-        local ChatManager = get_managed_singleton("snow.gui.ChatManager");
         if autoArgosy() == true then
             SendMessage(ChatManager, "교역 아이템을 받았습니다");
         end
         SendMessage(ChatManager, Restock(get_managed_singleton("snow.data.EquipDataManager"), nil));
     end
+
+    talkHandler();
 end
 hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
 --
