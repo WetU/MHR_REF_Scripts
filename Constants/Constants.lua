@@ -67,9 +67,9 @@ local Font = load_font("NotoSansKR-Bold.otf", 22, {
     0
 });
 --
-local QuestManager_type_def = find_type_definition("snow.QuestManager");
 local Application_type_def = find_type_definition("via.Application");
 local CameraManager_type_def = find_type_definition("snow.CameraManager");
+local QuestManager_type_def = find_type_definition("snow.QuestManager");
 local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
 local ItemId_type_def = find_type_definition("snow.data.ContentsIdSystem.ItemId");
 local DataManager_type_def = find_type_definition("snow.data.DataManager");

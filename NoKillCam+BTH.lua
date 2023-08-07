@@ -18,6 +18,7 @@ local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
+local get_DeltaSec_method = QuestManager_type_def:get_method("get_DeltaSec");
 local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec");
 local nextEndFlowToCameraDemo_method = QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
 local getQuestPlayerCount_method = QuestManager_type_def:get_method("getQuestPlayerCount");
@@ -38,10 +39,8 @@ hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):ge
 
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
-	if checkQuestStatus(questManager, Success) == true then
-		if (getQuestReturnTimerSec_method:call(questManager) <= 0.005 or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
-			nextEndFlowToCameraDemo_method:call(questManager);
-		end
+	if checkQuestStatus(questManager, Success) == true and (get_DeltaSec_method:call(questManager) >= getQuestReturnTimerSec_method:call(questManager) or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
+		nextEndFlowToCameraDemo_method:call(questManager);
 	end
 end
 
