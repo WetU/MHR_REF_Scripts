@@ -21,7 +21,6 @@ local this = {
 };
 --
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
-local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 
 local OtomoSpyUnitManager_type_def = find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
@@ -135,7 +134,6 @@ local function onChangedGameStatus(args)
         get_currentStepCount();
     else
         Terminate();
-        Constants.isOnVillageStarted = false;
     end
 end
 
@@ -151,7 +149,7 @@ local function init()
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardListCursor"), handleReward);
     hook(StmGuiInput_type_def:get_method("getDecideButtonRep(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_getDecideButtonRep);
     hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
-    hook(QuestManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
+    hook(OtomoSpyUnitManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
 
 this.init = init;

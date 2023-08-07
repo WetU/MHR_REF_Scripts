@@ -246,8 +246,6 @@ local this = {
         new = Vector3f_new
     },
 
-    isOnVillageStarted = false,
-
     TRUE_POINTER = TRUE_POINTER,
     FALSE_POINTER = FALSE_POINTER,
 

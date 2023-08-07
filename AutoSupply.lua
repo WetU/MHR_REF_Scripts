@@ -10,6 +10,8 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
+
+local WwiseChangeSpaceWatcher_type_def = Constants.type_definitions.WwiseChangeSpaceWatcher_type_def;
 --
 local SendMessage = Constants.SendMessage;
 --
@@ -31,9 +33,11 @@ local function campStart()
 end
 hook(find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
+local isOnVillageStarted = false;
+
 local function onVillageStart()
-    if Constants.isOnVillageStarted ~= true then
-        Constants.isOnVillageStarted = true;
+    if isOnVillageStarted ~= true then
+        isOnVillageStarted = true;
         local ChatManager = get_managed_singleton("snow.gui.ChatManager");
 
         cohootSupply();
@@ -45,6 +49,11 @@ local function onVillageStart()
 
     talkHandler();
 end
-hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
+hook(WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
+--
+local function onVillageEnd()
+    isOnVillageStarted = false;
+end
+hook(WwiseChangeSpaceWatcher_type_def:get_method("onVillageEnd"), nil, onVillageEnd);
 --
 AutoTicketsSupply.init();
