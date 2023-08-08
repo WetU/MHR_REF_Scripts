@@ -62,8 +62,8 @@ local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(
 --
 local DangoLogStatusItemType_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType");
 local DangoLogStatusItemType = {
-    Vital = DangoLogStatusItemType_type_def:get_field("Vital"):get_data(nil),
-    Stamina = DangoLogStatusItemType_type_def:get_field("Stamina"):get_data(nil)
+    DangoLogStatusItemType_type_def:get_field("Vital"):get_data(nil),
+    DangoLogStatusItemType_type_def:get_field("Stamina"):get_data(nil)
 };
 
 local DailyDango_type_def = get_DailyDango_method:get_return_type();
@@ -77,17 +77,17 @@ local DailyDango = {
 
 local PaymentTypes_type_def = find_type_definition("snow.facility.kitchen.MealFunc.PaymentTypes");
 local PaymentTypes = {
-    Money = PaymentTypes_type_def:get_field("Money"):get_data(nil),
-    VillagePoint = PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
+    PaymentTypes_type_def:get_field("Money"):get_data(nil),
+    PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
 };
 --
 local isOrdering = false;
 
 local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
     local DangoLogParam = DangoLogParam_type_def:create_instance();
-    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType.Vital, getVitalBuff_method:call(mealFunc, facilityLv));
-    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType.Stamina, getStaminaBuff_method:call(mealFunc, facilityLv));
-    DangoLogParam:set_field("_SkillDataList", get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase)));
+    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], getVitalBuff_method:call(mealFunc, facilityLv));
+    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], getStaminaBuff_method:call(mealFunc, facilityLv));
+    DangoLogParam:set_field("_SkillDataList", get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase))); -- todo: array size 조정
     return DangoLogParam;
 end
 
@@ -105,8 +105,8 @@ local function village_Body(villageAreaManager)
         local MealFunc = get_MealFunc_method:call(get_Kitchen_method:call(get_managed_singleton("snow.data.FacilityDataManager")));
 
         if checkAvailableMealSystem_method:call(MealFunc) == true then
-            local paymentType = isEnough_method:call(getHandMoney_method:call(get_managed_singleton("snow.data.DataManager")), getHandMoneyCost_method:call(MealFunc)) == true and PaymentTypes.Money
-                or get_VillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes.VillagePoint
+            local paymentType = isEnough_method:call(getHandMoney_method:call(get_managed_singleton("snow.data.DataManager")), getHandMoneyCost_method:call(MealFunc)) == true and PaymentTypes[1]
+                or get_VillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes[2]
                 or nil;
 
             if paymentType ~= nil then
