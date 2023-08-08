@@ -5,8 +5,12 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
 
+local getMealTicketCount = Constants.getMealTicketCount;
+local setMealTicket = Constants.setMealTicket;
+local DangoLogStart = Constants.DangoLogStart;
+
 -- Auto Dango Ticket
-local MealFunc_type_def = find_type_definition("snow.facility.kitchen.MealFunc");
+local MealFunc_type_def = Constants.type_definitions.MealFunc_type_def;
 local getMealTicketFlag_method = MealFunc_type_def:get_method("getMealTicketFlag");
 local setMealTicketFlag_method = MealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
 
@@ -20,8 +24,6 @@ local BBQ_DemoState = {
 	[BBQ_DemoState_type_def:get_field("Update"):get_data(nil)] = true,
 	[BBQ_DemoState_type_def:get_field("ResultDemoUpdate"):get_data(nil)] = true
 };
-
-local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 
 local KitchenFsm_type_def = find_type_definition("snow.gui.fsm.kitchen.GuiKitchenFsmManager");
 local get_KitchenCookDemoHandler_method = KitchenFsm_type_def:get_method("get_KitchenCookDemoHandler");
@@ -42,7 +44,7 @@ local reqFinish_method = get_KitchenCookDemoHandler_method:get_return_type():get
 local function PreHook_updateList(args)
 	local MealFunc = to_managed_object(args[2]);
 	if getMealTicketFlag_method:call(MealFunc) == false then
-		setMealTicketFlag_method:call(MealFunc, true);
+		setMealTicket(MealFunc, getMealTicketCount() > 0);
 	end
 end
 hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateList);
@@ -90,7 +92,7 @@ hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behavior
 local function PostHook_requestAutoSaveAll()
 	if showDangoLog == true then
 		showDangoLog = false;
-		reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), get_KitchenDangoLogParam_method:call(get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 5.0);
+		DangoLogStart(get_KitchenDangoLogParam_method:call(get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")));
 	end
 end
 hook(find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);

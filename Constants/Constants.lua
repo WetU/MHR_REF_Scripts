@@ -74,9 +74,13 @@ local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManage
 local ItemId_type_def = find_type_definition("snow.data.ContentsIdSystem.ItemId");
 local DataManager_type_def = find_type_definition("snow.data.DataManager");
 local EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
+local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
+local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
 local EnemyUtility_type_def = find_type_definition("snow.enemy.EnemyUtility");
+local MealFunc_type_def = find_type_definition("snow.facility.kitchen.MealFunc");
 local GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
 local StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
+local PlayerBase_type_def = find_type_definition("snow.player.PlayerBase");
 local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
 local WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
@@ -86,7 +90,8 @@ local KeyboardKey_type_def = find_type_definition("via.hid.KeyboardKey");
 local Keys = {
     Home = KeyboardKey_type_def:get_field("Home"):get_data(nil),
     F5 = KeyboardKey_type_def:get_field("F5"):get_data(nil),
-    F6 = KeyboardKey_type_def:get_field("F6"):get_data(nil)
+    F6 = KeyboardKey_type_def:get_field("F6"):get_data(nil),
+    F8 = KeyboardKey_type_def:get_field("F8"):get_data(nil)
 };
 
 local function checkKeyTrg(key)
@@ -140,6 +145,12 @@ local function getQuestMapNo(nullable_questManager)
     return getMapNo_method:call(nullable_questManager);
 end
 --
+local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
+
+local function getPlayerData(playerBase)
+    return get_PlayerData_method:call(playerBase);
+end
+--
 local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
 local getDeathNum_method = QuestManager_type_def:get_method("getDeathNum");
 
@@ -159,6 +170,16 @@ local function getDeathNum(nullable_questManager)
     return getDeathNum_method:call(nullable_questManager);
 end
 --
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
+
+local function get_VillagePoint()
+    return get_Point_method:call(nil);
+end
+
+local function sub_VillagePoint(val)
+    subPoint_method:call(nil, val);
+end
+--
 local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local function SendMessage(nullable_chatManager, text)
@@ -167,6 +188,32 @@ local function SendMessage(nullable_chatManager, text)
     end
 
     reqAddChatInfomation_method:call(nullable_chatManager, text, 2289944406);
+end
+--
+local getItemData_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getItemData");
+local getCountInBox_method = getItemData_method:get_return_type():get_method("getCountInBox");
+local MealTicket_ID = ItemId_type_def:get_field("I_Normal_0124"):get_data(nil);
+
+local function getMealTicketCount()
+    local count = getCountInBox_method:call(getItemData_method:call(get_managed_singleton("snow.data.ContentsIdDataManager"), MealTicket_ID));
+
+    if count <= 0 then
+        SendMessage(nil, "식사권이 없습니다!");
+    end
+
+    return count;
+end
+--
+local setMealTicketFlag_method = MealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
+
+local function setMealTicket(mealFunc, flag)
+    setMealTicketFlag_method:call(mealFunc, flag);
+end
+--
+local reqDangoLogStart_method = GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+
+local function DangoLogStart(dangoLogParam)
+    reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), dangoLogParam, 5.0);
 end
 --
 local function SKIP_ORIGINAL_func()
@@ -246,9 +293,13 @@ local this = {
         ItemId_type_def = ItemId_type_def,
         DataManager_type_def = DataManager_type_def,
         EquipDataManager_type_def = EquipDataManager_type_def,
+        FacilityDataManager_type_def = FacilityDataManager_type_def,
+        VillagePoint_type_def = VillagePoint_type_def,
         EnemyUtility_type_def = EnemyUtility_type_def,
+        MealFunc_type_def = MealFunc_type_def,
         GuiManager_type_def = GuiManager_type_def,
         StmGuiInput_type_def = StmGuiInput_type_def,
+        PlayerBase_type_def = PlayerBase_type_def,
         PlayerManager_type_def = PlayerManager_type_def,
         WwiseChangeSpaceWatcher_type_def = WwiseChangeSpaceWatcher_type_def
     },
@@ -264,10 +315,19 @@ local this = {
     QuestMapList = QuestMapList,
     getQuestMapNo = getQuestMapNo,
 
+    getPlayerData = getPlayerData,
+
     getQuestLife = getQuestLife,
     getDeathNum = getDeathNum,
 
+    get_VillagePoint = get_VillagePoint,
+
     SendMessage = SendMessage,
+
+    getMealTicketCount = getMealTicketCount,
+    setMealTicket = setMealTicket,
+
+    DangoLogStart = DangoLogStart,
 
     SKIP_ORIGINAL_func = SKIP_ORIGINAL_func,
 

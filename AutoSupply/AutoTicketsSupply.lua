@@ -29,7 +29,7 @@ local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method
 --
 --local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");
 --
-local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
+local FacilityDataManager_type_def = Constants.type_definitions.FacilityDataManager_type_def;
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
 
 local get_BbqFunc_method = get_Kitchen_method:get_return_type():get_method("get_BbqFunc");
