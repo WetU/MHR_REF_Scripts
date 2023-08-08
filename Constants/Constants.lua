@@ -110,19 +110,6 @@ local function checkGameStatus(checkType)
     return nil;
 end
 --
-local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
-local QuestStatus = {
-    Success = find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil)
-};
-
-local function checkQuestStatus(nullable_questManager, checkType)
-    if nullable_questManager == nil then
-        nullable_questManager = get_managed_singleton("snow.QuestManager");
-    end
-
-    return checkStatus_method:call(nullable_questManager, checkType);
-end
---
 local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 local FadeMode_FINISH = find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
 
@@ -271,9 +258,6 @@ local this = {
     
     GameStatusType = GameStatusType,
     checkGameStatus = checkGameStatus,
-
-    QuestStatus = QuestStatus,
-    checkQuestStatus = checkQuestStatus,
 
     ClearFade = ClearFade,
     

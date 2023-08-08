@@ -5,9 +5,6 @@ local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
-local checkQuestStatus = Constants.checkQuestStatus;
-local Success = Constants.QuestStatus.Success;
-
 local checkKeyTrg = Constants.checkKeyTrg;
 local Home = Constants.Keys.Home;
 
@@ -19,6 +16,7 @@ local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method
 --
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local get_DeltaSec_method = QuestManager_type_def:get_method("get_DeltaSec");
+local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec");
 local nextEndFlowToCameraDemo_method = QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
 local getQuestPlayerCount_method = QuestManager_type_def:get_method("getQuestPlayerCount");
@@ -31,6 +29,8 @@ local EndFlow = {
 	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
 	WaitFadeOut = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
 };
+
+local Success = find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil);
 -- Skip Demo Camera
 local function skipDemo()
 	DemoEnd_method:call(get_managed_singleton("snow.camera.DemoCamera"));
@@ -39,7 +39,7 @@ hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):ge
 
 -- Skip End Flow
 local function onWaitEndTimer(questManager)
-	if checkQuestStatus(questManager, Success) == true and (get_DeltaSec_method:call(questManager) >= getQuestReturnTimerSec_method:call(questManager) or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
+	if checkStatus_method:call(questManager, Success) == true and (get_DeltaSec_method:call(questManager) >= getQuestReturnTimerSec_method:call(questManager) or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
 		nextEndFlowToCameraDemo_method:call(questManager);
 	end
 end
