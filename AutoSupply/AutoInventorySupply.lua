@@ -39,7 +39,7 @@ local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPa
 
 local PaletteSetList_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
 
-local paletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
+local PaletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
 
 local SycleTypes_Quest = find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 --
@@ -158,7 +158,7 @@ local this = {
                     local ShortcutManager = getCustomShortcutSystem_method:call(nil);
                     local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
                     msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(PaletteSetList_get_Item_method:call(paletteList, radialSetIndex)));
+                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, PaletteSetData_get_Name_method:call(PaletteSetList_get_Item_method:call(paletteList, radialSetIndex)));
                     setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                 end
             end
