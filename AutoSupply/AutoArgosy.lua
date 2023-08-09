@@ -3,7 +3,7 @@ local Constants = _G.require("Constants.Constants");
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 
-local get_VillagePoint = Constants.get_VillagePoint;
+local getVillagePoint = Constants.getVillagePoint;
 --
 local subPoint_method = Constants.type_definitions.VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
@@ -14,30 +14,22 @@ local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderL
 local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData(snow.facility.tradeCenter.NegotiationTypes)");
 local AcornAddCount = TradeFunc_type_def:get_field("_AcornAddCount"):get_data(nil);
 
-local TradeOrderList_type_def = get_TradeOrderList_method:get_return_type();
-local TradeOrderList_get_Count_method = TradeOrderList_type_def:get_method("get_Count");
-local TradeOrderList_get_Item_method = TradeOrderList_type_def:get_method("get_Item(System.Int32)");
-
 local NegotiationData_type_def = getNegotiationData_method:get_return_type();
 local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count");
 local get_Cost_method = NegotiationData_type_def:get_method("get_Cost");
 
-local TradeOrder_type_def = TradeOrderList_get_Item_method:get_return_type();
-local initialize_method = TradeOrder_type_def:get_method("initialize");
-local get_InventoryList_method = TradeOrder_type_def:get_method("get_InventoryList");
-local get_NegotiationCount_method = TradeOrder_type_def:get_method("get_NegotiationCount");
-local setNegotiationCount_method = TradeOrder_type_def:get_method("setNegotiationCount(System.UInt32)");
-local get_NegotiationType_method = TradeOrder_type_def:get_method("get_NegotiationType");
+local TradeOrderData_type_def = find_type_definition("snow.facility.tradeCenter.TradeOrderData");
+local initialize_method = TradeOrderData_type_def:get_method("initialize");
+local get_InventoryList_method = TradeOrderData_type_def:get_method("get_InventoryList");
+local get_NegotiationCount_method = TradeOrderData_type_def:get_method("get_NegotiationCount");
+local setNegotiationCount_method = TradeOrderData_type_def:get_method("setNegotiationCount(System.UInt32)");
+local get_NegotiationType_method = TradeOrderData_type_def:get_method("get_NegotiationType");
 
-local InventoryList_type_def = get_InventoryList_method:get_return_type();
-local InventoryList_get_Count_method = InventoryList_type_def:get_method("get_Count");
-local InventoryList_get_Item_method = InventoryList_type_def:get_method("get_Item(System.Int32)");
-
-local Inventory_type_def = InventoryList_get_Item_method:get_return_type();
-local Inventory_get_Count_method = Inventory_type_def:get_method("get_Count");
-local isEmpty_method = Inventory_type_def:get_method("isEmpty");
-local sub_method = Inventory_type_def:get_method("sub(System.UInt32, System.Boolean)");
-local sendInventory_method = Inventory_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
+local ItemInventoryData_type_def = find_type_definition("snow.data.ItemInventoryData");
+local Inventory_get_Count_method = ItemInventoryData_type_def:get_method("get_Count");
+local isEmpty_method = ItemInventoryData_type_def:get_method("isEmpty");
+local sub_method = ItemInventoryData_type_def:get_method("sub(System.UInt32, System.Boolean)");
+local sendInventory_method = ItemInventoryData_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
 
 local DataManager_type_def = Constants.type_definitions.DataManager_type_def;
 local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
@@ -111,15 +103,15 @@ local this = {
         local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
         local addCount = acornAvailable == true and (1 + AcornAddCount) or 1;
 
-        for i = 0, TradeOrderList_get_Count_method:call(TradeOrderList) - 1, 1 do
-            local TradeOrder = TradeOrderList_get_Item_method:call(TradeOrderList, i);
+        for i = 0, TradeOrderList:get_size() - 1, 1 do
+            local TradeOrder = TradeOrderList:get_element(i);
             if get_NegotiationCount_method:call(TradeOrder) == 1 then
                 local addNegoCount = addCount;
                 local NegotiationType = get_NegotiationType_method:call(TradeOrder) + 1;
                 local NegotiationCountData = cacheNegotiationData.Count[NegotiationType];
                 local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
 
-                if get_VillagePoint() >= NegotiationCostData then
+                if getVillagePoint() >= NegotiationCostData then
                     addNegoCount = addNegoCount + NegotiationCountData;
                     subPoint_method:call(nil, NegotiationCostData);
                 end
@@ -133,8 +125,8 @@ local this = {
             local InventoryList = get_InventoryList_method:call(TradeOrder);
             local inventoryReceived = false;
 
-            for j = 0, InventoryList_get_Count_method:call(InventoryList) - 1, 1 do
-                local Inventory = InventoryList_get_Item_method:call(InventoryList, j);
+            for j = 0, InventoryList:get_size() - 1, 1 do
+                local Inventory = InventoryList:get_element(j);
                 if Inventory == nil or isEmpty_method:call(Inventory) == true then
                     break;
                 else

@@ -118,7 +118,7 @@ local function mkTable()
     return table;
 end
 
-local function createData()
+local function CreateData()
     local PlayerManager = get_managed_singleton("snow.player.PlayerManager");
     hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
 
@@ -143,8 +143,6 @@ local function createData()
     this.SpiribirdsHudDataCreated = true;
 end
 
-this.CreateData = createData;
-
 local function getBuffParameters(equipDataManager, playerManager, buffType)
     for k, v in pairs(LvBuff) do
         if buffType == v then
@@ -161,7 +159,7 @@ end
 
 local function onQuestStart()
     if this.SpiribirdsHudDataCreated ~= true then
-        createData();
+        CreateData();
     end
 
     local MapNo = getQuestMapNo(nil);
@@ -176,10 +174,8 @@ local function onQuestStart()
     end
 end
 
-this.onQuestStart = onQuestStart;
-
 local function init_Data(playerQuestBase)
-    createData();
+    CreateData();
     hook_vtable(playerQuestBase, onDestroy_method, nil, Terminate);
 end
 
@@ -203,7 +199,7 @@ local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
     if isMasterPlayer_method:call(to_managed_object(args[2])) == true then
         if this.SpiribirdsHudDataCreated ~= true then
-            createData();
+            CreateData();
         end
 
         subBuffType = to_int64(args[3]);
@@ -227,35 +223,20 @@ local function PostHook_subLvBuffFromEnemy(retval)
     return retval;
 end
 
-local PreHook_updateEquipSkill211 = nil;
-local PostHook_updateEquipSkill211 = nil;
-do
-    local function updateEquipSkill211_Body(playerQuestBase)
-        if isMasterPlayer_method:call(playerQuestBase) == true then
+local function PreHook_updateEquipSkill211(args)
+    if firstHook == true or skipUpdate ~= true then
+        local PlayerQuestBase = to_managed_object(args[2]);
+        if isMasterPlayer_method:call(PlayerQuestBase) == true then
             if firstHook == true then
                 firstHook = false;
 
-                if get_IsInTrainingArea_method:call(playerQuestBase) == true or IsEnableStage_Skill211_field:get_data(playerQuestBase) ~= true then
+                if get_IsInTrainingArea_method:call(PlayerQuestBase) == true or IsEnableStage_Skill211_field:get_data(PlayerQuestBase) ~= true then
                     skipUpdate = true;
                     this.SpiribirdsCall_Timer = "향응 비활성 지역";
                 end
             else
-                getCallTimer(playerQuestBase);
+                getCallTimer(PlayerQuestBase);
             end
-        end
-    end
-
-    local PlayerQuestBase = nil;
-    PreHook_updateEquipSkill211 = function(args)
-        if firstHook == true or skipUpdate ~= true then
-            PlayerQuestBase = to_managed_object(args[2]);
-            updateEquipSkill211_Body(PlayerQuestBase);
-        end
-    end
-    PostHook_updateEquipSkill211 = function()
-        if PlayerQuestBase ~= nil then
-            updateEquipSkill211_Body(PlayerQuestBase);
-            PlayerQuestBase = nil;
         end
     end
 end
@@ -267,7 +248,7 @@ do
     local PlayerManager = nil;
     PreHook_addLvBuffCnt = function(args)
         if this.SpiribirdsHudDataCreated ~= true then
-            createData();
+            CreateData();
         end
 
         local buffType = to_int64(args[4]);
@@ -303,11 +284,12 @@ local function init()
 
     hook(PlayerQuestBase_type_def:get_method("start"), PreHook_PlayerQuestBase_start, PostHook_PlayerQuestBase_start);
     hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
-    hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211, PostHook_updateEquipSkill211);
+    hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), PreHook_updateEquipSkill211);
     hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
 end
 
 this.init = init;
-    
+this.CreateData = CreateData;
+this.onQuestStart = onQuestStart;
 --
 return this;

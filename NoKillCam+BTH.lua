@@ -38,38 +38,21 @@ end
 hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
 
 -- Skip End Flow
-local function onWaitEndTimer(questManager)
-	if checkStatus_method:call(questManager, Success) == true and (get_DeltaSec_method:call(questManager) >= getQuestReturnTimerSec_method:call(questManager) or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(questManager) == 1)) then
-		nextEndFlowToCameraDemo_method:call(questManager);
-	end
-end
-
-local function clearEndFlowTimer(questManager)
-	questManager:set_field("_QuestEndFlowTimer", 0.0);
-end
-
-local function EndFlow_body(questManager)
-	local endFlow = EndFlow_field:get_data(questManager);
+local function PreHook_updateQuestEndFlow(args)
+	local QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+	local endFlow = EndFlow_field:get_data(QuestManager);
 
 	if endFlow == EndFlow.WaitEndTimer then
-		onWaitEndTimer(questManager);
+		if checkStatus_method:call(QuestManager, Success) == true and (get_DeltaSec_method:call(QuestManager) >= getQuestReturnTimerSec_method:call(QuestManager) or (checkKeyTrg(Home) == true and getQuestPlayerCount_method:call(QuestManager) == 1)) then
+			nextEndFlowToCameraDemo_method:call(QuestManager);
+		end
 
 	elseif endFlow == EndFlow.CameraDemo then
-		clearEndFlowTimer(questManager);
+		QuestManager:set_field("_QuestEndFlowTimer", 0.0);
 
 	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
 		ClearFade();
 	end
 end
-
-local QuestManager = nil;
-local function PreHook_updateQuestEndFlow(args)
-	QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
-	EndFlow_body(QuestManager);
-end
-local function PostHook_updateQuestEndFlow()
-	EndFlow_body(QuestManager);
-	QuestManager = nil;
-end
-hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
+hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
 hook(find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, RETURN_TRUE_func);

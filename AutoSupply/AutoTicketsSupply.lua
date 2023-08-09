@@ -5,6 +5,7 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 
+local getKitchenFacility = Constants.getKitchenFacility;
 local to_bool = Constants.to_bool;
 local FALSE_POINTER = Constants.FALSE_POINTER;
 --
@@ -29,13 +30,11 @@ local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method
 --
 --local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");
 --
-local FacilityDataManager_type_def = Constants.type_definitions.FacilityDataManager_type_def;
-local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
-
-local get_BbqFunc_method = get_Kitchen_method:get_return_type():get_method("get_BbqFunc");
+local get_BbqFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_BbqFunc");
 
 local outputTicket_method = get_BbqFunc_method:get_return_type():get_method("outputTicket");
 --
+local FacilityDataManager_type_def = Constants.type_definitions.FacilityDataManager_type_def;
 local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
 
 local get_LaboReward_method = getMysteryLaboFacility_method:get_return_type():get_method("get_LaboReward");
@@ -200,7 +199,7 @@ end
 
 local function PostHook_checkSupplyItem_BBQReward(retval)
     if to_bool(retval) == true then
-        outputTicket_method:call(get_BbqFunc_method:call(get_Kitchen_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
+        outputTicket_method:call(get_BbqFunc_method:call(getKitchenFacility()));
         return FALSE_POINTER;
     end
 

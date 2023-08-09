@@ -1,8 +1,9 @@
 local Constants = _G.require("Constants.Constants");
 
 local hook = Constants.sdk.hook;
-local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
+
+local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 --
 if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
 	local find_type_definition = Constants.sdk.find_type_definition;

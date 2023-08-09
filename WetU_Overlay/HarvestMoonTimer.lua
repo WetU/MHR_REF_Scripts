@@ -32,18 +32,8 @@ local function UpdateHarvestMoonTimer(longSwordShell010)
     this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
 end
 
-local PreHook_update = nil;
-local PostHook_update = nil;
-do
-    local LongSwordShell010 = nil;
-    PreHook_update = function(args)
-        LongSwordShell010 = to_managed_object(args[2]);
-        UpdateHarvestMoonTimer(LongSwordShell010);
-    end
-    PostHook_update = function()
-        UpdateHarvestMoonTimer(LongSwordShell010);
-        LongSwordShell010 = nil;
-    end
+local function PreHook_update(args)
+    UpdateHarvestMoonTimer(to_managed_object(args[2]));
 end
 
 local PreHook = nil;
@@ -54,9 +44,9 @@ do
         LongSwordShell010 = to_managed_object(args[2]);
     end
     PostHook = function()
-        if get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) and CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide then
+        if CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
             UpdateHarvestMoonTimer(LongSwordShell010);
-            hook_vtable(LongSwordShell010, update_method, PreHook_update, PostHook_update);
+            hook_vtable(LongSwordShell010, update_method, PreHook_update);
             hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
         end
 

@@ -39,18 +39,18 @@ local function updateDeathCount(questManager)
     this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(questManager), curQuestLife);
 end
 
+local function updateQuestTimer(questManager)
+    this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(questManager)), curQuestMaxTimeMin);
+end
+
 local function onQuestStart()
     local QuestManager = get_managed_singleton("snow.QuestManager");
     isTourQuest = isTourQuest_method:call(QuestManager);
     updateDeathCount(QuestManager);
 
-    local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(QuestManager);
     curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
-    this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
+    updateQuestTimer(QuestManager);
 end
-
-this.onQuestStart = onQuestStart;
-    
 
 local PreHook_questForfeit = nil;
 local PostHook_questForfeit = nil;
@@ -65,23 +65,8 @@ do
     end
 end
 
-local PreHook_updateQuestTime = nil;
-local PostHook_updateQuestTime = nil;
-do
-    local function updateQuestTime_Body(questManager)
-        local QuestElapsedTimeSec = getQuestElapsedTimeSec_method:call(questManager);
-        this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, QuestElapsedTimeSec), curQuestMaxTimeMin);
-    end
-
-    local QuestManager = nil;
-    PreHook_updateQuestTime = function(args)
-        QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
-        updateQuestTime_Body(QuestManager);
-    end
-    PostHook_updateQuestTime = function()
-        updateQuestTime_Body(QuestManager);
-        QuestManager = nil;
-    end
+local function PreHook_updateQuestTime(args)
+    updateQuestTimer(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
 end
 
 local function Terminate()
@@ -97,11 +82,11 @@ local function init()
         QuestInfo_onQuestStart();
     end
     hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
-    hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime, PostHook_updateQuestTime);
+    hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
     hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
 
 this.init = init;
-    
+this.onQuestStart = onQuestStart;
 --
 return this;

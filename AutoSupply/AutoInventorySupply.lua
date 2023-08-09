@@ -27,9 +27,7 @@ local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
 
 local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
 
-local PlEquipMySetList_get_Item_method = PlEquipMySetList_field:get_type():get_method("get_Item(System.Int32)");
-
-local PlEquipMySetData_type_def = PlEquipMySetList_get_Item_method:get_return_type();
+local PlEquipMySetData_type_def = find_type_definition("snow.equip.PlEquipMySetData");
 local get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
 
@@ -39,28 +37,28 @@ local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_
 local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
 local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)");
 
-local paletteSetData_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
+local PaletteSetList_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
 
-local paletteSetData_get_Name_method = paletteSetData_get_Item_method:get_return_type():get_method("get_Name");
+local paletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
 
 local SycleTypes_Quest = find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
 --
 local LocalizedStrings = {
     WeaponNames = {
-        [0] = "대검",
-        [1] = "슬래시액스",
-        [2] = "태도",
-        [3] = "라이트보우건",
-        [4] = "헤비보우건",
-        [5] = "해머",
-        [6] = "건랜스",
-        [7] = "랜스",
-        [8] = "한손검",
-        [9] = "쌍검",
-        [10] = "수렵피리",
-        [11] = "차지액스",
-        [12] = "조충곤",
-        [13] = "활"
+        "대검",
+        "슬래시액스",
+        "태도",
+        "라이트보우건",
+        "헤비보우건",
+        "해머",
+        "건랜스",
+        "랜스",
+        "한손검",
+        "쌍검",
+        "수렵피리",
+        "차지액스",
+        "조충곤",
+        "활"
     },
 
     FromLoadout = "장비 프리셋 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
@@ -89,7 +87,8 @@ local function GetCurrentWeaponType()
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
-    return PlEquipMySetList_get_Item_method:call(PlEquipMySetList_field:get_data(equipDataManager), loadoutIndex);
+    local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
+    return PlEquipMySetList:get_element(loadoutIndex);
 end
 
 local function GetEquipmentLoadoutName(equipDataManager, loadoutIndex)
@@ -101,7 +100,7 @@ local function EquipmentLoadoutIsEquipped(equipDataManager, loadoutIndex)
 end
 
 local function GetWeaponName(weaponType)
-    return weaponType == nil and LocalizedStrings.WeaponTypeNilError or LocalizedStrings.WeaponNames[weaponType];
+    return weaponType == nil and LocalizedStrings.WeaponTypeNilError or LocalizedStrings.WeaponNames[weaponType + 1];
 end
 
 local function FromWeaponType(equipName, itemName, mismatch)
@@ -159,7 +158,7 @@ local this = {
                     local ShortcutManager = getCustomShortcutSystem_method:call(nil);
                     local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
                     msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(paletteSetData_get_Item_method:call(paletteList, radialSetIndex)));
+                        or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, paletteSetData_get_Name_method:call(PaletteSetList_get_Item_method:call(paletteList, radialSetIndex)));
                     setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
                 end
             end

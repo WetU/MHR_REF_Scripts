@@ -2,9 +2,6 @@ local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
-local TRUE_POINTER = Constants.TRUE_POINTER;
-local Village = Constants.GameStatusType.Village;
-
 local to_int64 = Constants.sdk.to_int64;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
@@ -12,7 +9,10 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
 local Vector2f_new = Constants.Vector2f.new;
+
+local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkGameStatus = Constants.checkGameStatus;
+local Village = Constants.GameStatusType.Village;
 --
 local this = {
     init = true,

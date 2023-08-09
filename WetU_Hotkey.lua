@@ -1,5 +1,8 @@
 local Constants = _G.require("Constants.Constants");
 
+local pairs = Constants.lua.pairs;
+
+local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
@@ -12,12 +15,11 @@ local F5 = Constants.Keys.F5;
 local F6 = Constants.Keys.F6;
 local F8 = Constants.Keys.F8;
 
+local getKitchenFacility = Constants.getKitchenFacility;
 local getPlayerData = Constants.getPlayerData;
-local get_VillagePoint = Constants.get_VillagePoint;
-local getMealTicketCount = Constants.getMealTicketCount;
-local setMealTicket = Constants.setMealTicket;
-local DangoLogStart = Constants.DangoLogStart;
-
+local getVillagePoint = Constants.getVillagePoint;
+local setMealTicketFlag = Constants.setMealTicketFlag;
+local reqDangoLogStart = Constants.reqDangoLogStart;
 local to_bool = Constants.to_bool;
 
 -- in Village hotkeys
@@ -28,9 +30,7 @@ local VillageFastTravelType_type_def = find_type_definition("snow.stage.StageDef
 local ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil);
 local ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil);
 --
-local get_Kitchen_method = Constants.type_definitions.FacilityDataManager_type_def:get_method("get_Kitchen");
-
-local get_MealFunc_method = get_Kitchen_method:get_return_type():get_method("get_MealFunc");
+local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
 
 local MealFunc_type_def = Constants.type_definitions.MealFunc_type_def;
 local checkAvailableMealSystem_method = MealFunc_type_def:get_method("checkAvailableMealSystem");
@@ -44,8 +44,6 @@ local order_method = MealFunc_type_def:get_method("order(snow.facility.MealOrder
 local get_MySetDataList_method = MealFunc_type_def:get_method("get_MySetDataList");
 local get_DailyDango_method = MealFunc_type_def:get_method("get_DailyDango");
 local resetDailyDango_method = MealFunc_type_def:get_method("resetDailyDango");
-
-local MySetDataList_get_Item_method = get_MySetDataList_method:get_return_type():get_method("get_Item(System.Int32)");
 --
 local getHandMoney_method = Constants.type_definitions.DataManager_type_def:get_method("getHandMoney");
 
@@ -56,6 +54,9 @@ local getMasterPlayer_method = find_type_definition("snow.npc.NpcUtility"):get_m
 local get_PlayerSkillList_method = Constants.type_definitions.PlayerBase_type_def:get_method("get_PlayerSkillList");
 
 local get_KitchenSkillData_method = get_PlayerSkillList_method:get_return_type():get_method("get_KitchenSkillData");
+
+local PlayerKitchenSkillData_type_def = find_type_definition("snow.player.PlayerKitchenSkillData");
+local SkillId_field = PlayerKitchenSkillData_type_def:get_field("_SkillId");
 --
 local DangoLogParam_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam");
 local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType, System.UInt32)");
@@ -87,35 +88,56 @@ local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
     local DangoLogParam = DangoLogParam_type_def:create_instance();
     setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], getVitalBuff_method:call(mealFunc, facilityLv));
     setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], getStaminaBuff_method:call(mealFunc, facilityLv));
-    DangoLogParam:set_field("_SkillDataList", get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase))); -- todo: array size 조정
+    local kitchenSkillData = get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase));
+
+    local skillCopy = {};
+    local activeCount = 0;
+
+    for i = 0, kitchenSkillData:get_size() - 1, 1 do
+        local skill = kitchenSkillData:get_element(i);
+        if SkillId_field:get_data(skill) == 0 then
+            break;
+        end
+
+        skillCopy[i] = skill;
+        activeCount = activeCount + 1;
+    end
+
+    local newArray = create_managed_array(PlayerKitchenSkillData_type_def, activeCount);
+
+    for index, activeSkill in pairs(skillCopy) do
+        newArray[index] = activeSkill;
+    end
+
+    DangoLogParam:set_field("_SkillDataList", newArray);
     return DangoLogParam;
 end
 
-local function village_Body(villageAreaManager)
+local function PreHook_villageUpdate(args)
     if checkKeyTrg(F5) == true or checkKeyTrg(F6) == true then
         local fastTravelType = checkKeyTrg(F5) == true and ELGADO_CHICHE
             or checkKeyTrg(F6) == true and ELGADO_KITCHEN
             or nil;
 
         if fastTravelType ~= nil then
-            fastTravel_method:call(villageAreaManager, fastTravelType);
+            fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), fastTravelType);
         end
 
     elseif checkKeyTrg(F8) == true then
-        local MealFunc = get_MealFunc_method:call(get_Kitchen_method:call(get_managed_singleton("snow.data.FacilityDataManager")));
+        local MealFunc = get_MealFunc_method:call(getKitchenFacility());
 
         if checkAvailableMealSystem_method:call(MealFunc) == true then
             local paymentType = isEnough_method:call(getHandMoney_method:call(get_managed_singleton("snow.data.DataManager")), getHandMoneyCost_method:call(MealFunc)) == true and PaymentTypes[1]
-                or get_VillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes[2]
+                or getVillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes[2]
                 or nil;
 
             if paymentType ~= nil then
                 resetDailyDango_method:call(MealFunc);
                 local FacilityLv = get_FacilityLv_method:call(MealFunc);
-                setMealTicket(MealFunc, getMealTicketCount() > 0);
+                setMealTicketFlag(MealFunc);
 
                 isOrdering = true;
-                order_method:call(MealFunc, MySetDataList_get_Item_method:call(get_MySetDataList_method:call(MealFunc), DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
+                order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
                 isOrdering = false;
 
                 local MasterPlayerBase = getMasterPlayer_method:call(nil);
@@ -124,22 +146,12 @@ local function village_Body(villageAreaManager)
                 MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + 1500.0);
 
                 setWaitTimer_method:call(MealFunc);
-                DangoLogStart(makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase));
+                reqDangoLogStart(makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase));
             end
         end
     end
 end
-
-local VillageAreaManager = nil;
-local function PreHook_villageUpdate(args)
-    VillageAreaManager = to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager");
-    village_Body(VillageAreaManager);
-end
-local function PostHook_villageUpdate()
-    village_Body(VillageAreaManager);
-    VillageAreaManager = nil;
-end
-hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate, PostHook_villageUpdate);
+hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
     if to_bool(retval) ~= true and isOrdering == true then
@@ -148,25 +160,15 @@ local function PostHook_canOrder(retval)
 
     return retval;
 end
-hook(MySetDataList_get_Item_method:get_return_type():get_method("canOrder"), nil, PostHook_canOrder);
+hook(find_type_definition("snow.facility.MealOrderData"):get_method("canOrder"), nil, PostHook_canOrder);
 
 -- Reset Quest hotkey
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
-local function reset_Body(questManager)
-    if checkKeyTrg(F5) == true then
-		notifyReset_method:call(questManager);
+local function PreHook_updateNormalQuest(args)
+	if checkKeyTrg(F5) == true then
+		notifyReset_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
 	end
 end
-
-local QuestManager = nil;
-local function PreHook_updateNormalQuest(args)
-    QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
-	reset_Body(QuestManager);
-end
-local function PostHook_updateNormalQuest()
-    reset_Body(QuestManager);
-    QuestManager = nil;
-end
-hook(QuestManager_type_def:get_method("updateNormalQuest"), PreHook_updateNormalQuest, PostHook_updateNormalQuest);
+hook(QuestManager_type_def:get_method("updateNormalQuest"), PreHook_updateNormalQuest);

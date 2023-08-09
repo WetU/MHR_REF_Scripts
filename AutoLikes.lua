@@ -11,19 +11,14 @@ local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayer
 local gaugeAngleY_field = GoodRelationship_type_def:get_field("_gaugeAngleY");
 local WaitTime_field = GoodRelationship_type_def:get_field("WaitTime");
 
-local OtherPlayerInfos_type_def = OtherPlayerInfos_field:get_type();
-local PlInfos_get_Count_method = OtherPlayerInfos_type_def:get_method("get_Count");
-local PlInfos_set_Item_method = OtherPlayerInfos_type_def:get_method("set_Item(System.Int32, snow.gui.GuiHud_GoodRelationship.PlInfo)");
-local PlInfos_get_Item_method = OtherPlayerInfos_type_def:get_method("get_Item(System.Int32)");
-
-local PlInfo_Enable_field = PlInfos_get_Item_method:get_return_type():get_field("_Enable");
+local PlInfo_Enable_field = find_type_definition("snow.gui.GuiHud_GoodRelationship.PlInfo"):get_field("_Enable");
 -- Main Function
 local MAX_ANGLE_Y = 360.0;
 local NO_WAIT_TIME = 0.0;
 
-local GoodRelationshipHud = nil;
 local sendReady = false;
 
+local GoodRelationshipHud = nil;
 local function PreHook_updatePlayerInfo(args)
 	GoodRelationshipHud = to_managed_object(args[2]);
 
@@ -35,15 +30,14 @@ local function PreHook_updatePlayerInfo(args)
 		GoodRelationshipHud:set_field("WaitTime", NO_WAIT_TIME);
 	end
 end
-
 local function PostHook_updatePlayerInfo()
 	if sendReady ~= true then
 		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
 
-		for i = 0, PlInfos_get_Count_method:call(OtherPlayerInfos) - 1, 1 do
-			local OtherPlayerInfo = PlInfos_get_Item_method:call(OtherPlayerInfos, i);
+		for i = 0, OtherPlayerInfos:get_size() - 1, 1 do
+			local OtherPlayerInfo = OtherPlayerInfos:get_element(i);
 			OtherPlayerInfo:set_field("_good", PlInfo_Enable_field:get_data(OtherPlayerInfo));
-			PlInfos_set_Item_method:call(OtherPlayerInfos, i, OtherPlayerInfo);
+			OtherPlayerInfos[i] = OtherPlayerInfo;
 		end
 
 		sendReady = true;
