@@ -206,9 +206,10 @@ local function setMealTicketFlag(mealFunc)
 
     if count <= 0 then
         SendMessage(nil, "식사권이 없습니다!");
+        setMealTicketFlag_method:call(mealFunc, false);
+    else
+        setMealTicketFlag_method:call(mealFunc, true);
     end
-
-    setMealTicketFlag_method:call(mealFunc, count > 0);
 end
 --
 local reqDangoLogStart_method = GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
