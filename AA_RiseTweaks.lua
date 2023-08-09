@@ -3,7 +3,6 @@ local Constants = _G.require("Constants.Constants");
 local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
 
-local to_bool = Constants.to_bool;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 --
@@ -15,10 +14,8 @@ local function applyFps()
 	set_MaxFps_method:call(nil, MAX_FPS);
 end
 
-local function PreHook_changeAllMarkerEnable(args)
-	if to_bool(args[3]) ~= true then
-		args[3] = TRUE_POINTER;
-	end
+local function PreHook_changeAllMarkerEnable(_, _, boolPtr)
+        boolPtr = TRUE_POINTER;
 end
 --
 hook(find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);
