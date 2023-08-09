@@ -11,24 +11,23 @@ local hook = Constants.sdk.hook;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-local F5 = Constants.Keys.F5;
-local F6 = Constants.Keys.F6;
-local F8 = Constants.Keys.F8;
+local Keys = Constants.Keys;
 
 local getKitchenFacility = Constants.getKitchenFacility;
-local getPlayerData = Constants.getPlayerData;
 local getVillagePoint = Constants.getVillagePoint;
 local setMealTicketFlag = Constants.setMealTicketFlag;
+local getPlayerData = Constants.getPlayerData;
 local reqDangoLogStart = Constants.reqDangoLogStart;
-local to_bool = Constants.to_bool;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
 
 local VillageFastTravelType_type_def = find_type_definition("snow.stage.StageDef.VillageFastTravelType");
-local ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil);
-local ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil);
+local VillageFastTravelType = {
+    ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil),
+    ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil)
+};
 --
 local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
 
@@ -82,8 +81,6 @@ local PaymentTypes = {
     PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
 };
 --
-local isOrdering = false;
-
 local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
     local DangoLogParam = DangoLogParam_type_def:create_instance();
     setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], getVitalBuff_method:call(mealFunc, facilityLv));
@@ -113,17 +110,15 @@ local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
     return DangoLogParam;
 end
 
+local isOrdering = false;
 local function PreHook_villageUpdate(args)
-    if checkKeyTrg(F5) == true or checkKeyTrg(F6) == true then
-        local fastTravelType = checkKeyTrg(F5) == true and ELGADO_CHICHE
-            or checkKeyTrg(F6) == true and ELGADO_KITCHEN
-            or nil;
+    if checkKeyTrg(Keys.F5) == true then
+        fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
 
-        if fastTravelType ~= nil then
-            fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), fastTravelType);
-        end
+    elseif checkKeyTrg(Keys.F6) == true then
+        fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
 
-    elseif checkKeyTrg(F8) == true then
+    elseif checkKeyTrg(Keys.F8) == true then
         local MealFunc = get_MealFunc_method:call(getKitchenFacility());
 
         if checkAvailableMealSystem_method:call(MealFunc) == true then
@@ -154,11 +149,7 @@ end
 hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
-    if to_bool(retval) ~= true and isOrdering == true then
-        return TRUE_POINTER;
-    end
-
-    return retval;
+    return isOrdering == true and TRUE_POINTER or retval;
 end
 hook(find_type_definition("snow.facility.MealOrderData"):get_method("canOrder"), nil, PostHook_canOrder);
 
@@ -167,7 +158,7 @@ local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
 local function PreHook_updateNormalQuest(args)
-	if checkKeyTrg(F5) == true then
+	if checkKeyTrg(Keys.F5) == true then
 		notifyReset_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
 	end
 end

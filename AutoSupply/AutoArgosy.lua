@@ -108,11 +108,10 @@ local this = {
             if get_NegotiationCount_method:call(TradeOrder) == 1 then
                 local addNegoCount = addCount;
                 local NegotiationType = get_NegotiationType_method:call(TradeOrder) + 1;
-                local NegotiationCountData = cacheNegotiationData.Count[NegotiationType];
                 local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
 
                 if getVillagePoint() >= NegotiationCostData then
-                    addNegoCount = addNegoCount + NegotiationCountData;
+                    addNegoCount = addNegoCount + cacheNegotiationData.Count[NegotiationType];
                     subPoint_method:call(nil, NegotiationCostData);
                 end
 
