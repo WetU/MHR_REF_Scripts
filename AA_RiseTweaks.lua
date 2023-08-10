@@ -14,8 +14,8 @@ local function applyFps()
 	set_MaxFps_method:call(nil, MAX_FPS);
 end
 
-local function PreHook_changeAllMarkerEnable(_, _, boolPtr)
-        boolPtr = TRUE_POINTER;
+local function PreHook_changeAllMarkerEnable(args)
+	args[3] = TRUE_POINTER;
 end
 --
 hook(find_type_definition("snow.eventcut.UniqueEventManager"):get_method("playEventCommon(System.Boolean, System.Int32)"), nil, applyFps);

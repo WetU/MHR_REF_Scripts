@@ -36,80 +36,80 @@ local Die = find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_fi
 --
 local QuestMapList = Constants.QuestMapList;
 local SubCampRevivalPos = {
-    [QuestMapList.ShrineRuins] = {
-        Vector3f_new(236.707, 174.37, -510.568)
-    },
-    [QuestMapList.SandyPlains] = {
-        Vector3f_new(-117.699, -45.653, -233.201),
-        Vector3f_new(116.07, -63.316, -428.018)
-    },
-    [QuestMapList.FloodedForest] = {
-        Vector3f_new(207.968, 90.447, 46.081)
-    },
-    [QuestMapList.FrostIslands] = {
-        Vector3f_new(-94.171, 2.744, -371.947),
-        Vector3f_new(103.986, 26.0, -496.863)
-    },
-    [QuestMapList.LavaCaverns] = {
-        Vector3f_new(244.252, 147.122, -537.940),
-        Vector3f_new(-40.000, 81.136, -429.201)
-    },
-    [QuestMapList.Jungle] = {
-        Vector3f_new(3.854, 32.094, -147.152)
-    },
-    [QuestMapList.Citadel] = {
-        Vector3f_new(107.230, 94.988, -254.308)
-    }
+	[QuestMapList.ShrineRuins] = {
+		Vector3f_new(236.707, 174.37, -510.568)
+	},
+	[QuestMapList.SandyPlains] = {
+		Vector3f_new(-117.699, -45.653, -233.201),
+		Vector3f_new(116.07, -63.316, -428.018)
+	},
+	[QuestMapList.FloodedForest] = {
+		Vector3f_new(207.968, 90.447, 46.081)
+	},
+	[QuestMapList.FrostIslands] = {
+		Vector3f_new(-94.171, 2.744, -371.947),
+		Vector3f_new(103.986, 26.0, -496.863)
+	},
+	[QuestMapList.LavaCaverns] = {
+		Vector3f_new(244.252, 147.122, -537.940),
+		Vector3f_new(-40.000, 81.136, -429.201)
+	},
+	[QuestMapList.Jungle] = {
+		Vector3f_new(3.854, 32.094, -147.152)
+	},
+	[QuestMapList.Citadel] = {
+		Vector3f_new(107.230, 94.988, -254.308)
+	}
 };
 --
 local reviveCampPos = nil;
 
 local function PreHook_startToPlayPlayerDieMusic()
-    reviveCampPos = nil;
-    local QuestManager = get_managed_singleton("snow.QuestManager");
+	reviveCampPos = nil;
+	local QuestManager = get_managed_singleton("snow.QuestManager");
 
-    if getDeathNum(QuestManager) < getQuestLife(QuestManager) then
-        local subCamps = SubCampRevivalPos[getQuestMapNo(QuestManager)];
+	if getDeathNum(QuestManager) < getQuestLife(QuestManager) then
+		local subCamps = SubCampRevivalPos[getQuestMapNo(QuestManager)];
 
-        if subCamps ~= nil then
-            local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
-            local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
+		if subCamps ~= nil then
+			local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
+			local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
 
-            if #subCamps > 1 then
-                for i, subCampPos in ipairs(subCamps) do
-                    local distance = calcDistance_method:call(nil, currentPos, subCampPos);
+			if #subCamps > 1 then
+				for i, subCampPos in ipairs(subCamps) do
+					local distance = calcDistance_method:call(nil, currentPos, subCampPos);
 
-                    if distance < nearestDistance then
-                        if i == 1 then
-                            nearestDistance = distance;
-                        end
-                        reviveCampPos = subCampPos;
-                    end
-                end
-            else
-                local subCampPos = subCamps[1];
-                if calcDistance_method:call(nil, currentPos, subCampPos) < nearestDistance then
-                    reviveCampPos = subCampPos;
-                end
-            end
-        end
-    end
+					if distance < nearestDistance then
+						if i == 1 then
+							nearestDistance = distance;
+						end
+						reviveCampPos = subCampPos;
+					end
+				end
+			else
+				local subCampPos = subCamps[1];
+				if calcDistance_method:call(nil, currentPos, subCampPos) < nearestDistance then
+					reviveCampPos = subCampPos;
+				end
+			end
+		end
+	end
 end
 
 local function PreHook_setPlWarpInfo_Nekotaku(args)
-    if reviveCampPos ~= nil then
-        setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, Die);
-        return SKIP_ORIGINAL;
-    end
+	if reviveCampPos ~= nil then
+		setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, Die);
+		return SKIP_ORIGINAL;
+	end
 end
 
 local function PreHook_CreateNekotaku(args)
-    if reviveCampPos ~= nil then
-        local campPos = reviveCampPos;
-        reviveCampPos = nil;
-        CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_int64(args[3]), campPos, to_float(args[5]));
-        return SKIP_ORIGINAL;
-    end
+	if reviveCampPos ~= nil then
+		local campPos = reviveCampPos;
+		reviveCampPos = nil;
+		CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_int64(args[3]), campPos, to_float(args[5]));
+		return SKIP_ORIGINAL;
+	end
 end
 
 hook(find_type_definition("snow.wwise.WwiseMusicManager"):get_method("startToPlayPlayerDieMusic"), PreHook_startToPlayPlayerDieMusic);

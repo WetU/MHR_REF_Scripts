@@ -13,10 +13,10 @@ local getQuestLife = Constants.getQuestLife;
 local getDeathNum = Constants.getDeathNum;
 --
 local this = {
-    init = true,
-    onQuestStart = true,
-    QuestTimer = nil,
-    DeathCount = nil
+	init = true,
+	onQuestStart = true,
+	QuestTimer = nil,
+	DeathCount = nil
 };
 --
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
@@ -32,58 +32,58 @@ local curQuestLife = nil;
 local curQuestMaxTimeMin = nil;
 
 local function updateDeathCount(questManager)
-    if curQuestLife == nil then
-        curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(questManager);
-    end
+	if curQuestLife == nil then
+		curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(questManager);
+	end
 
-    this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(questManager), curQuestLife);
+	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(questManager), curQuestLife);
 end
 
 local function updateQuestTimer(questManager)
-    this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(questManager)), curQuestMaxTimeMin);
+	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(questManager)), curQuestMaxTimeMin);
 end
 
 local function onQuestStart()
-    local QuestManager = get_managed_singleton("snow.QuestManager");
-    isTourQuest = isTourQuest_method:call(QuestManager);
-    updateDeathCount(QuestManager);
+	local QuestManager = get_managed_singleton("snow.QuestManager");
+	isTourQuest = isTourQuest_method:call(QuestManager);
+	updateDeathCount(QuestManager);
 
-    curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
-    updateQuestTimer(QuestManager);
+	curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
+	updateQuestTimer(QuestManager);
 end
 
 local PreHook_questForfeit = nil;
 local PostHook_questForfeit = nil;
 do
-    local QuestManager = nil;
-    PreHook_questForfeit = function(args)
-        QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
-    end
-    PostHook_questForfeit = function()
-        updateDeathCount(QuestManager);
-        QuestManager = nil;
-    end
+	local QuestManager = nil;
+	PreHook_questForfeit = function(args)
+		QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+	end
+	PostHook_questForfeit = function()
+		updateDeathCount(QuestManager);
+		QuestManager = nil;
+	end
 end
 
 local function PreHook_updateQuestTime(args)
-    updateQuestTimer(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
+	updateQuestTimer(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
 end
 
 local function Terminate()
-    this.QuestTimer = nil;
-    this.DeathCount = nil;
-    isTourQuest = false;
-    curQuestLife = nil;
-    curQuestMaxTimeMin = nil;
+	this.QuestTimer = nil;
+	this.DeathCount = nil;
+	isTourQuest = false;
+	curQuestLife = nil;
+	curQuestMaxTimeMin = nil;
 end
 
 local function init()
-    if checkGameStatus(Constants.GameStatusType.Quest) == true then
-        QuestInfo_onQuestStart();
-    end
-    hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
-    hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
-    hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
+	if checkGameStatus(Constants.GameStatusType.Quest) == true then
+		QuestInfo_onQuestStart();
+	end
+	hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
+	hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);
+	hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
 
 this.init = init;

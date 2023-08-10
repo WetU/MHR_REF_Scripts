@@ -25,8 +25,8 @@ local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(sno
 
 local VillageFastTravelType_type_def = find_type_definition("snow.stage.StageDef.VillageFastTravelType");
 local VillageFastTravelType = {
-    ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil),
-    ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil)
+	ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil),
+	ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil)
 };
 --
 local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
@@ -62,94 +62,94 @@ local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(
 --
 local DangoLogStatusItemType_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType");
 local DangoLogStatusItemType = {
-    DangoLogStatusItemType_type_def:get_field("Vital"):get_data(nil),
-    DangoLogStatusItemType_type_def:get_field("Stamina"):get_data(nil)
+	DangoLogStatusItemType_type_def:get_field("Vital"):get_data(nil),
+	DangoLogStatusItemType_type_def:get_field("Stamina"):get_data(nil)
 };
 
 local DailyDango_type_def = get_DailyDango_method:get_return_type();
 local DailyDango = {
-    [DailyDango_type_def:get_field("Dango_035"):get_data(nil)] = true,  -- 보수금 보험
-    [DailyDango_type_def:get_field("Dango_041"):get_data(nil)] = true,  -- 환산술
-    [DailyDango_type_def:get_field("Dango_042"):get_data(nil)] = true,  -- 금전운
-    [DailyDango_type_def:get_field("Dango_045"):get_data(nil)] = true,  -- 행운술
-    [DailyDango_type_def:get_field("Dango_046"):get_data(nil)] = true   -- 격운술
+	[DailyDango_type_def:get_field("Dango_035"):get_data(nil)] = true,  -- 보수금 보험
+	[DailyDango_type_def:get_field("Dango_041"):get_data(nil)] = true,  -- 환산술
+	[DailyDango_type_def:get_field("Dango_042"):get_data(nil)] = true,  -- 금전운
+	[DailyDango_type_def:get_field("Dango_045"):get_data(nil)] = true,  -- 행운술
+	[DailyDango_type_def:get_field("Dango_046"):get_data(nil)] = true   -- 격운술
 };
 
 local PaymentTypes_type_def = find_type_definition("snow.facility.kitchen.MealFunc.PaymentTypes");
 local PaymentTypes = {
-    PaymentTypes_type_def:get_field("Money"):get_data(nil),
-    PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
+	PaymentTypes_type_def:get_field("Money"):get_data(nil),
+	PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
 };
 --
 local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
-    local DangoLogParam = DangoLogParam_type_def:create_instance();
-    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], getVitalBuff_method:call(mealFunc, facilityLv));
-    setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], getStaminaBuff_method:call(mealFunc, facilityLv));
-    local kitchenSkillData = get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase));
+	local DangoLogParam = DangoLogParam_type_def:create_instance();
+	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], getVitalBuff_method:call(mealFunc, facilityLv));
+	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], getStaminaBuff_method:call(mealFunc, facilityLv));
+	local kitchenSkillData = get_KitchenSkillData_method:call(get_PlayerSkillList_method:call(masterPlayerBase));
 
-    local skillCopy = {};
-    local activeCount = 0;
+	local skillCopy = {};
+	local activeCount = 0;
 
-    for i = 0, kitchenSkillData:get_size() - 1, 1 do
-        local skill = kitchenSkillData:get_element(i);
-        if SkillId_field:get_data(skill) == 0 then
-            break;
-        end
+	for i = 0, kitchenSkillData:get_size() - 1, 1 do
+		local skill = kitchenSkillData:get_element(i);
+		if SkillId_field:get_data(skill) == 0 then
+			break;
+		end
 
-        skillCopy[i] = skill;
-        activeCount = activeCount + 1;
-    end
+		skillCopy[i] = skill;
+		activeCount = activeCount + 1;
+	end
 
-    local newArray = create_managed_array(PlayerKitchenSkillData_type_def, activeCount);
+	local newArray = create_managed_array(PlayerKitchenSkillData_type_def, activeCount);
 
-    for index, activeSkill in pairs(skillCopy) do
-        newArray[index] = activeSkill;
-    end
+	for index, activeSkill in pairs(skillCopy) do
+		newArray[index] = activeSkill;
+	end
 
-    DangoLogParam:set_field("_SkillDataList", newArray);
-    return DangoLogParam;
+	DangoLogParam:set_field("_SkillDataList", newArray);
+	return DangoLogParam;
 end
 
 local isOrdering = false;
 local function PreHook_villageUpdate(args)
-    if checkKeyTrg(Keys.F5) == true then
-        fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
+	if checkKeyTrg(Keys.F5) == true then
+		fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
 
-    elseif checkKeyTrg(Keys.F6) == true then
-        fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
+	elseif checkKeyTrg(Keys.F6) == true then
+		fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
 
-    elseif checkKeyTrg(Keys.F8) == true then
-        local MealFunc = get_MealFunc_method:call(getKitchenFacility());
+	elseif checkKeyTrg(Keys.F8) == true then
+		local MealFunc = get_MealFunc_method:call(getKitchenFacility());
 
-        if checkAvailableMealSystem_method:call(MealFunc) == true then
-            local paymentType = isEnough_method:call(getHandMoney_method:call(get_managed_singleton("snow.data.DataManager")), getHandMoneyCost_method:call(MealFunc)) == true and PaymentTypes[1]
-                or getVillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes[2]
-                or nil;
+		if checkAvailableMealSystem_method:call(MealFunc) == true then
+			local paymentType = isEnough_method:call(getHandMoney_method:call(get_managed_singleton("snow.data.DataManager")), getHandMoneyCost_method:call(MealFunc)) == true and PaymentTypes[1]
+				or getVillagePoint() >= getVillagePointCost_method:call(MealFunc) and PaymentTypes[2]
+				or nil;
 
-            if paymentType ~= nil then
-                resetDailyDango_method:call(MealFunc);
-                local FacilityLv = get_FacilityLv_method:call(MealFunc);
-                setMealTicketFlag(MealFunc);
+			if paymentType ~= nil then
+				resetDailyDango_method:call(MealFunc);
+				local FacilityLv = get_FacilityLv_method:call(MealFunc);
+				setMealTicketFlag(MealFunc);
 
-                isOrdering = true;
-                order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
-                isOrdering = false;
+				isOrdering = true;
+				order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
+				isOrdering = false;
 
-                local MasterPlayerBase = getMasterPlayer_method:call(nil);
-                local MasterPlayerData = getPlayerData(MasterPlayerBase);
-                MasterPlayerData:set_field("_vitalMax", MasterPlayerData:get_field("_vitalMax") + 50);
-                MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + 1500.0);
+				local MasterPlayerBase = getMasterPlayer_method:call(nil);
+				local MasterPlayerData = getPlayerData(MasterPlayerBase);
+				MasterPlayerData:set_field("_vitalMax", MasterPlayerData:get_field("_vitalMax") + 50);
+				MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + 1500.0);
 
-                setWaitTimer_method:call(MealFunc);
-                reqDangoLogStart(makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase));
-            end
-        end
-    end
+				setWaitTimer_method:call(MealFunc);
+				reqDangoLogStart(makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase));
+			end
+		end
+	end
 end
 hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
-    return isOrdering == true and TRUE_POINTER or retval;
+	return isOrdering == true and TRUE_POINTER or retval;
 end
 hook(find_type_definition("snow.facility.MealOrderData"):get_method("canOrder"), nil, PostHook_canOrder);
 

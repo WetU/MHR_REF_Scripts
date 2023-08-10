@@ -20,42 +20,42 @@ local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_meth
 local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
 --
 local this = {
-    init = true,
-    CircleTimer = nil
+	init = true,
+	CircleTimer = nil
 };
 --
 local function Terminate()
-    this.CircleTimer = nil;
+	this.CircleTimer = nil;
 end
 
 local function UpdateHarvestMoonTimer(longSwordShell010)
-    this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
+	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
 end
 
 local function PreHook_update(args)
-    UpdateHarvestMoonTimer(to_managed_object(args[2]));
+	UpdateHarvestMoonTimer(to_managed_object(args[2]));
 end
 
 local PreHook = nil;
 local PostHook = nil;
 do
-    local LongSwordShell010 = nil;
-    PreHook = function(args)
-        LongSwordShell010 = to_managed_object(args[2]);
-    end
-    PostHook = function()
-        if CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
-            UpdateHarvestMoonTimer(LongSwordShell010);
-            hook_vtable(LongSwordShell010, update_method, PreHook_update);
-            hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
-        end
+	local LongSwordShell010 = nil;
+	PreHook = function(args)
+		LongSwordShell010 = to_managed_object(args[2]);
+	end
+	PostHook = function()
+		if CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
+			UpdateHarvestMoonTimer(LongSwordShell010);
+			hook_vtable(LongSwordShell010, update_method, PreHook_update);
+			hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
+		end
 
-        LongSwordShell010 = nil;
-    end
+		LongSwordShell010 = nil;
+	end
 end
 
 local function init()
-    hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
+	hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
 end
 
 this.init = init;
