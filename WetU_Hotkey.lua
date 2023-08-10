@@ -16,6 +16,7 @@ local Keys = Constants.Keys;
 local getKitchenFacility = Constants.getKitchenFacility;
 local getVillagePoint = Constants.getVillagePoint;
 local setMealTicketFlag = Constants.setMealTicketFlag;
+local getMasterPlayerBase = Constants.getMasterPlayerBase;
 local getPlayerData = Constants.getPlayerData;
 local reqDangoLogStart = Constants.reqDangoLogStart;
 
@@ -48,8 +49,6 @@ local getHandMoney_method = Constants.type_definitions.DataManager_type_def:get_
 
 local isEnough_method = getHandMoney_method:get_return_type():get_method("isEnough(System.UInt32)");
 --
-local getMasterPlayer_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
-
 local get_PlayerSkillList_method = Constants.type_definitions.PlayerBase_type_def:get_method("get_PlayerSkillList");
 
 local get_KitchenSkillData_method = get_PlayerSkillList_method:get_return_type():get_method("get_KitchenSkillData");
@@ -135,7 +134,7 @@ local function PreHook_villageUpdate(args)
 				order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
 				isOrdering = false;
 
-				local MasterPlayerBase = getMasterPlayer_method:call(nil);
+				local MasterPlayerBase = getMasterPlayerBase();
 				local MasterPlayerData = getPlayerData(MasterPlayerBase);
 				MasterPlayerData:set_field("_vitalMax", MasterPlayerData:get_field("_vitalMax") + 50);
 				MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + 1500.0);

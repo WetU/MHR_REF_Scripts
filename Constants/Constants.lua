@@ -125,6 +125,12 @@ local function ClearFade()
 	FadeManager:set_field("fadeOutInFlag", false);
 end
 --
+local getMasterPlayer_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
+
+local function getMasterPlayerBase()
+	return getMasterPlayer_method:call(nil);
+end
+--
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
 local KitchenFacility_type_def = get_Kitchen_method:get_return_type();
 
@@ -315,6 +321,8 @@ local this = {
 	checkGameStatus = checkGameStatus,
 
 	ClearFade = ClearFade,
+
+	getMasterPlayerBase = getMasterPlayerBase,
 
 	getKitchenFacility = getKitchenFacility,
 	

@@ -1,16 +1,20 @@
 local Constants = _G.require("Constants.Constants");
 
+local pairs = Constants.lua.pairs;
 local string_format = Constants.lua.string_format;
 
+local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
+
+local getMasterPlayerBase = Constants.getMasterPlayerBase;
 --
 local DefaultSet = 0;
 --
-local findMasterPlayer_method = Constants.type_definitions.PlayerManager_type_def:get_method("findMasterPlayer");
-local playerWeaponType_field = findMasterPlayer_method:get_return_type():get_field("_playerWeaponType");
+local playerWeaponType_field = Constants.type_definitions.PlayerBase_type_def:get_field("_playerWeaponType");
 
-local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static
+local DataManager_type_def = Constants.type_definitions.DataManager_type_def;
+local get_ItemMySet_method = DataManager_type_def:get_method("get_ItemMySet"); -- static
 
 local ItemMySet_type_def = get_ItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
@@ -42,6 +46,17 @@ local PaletteSetList_get_Item_method = getPaletteSetList_method:get_return_type(
 local PaletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
 
 local SycleTypes_Quest = find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
+--
+local get_ItemPouch_method = DataManager_type_def:get_method("get_ItemPouch"); -- static
+
+local tryAddGameItem_method = get_ItemPouch_method:get_return_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
+
+local ItemId_type_def = Constants.type_definitions.ItemId_type_def;
+local ItemIds = {
+	[ItemId_type_def:get_field("I_Normal_0502"):get_data(nil)] = 10, -- 그레이트 응급약
+	[ItemId_type_def:get_field("I_Normal_0500"):get_data(nil)] = 10, -- 지급전용 휴대 식량
+	[ItemId_type_def:get_field("I_Normal_0514"):get_data(nil)] = 1  -- 지급전용 귀환옥
+};
 --
 local LocalizedStrings = {
 	WeaponNames = {
@@ -83,7 +98,7 @@ local MATCH_TYPE = {
 local lastHitLoadoutIndex = nil;
 
 local function GetCurrentWeaponType()
-	return playerWeaponType_field:get_data(findMasterPlayer_method:call(get_managed_singleton("snow.player.PlayerManager")));
+	return playerWeaponType_field:get_data(getMasterPlayerBase());
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
@@ -133,7 +148,17 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 	return MATCH_TYPE[2], GetWeaponName(GetCurrentWeaponType()), true;
 end
 --
+local function onQuestStart()
+	local ItemPouch = get_ItemPouch_method:call(nil);
+	for k, v in pairs(ItemIds) do
+		tryAddGameItem_method:call(ItemPouch, k, v);
+	end
+end
+--
 local this = {
+	init = function()
+		hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
+	end,
 	Restock = function(equipDataManager, loadoutIndex)
 		local ItemMySet = get_ItemMySet_method:call(nil);
 		local loadout = getData_method:call(ItemMySet, DefaultSet);

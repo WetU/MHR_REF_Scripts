@@ -56,4 +56,5 @@ local function onVillageEnd()
 end
 hook(WwiseChangeSpaceWatcher_type_def:get_method("onVillageEnd"), nil, onVillageEnd);
 --
+InventorySupply.init();
 AutoTicketsSupply.init();
