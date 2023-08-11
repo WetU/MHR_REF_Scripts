@@ -67,30 +67,27 @@ local reviveCampPos = nil;
 local function PreHook_startToPlayPlayerDieMusic()
 	reviveCampPos = nil;
 	local QuestManager = get_managed_singleton("snow.QuestManager");
+	local subCamps = SubCampRevivalPos[getQuestMapNo(QuestManager)];
 
-	if getDeathNum(QuestManager) < getQuestLife(QuestManager) then
-		local subCamps = SubCampRevivalPos[getQuestMapNo(QuestManager)];
+	if subCamps ~= nil and getDeathNum(QuestManager) < getQuestLife(QuestManager) then
+		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
+		local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
 
-		if subCamps ~= nil then
-			local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
-			local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
+		if #subCamps > 1 then
+			for i, subCampPos in ipairs(subCamps) do
+				local distance = calcDistance_method:call(nil, currentPos, subCampPos);
 
-			if #subCamps > 1 then
-				for i, subCampPos in ipairs(subCamps) do
-					local distance = calcDistance_method:call(nil, currentPos, subCampPos);
-
-					if distance < nearestDistance then
-						if i == 1 then
-							nearestDistance = distance;
-						end
-						reviveCampPos = subCampPos;
+				if distance < nearestDistance then
+					if i == 1 then
+						nearestDistance = distance;
 					end
-				end
-			else
-				local subCampPos = subCamps[1];
-				if calcDistance_method:call(nil, currentPos, subCampPos) < nearestDistance then
 					reviveCampPos = subCampPos;
 				end
+			end
+		else
+			local subCampPos = subCamps[1];
+			if calcDistance_method:call(nil, currentPos, subCampPos) < nearestDistance then
+				reviveCampPos = subCampPos;
 			end
 		end
 	end

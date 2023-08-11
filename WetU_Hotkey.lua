@@ -26,7 +26,7 @@ local VillageFastTravelType = {
 --
 local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
 
-local MealFunc_type_def = get_MealFUnc_method:get_return_type();
+local MealFunc_type_def = get_MealFunc_method:get_return_type();
 local setWaitTimer_method = MealFunc_type_def:get_method("setWaitTimer");
 local checkAvailableMealSystem_method = MealFunc_type_def:get_method("checkAvailableMealSystem");
 local checkHandMoney_method = MealFunc_type_def:get_method("checkHandMoney");

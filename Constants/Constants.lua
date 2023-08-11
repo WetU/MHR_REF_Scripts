@@ -103,11 +103,7 @@ local GameStatusType = {
 
 local function checkGameStatus(checkType)
 	local SnowGameManager = get_managed_singleton("snow.SnowGameManager");
-	if SnowGameManager ~= nil then
-		return checkType == get_CurrentStatus_method:call(SnowGameManager);
-	end
-
-	return nil;
+	return SnowGameManager ~= nil and checkType == get_CurrentStatus_method:call(SnowGameManager) or nil;
 end
 --
 local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
@@ -147,36 +143,24 @@ local QuestMapList = {
 };
 
 local function getQuestMapNo(nullable_questManager)
-	if nullable_questManager == nil then
-		nullable_questManager = get_managed_singleton("snow.QuestManager");
-	end
-
-	return getMapNo_method:call(nullable_questManager);
+	return nullable_questManager ~= nil and getMapNo_method:call(nullable_questManager) or getMapNo_method:call(get_managed_singleton("snow.QuestManager"));
 end
 --
 local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
 local function getPlayerData(playerBase)
-	return get_PlayerData_method:call(playerBase);
+	return playerBase ~= nil and get_PlayerData_method:call(playerBase) or get_PlayerData_method:call(getMasterPlayer_method:call(nil));
 end
 --
 local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
 local getDeathNum_method = QuestManager_type_def:get_method("getDeathNum");
 
 local function getQuestLife(nullable_questManager)
-	if nullable_questManager == nil then
-		nullable_questManager = get_managed_singleton("snow.QuestManager");
-	end
-
-	return getQuestLife_method:call(nullable_questManager);
+	return nullable_questManager ~= nil and getQuestLife_method:call(nullable_questManager) or getQuestLife_method:call(get_managed_singleton("snow.QuestManager"));
 end
 
 local function getDeathNum(nullable_questManager)
-	if nullable_questManager == nil then
-		nullable_questManager = get_managed_singleton("snow.QuestManager");
-	end
-
-	return getDeathNum_method:call(nullable_questManager);
+	return nullable_questManager ~= nil and getDeathNum_method:call(nullable_questManager) or getDeathNum_method:call(get_managed_singleton("snow.QuestManager"));
 end
 --
 local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
