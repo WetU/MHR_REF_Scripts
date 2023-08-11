@@ -36,6 +36,8 @@ hook(find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("sta
 local isOnVillageStarted = false;
 
 local function onVillageStart()
+	talkHandler();
+
 	if isOnVillageStarted ~= true then
 		isOnVillageStarted = true;
 		local ChatManager = get_managed_singleton("snow.gui.ChatManager");
@@ -46,8 +48,6 @@ local function onVillageStart()
 		end
 		SendMessage(ChatManager, Restock(get_managed_singleton("snow.data.EquipDataManager"), nil));
 	end
-
-	talkHandler();
 end
 hook(WwiseChangeSpaceWatcher_type_def:get_method("onVillageStart"), nil, onVillageStart);
 --

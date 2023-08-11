@@ -9,7 +9,7 @@ local getKitchenFacility = Constants.getKitchenFacility;
 local to_bool = Constants.to_bool;
 local FALSE_POINTER = Constants.FALSE_POINTER;
 --
-local supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
+local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
 local Otomo_supply_method = find_type_definition("snow.progress.ProgressOtomoTicketManager"):get_method("supply");
 --
@@ -61,8 +61,8 @@ local TalkAttribute_NONE = find_type_definition("snow.npc.TalkAttribute"):get_fi
 
 local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-	Bahari = NpcId_type_def:get_field("nid503"):get_data(nil),
-	Pingarh = NpcId_type_def:get_field("nid715"):get_data(nil)
+	NpcId_type_def:get_field("nid503"):get_data(nil),
+	NpcId_type_def:get_field("nid715"):get_data(nil)
 };
 --
 local MysteryResearchRequestEnd = nil;
@@ -98,9 +98,9 @@ local function PreHook_getTalkTarget(args)
 end
 local function PostHook_getTalkTarget()
 	local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
-	if NpcId == npcList.Pingarh and get_CanObtainCommercialStuff() == true then
+	if NpcId == npcList[2] and get_CanObtainCommercialStuff() == true then
 		CommercialNpcTalkMessageCtrl = NpcTalkMessageCtrl;
-	elseif NpcId == npcList.Bahari and get_IsMysteryResearchRequestClear() == true then
+	elseif NpcId == npcList[1] and get_IsMysteryResearchRequestClear() == true then
 		MysteryLaboNpcTalkMessageCtrl = NpcTalkMessageCtrl;
 	end
 
@@ -108,11 +108,11 @@ local function PostHook_getTalkTarget()
 end
 
 local function talkHandler()
-	if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList.Pingarh, 0, 0) == true then
+	if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, npcList[2], 0, 0) == true then
 		CommercialNpcTalkMessageCtrl = nil;
 	end
 
-	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList[1], 0, 0) == true then
 		resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
 		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, TalkAttribute_NONE);
@@ -190,7 +190,7 @@ end]]
 
 local function PostHook_checkSupplyItem_GoodReward(retval)
 	if to_bool(retval) == true then
-		supplyReward_method:call(get_managed_singleton("snow.progress.ProgressGoodRewardManager"));
+		GoodReward_supplyReward_method:call(get_managed_singleton("snow.progress.ProgressGoodRewardManager"));
 		return FALSE_POINTER;
 	end
 
@@ -216,7 +216,7 @@ end
 end]]
 
 local function PostHook_checkMysteryResearchRequestEnd(retval)
-	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList.Bahari, 0, 0) == true then
+	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, npcList[1], 0, 0) == true then
 		MysteryResearchRequestEnd = false;
 		resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);

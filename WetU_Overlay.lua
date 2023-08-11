@@ -38,6 +38,7 @@ end
 hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
 local WINDOW_FLAG = 4096 + 64 + 512;
+
 local function drawHarvestMoonTimer()
 	local CircleTimer = HarvestMoonTimer.CircleTimer;
 
@@ -91,6 +92,11 @@ local function drawSpiribirdsStatus()
 	local SpiribirdsCall_Timer = SpiribirdsStatus.SpiribirdsCall_Timer;
 
 	if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
+		local AcquiredCounts = SpiribirdsStatus.AcquiredCounts;
+		local BirdsMaxCounts = SpiribirdsStatus.BirdsMaxCounts;
+		local AcquiredValues = SpiribirdsStatus.AcquiredValues;
+		local StatusBuffLimits = SpiribirdsStatus.StatusBuffLimits;
+
 		if begin_window("인혼조", nil, WINDOW_FLAG) == true then
 			if begin_table("종류", 3, 2097152) == true then
 				table_setup_column("유형", 8, 25.0);
@@ -98,12 +104,7 @@ local function drawSpiribirdsStatus()
 				table_setup_column("수치", 8, 25.0);
 				table_headers_row();
 
-				local AcquiredCounts = SpiribirdsStatus.AcquiredCounts;
-				local BirdsMaxCounts = SpiribirdsStatus.BirdsMaxCounts;
-				local AcquiredValues = SpiribirdsStatus.AcquiredValues;
-				local StatusBuffLimits = SpiribirdsStatus.StatusBuffLimits;
-
-				for i = 1, #SpiriBuffs, 1 do
+				for i = 1, 4, 1 do
 					local buffType = SpiriBuffs[i];
 					table_next_row();
 					table_next_column();

@@ -17,9 +17,13 @@ local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__C
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 
 local AreaNoType_type_def = get__CurrentAreaNo_method:get_return_type();
-local BUDDY_PLAZA = AreaNoType_type_def:get_field("No02"):get_data(nil);
-local OUTPOST = AreaNoType_type_def:get_field("No06"):get_data(nil);
+local AreaNoType = {
+	AreaNoType_type_def:get_field("No02"):get_data(nil),
+	AreaNoType_type_def:get_field("No06"):get_data(nil)
+};
 --
+local BUDDY_PLAZA = AreaNoType[1];
+local OUTPOST = AreaNoType[2];
 local this = {
 	Supply = function()
 		local ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");

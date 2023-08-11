@@ -12,6 +12,7 @@ local string = _G.string;
 local string_format = string.format;
 --
 local sdk = _G.sdk;
+local create_managed_array = sdk.create_managed_array;
 local hook = sdk.hook;
 local hook_vtable = sdk.hook_vtable;
 local find_type_definition = sdk.find_type_definition;
@@ -196,6 +197,7 @@ local this = {
 	},
 
 	sdk = {
+		create_managed_array = create_managed_array,
 		hook = hook,
 		hook_vtable = hook_vtable,
 		find_type_definition = find_type_definition,
