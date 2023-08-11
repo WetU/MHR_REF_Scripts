@@ -79,7 +79,7 @@ end
 
 local function init()
 	if checkGameStatus(Constants.GameStatusType.Quest) == true then
-		QuestInfo_onQuestStart();
+		onQuestStart();
 	end
 	hook(QuestManager_type_def:get_method("questForfeit(System.Int32, System.UInt32)"), PreHook_questForfeit, PostHook_questForfeit);
 	hook(QuestManager_type_def:get_method("updateQuestTime"), PreHook_updateQuestTime);

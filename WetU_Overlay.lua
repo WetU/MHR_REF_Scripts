@@ -14,7 +14,6 @@ local on_frame = Constants.re.on_frame;
 local Font = Constants.Font;
 
 local push_font = Constants.imgui.push_font;
-local pop_font = Constants.imgui.pop_font;
 local begin_window = Constants.imgui.begin_window;
 local end_window = Constants.imgui.end_window;
 local begin_table = Constants.imgui.begin_table;
@@ -37,18 +36,15 @@ local function onQuestStart()
 end
 hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
+local WINDOW_FLAG = 4096 + 64 + 512;
 local function drawHarvestMoonTimer()
 	local CircleTimer = HarvestMoonTimer.CircleTimer;
 
 	if CircleTimer ~= nil then
-		push_font(Font);
-
-		if begin_window("원월", nil, 4096 + 64 + 512) == true then
+		if begin_window("원월", nil, WINDOW_FLAG) == true then
 			text(CircleTimer);
 			end_window();
 		end
-
-		pop_font();
 	end
 end
 
@@ -56,14 +52,10 @@ local function drawOtomoSpyUnit()
 	local currentStep = OtomoSpyUnit.currentStep;
 
 	if currentStep ~= nil then
-		push_font(Font);
-
-		if begin_window("동반자 활동", nil, 4096 + 64 + 512) == true then
+		if begin_window("동반자 활동", nil, WINDOW_FLAG) == true then
 			text(currentStep);
 			end_window();
 		end
-
-		pop_font();
 	end
 end
 
@@ -72,9 +64,7 @@ local function drawQuestInfo()
 	local DeathCount = QuestInfo.DeathCount;
 
 	if QuestTimer ~= nil then
-		push_font(Font);
-
-		if begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
+		if begin_window("퀘스트 정보", nil, WINDOW_FLAG) == true then
 			text(QuestTimer);
 
 			if DeathCount ~= nil then
@@ -84,17 +74,11 @@ local function drawQuestInfo()
 			end_window();
 		end
 
-		pop_font();
-
 	elseif DeathCount ~= nil then
-		push_font(Font);
-
-		if begin_window("퀘스트 정보", nil, 4096 + 64 + 512) == true then
+		if begin_window("퀘스트 정보", nil, WINDOW_FLAG) == true then
 			text(DeathCount);
 			end_window();
 		end
-
-		pop_font();
 	end
 end
 
@@ -106,9 +90,7 @@ local function drawSpiribirdsStatus()
 	local SpiribirdsCall_Timer = SpiribirdsStatus.SpiribirdsCall_Timer;
 
 	if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
-		push_font(Font);
-
-		if begin_window("인혼조", nil, 4096 + 64 + 512) == true then
+		if begin_window("인혼조", nil, WINDOW_FLAG) == true then
 			if begin_table("종류", 3, 2097152) == true then
 				table_setup_column("유형", 8, 25.0);
 				table_setup_column("횟수", 8, 20.0);
@@ -142,21 +124,16 @@ local function drawSpiribirdsStatus()
 			end_window();
 		end
 
-		pop_font();
-
 	elseif SpiribirdsCall_Timer ~= nil then
-		push_font(Font);
-
-		if begin_window("인혼조", nil, 4096 + 64 + 512) == true then
+		if begin_window("인혼조", nil, WINDOW_FLAG) == true then
 			text(SpiribirdsCall_Timer);
 			end_window();
 		end
-
-		pop_font();
 	end
 end
 
 local function drawMain()
+	push_font(Font);
 	drawHarvestMoonTimer();
 	drawOtomoSpyUnit();
 	drawQuestInfo();

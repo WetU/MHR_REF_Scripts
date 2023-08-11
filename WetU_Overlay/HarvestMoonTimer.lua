@@ -3,12 +3,16 @@ local Constants = _G.require("Constants.Constants");
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 --
 local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
 --
+local getMaseterLongSwordShell010s_method = find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)");
+local mItems_field = getMaseterLongSwordShell010s_method:get_return_type():get_field("mItems");
+
 local LongSwordShell010_type_def = find_type_definition("snow.shell.LongSwordShell010");
 local update_method = LongSwordShell010_type_def:get_method("update");
 local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
@@ -36,6 +40,12 @@ local function PreHook_update(args)
 	UpdateHarvestMoonTimer(to_managed_object(args[2]));
 end
 
+local function HarvestMoon_init(obj)
+	UpdateHarvestMoonTimer(obj);
+	hook_vtable(obj, update_method, PreHook_update);
+	hook_vtable(obj, onDestroy_method, nil, Terminate);
+end
+
 local PreHook = nil;
 local PostHook = nil;
 do
@@ -45,9 +55,7 @@ do
 	end
 	PostHook = function()
 		if CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
-			UpdateHarvestMoonTimer(LongSwordShell010);
-			hook_vtable(LongSwordShell010, update_method, PreHook_update);
-			hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
+			HarvestMoon_init(LongSwordShell010);
 		end
 
 		LongSwordShell010 = nil;
@@ -55,6 +63,20 @@ do
 end
 
 local function init()
+	local MasterShell010List = mItems_field:get_data(getMaseterLongSwordShell010s_method:call(get_managed_singleton("snow.shell.LongSwordShellManager"), getMasterPlayerIndex_method:call(nil)));
+	if MasterShell010List ~= nil then
+		local MasterShell010List_count = MasterShell010List:get_size();
+		if MasterShell010List_count > 0 then
+			for i = 0, MasterShell010List_count - 1, 1 do
+				local MasterShell010 = MasterShell010List:get_element(i);
+				if CircleType_field:get_data(MasterShell010) == HarvestMoonCircleType_OutSide then
+					HarvestMoon_init(MasterShell010);
+					break;
+				end
+			end
+		end
+	end
+
 	hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
 end
 

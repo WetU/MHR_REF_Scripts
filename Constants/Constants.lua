@@ -29,7 +29,6 @@ local CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL;
 local imgui = _G.imgui;
 local load_font = imgui.load_font;
 local push_font = imgui.push_font;
-local pop_font = imgui.pop_font;
 local begin_window = imgui.begin_window;
 local end_window = imgui.end_window;
 local begin_table = imgui.begin_table;
@@ -54,7 +53,7 @@ local Vector3f_new = Vector3f.new;
 local TRUE_POINTER = to_ptr(true);
 local FALSE_POINTER = to_ptr(false);
 --
-local Font = load_font("NotoSansKR-Bold.otf", 22, {
+local Font = load_font("NotoSansKR-Bold.otf", 24, {
 	0x0020, 0x00FF, -- Basic Latin + Latin Supplement
 	0x2000, 0x206F, -- General Punctuation
 	0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
@@ -263,7 +262,6 @@ local this = {
 
 	imgui = {
 		push_font = push_font,
-		pop_font = pop_font,
 		begin_window = begin_window,
 		end_window = end_window,
 		begin_table = begin_table,
