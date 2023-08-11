@@ -36,13 +36,22 @@ local function UpdateHarvestMoonTimer(longSwordShell010)
 	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
 end
 
-local function PreHook_update(args)
-	UpdateHarvestMoonTimer(to_managed_object(args[2]));
+local PreHook_update = nil;
+local PostHook_update = nil;
+do
+	local LongSwordShell010 = nil;
+	PreHook_update = function(args)
+		LongSwordShell010 = to_managed_object(args[2]);
+	end
+	PostHook_update = function()
+		UpdateHarvestMoonTimer(LongSwordShell010);
+		LongSwordShell010 = nil;
+	end
 end
 
 local function HarvestMoon_init(obj)
 	UpdateHarvestMoonTimer(obj);
-	hook_vtable(obj, update_method, PreHook_update);
+	hook_vtable(obj, update_method, PreHook_update, PostHook_update);
 	hook_vtable(obj, onDestroy_method, nil, Terminate);
 end
 
@@ -63,15 +72,24 @@ do
 end
 
 local function init()
-	local MasterShell010List = mItems_field:get_data(getMaseterLongSwordShell010s_method:call(get_managed_singleton("snow.shell.LongSwordShellManager"), getMasterPlayerIndex_method:call(nil)));
-	if MasterShell010List ~= nil then
-		local MasterShell010List_count = MasterShell010List:get_size();
-		if MasterShell010List_count > 0 then
-			for i = 0, MasterShell010List_count - 1, 1 do
-				local MasterShell010 = MasterShell010List:get_element(i);
-				if CircleType_field:get_data(MasterShell010) == HarvestMoonCircleType_OutSide then
-					HarvestMoon_init(MasterShell010);
-					break;
+	local MasterPlayerIndex = getMasterPlayerIndex_method:call(nil);
+	if MasterPlayerIndex ~= nil then
+		local LongSwordShellManager = get_managed_singleton("snow.shell.LongSwordShellManager");
+		if LongSwordShellManager ~= nil then
+			local MaseterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
+			if MaseterLongSwordShell010s ~= nil then
+				local MasterShell010List = mItems_field:get_data(MaseterLongSwordShell010s);
+				if MasterShell010List ~= nil then
+					local MasterShell010List_count = MasterShell010List:get_size();
+					if MasterShell010List_count > 0 then
+						for i = 0, MasterShell010List_count - 1, 1 do
+							local MasterShell010 = MasterShell010List:get_element(i);
+							if CircleType_field:get_data(MasterShell010) == HarvestMoonCircleType_OutSide then
+								HarvestMoon_init(MasterShell010);
+								break;
+							end
+						end
+					end
 				end
 			end
 		end

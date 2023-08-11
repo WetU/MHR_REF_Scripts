@@ -110,12 +110,12 @@ local function makeDangoLogParam(mealFunc, facilityLv, masterPlayerBase)
 end
 
 local isOrdering = false;
-local function PreHook_villageUpdate(args)
+local function PostHook_villageUpdate()
 	if checkKeyTrg(Keys.F5) == true then
-		fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
+		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
 
 	elseif checkKeyTrg(Keys.F6) == true then
-		fastTravel_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
+		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
 
 	elseif checkKeyTrg(Keys.F8) == true then
 		local MealFunc = get_MealFunc_method:call(getKitchenFacility());
@@ -140,12 +140,14 @@ local function PreHook_villageUpdate(args)
 				MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + 1500.0);
 
 				setWaitTimer_method:call(MealFunc);
-				reqDangoLogStart(makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase));
+				local DangoLogParam = makeDangoLogParam(MealFunc, FacilityLv, MasterPlayerBase);
+				reqDangoLogStart(DangoLogParam);
+				DangoLogParam:force_release();
 			end
 		end
 	end
 end
-hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate);
+hook(VillageAreaManager_type_def:get_method("update"), nil, PostHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
 	return isOrdering == true and TRUE_POINTER or retval;
@@ -156,9 +158,9 @@ hook(find_type_definition("snow.facility.MealOrderData"):get_method("canOrder"),
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
-local function PreHook_updateNormalQuest(args)
+local function PostHook_updateNormalQuest()
 	if checkKeyTrg(Keys.F5) == true then
-		notifyReset_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager"));
+		notifyReset_method:call(get_managed_singleton("snow.QuestManager"));
 	end
 end
-hook(QuestManager_type_def:get_method("updateNormalQuest"), PreHook_updateNormalQuest);
+hook(QuestManager_type_def:get_method("updateNormalQuest"), nil, PostHook_updateNormalQuest);

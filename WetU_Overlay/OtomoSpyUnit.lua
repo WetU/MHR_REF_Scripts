@@ -15,6 +15,8 @@ local checkGameStatus = Constants.checkGameStatus;
 local Village = Constants.GameStatusType.Village;
 --
 local this = {
+	OtomoSpyUnitManager = nil,
+
 	init = true,
 	get_currentStepCount = true,
 	currentStep = nil
@@ -50,8 +52,16 @@ local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 local isReturnAnimation = false;
 local isReceiveReady = false;
 
-local function Terminate()
-	this.currentStep = nil;
+function this:getOtomoSpyUnitManager()
+	if self.OtomoSpyUnitManager == nil then
+		self.OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
+	end
+
+	return self.OtomoSpyUnitManager;
+end
+
+function this:Terminate()
+	self.currentStep = nil;
 end
 
 local function setBoostItem(args)
@@ -59,19 +69,12 @@ local function setBoostItem(args)
 end
 
 local function get_currentStepCount()
-	local OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
-	if OtomoSpyUnitManager ~= nil then
-		local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
-		this.currentStep = isOperating == true and string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
-			or isOperating == false and "활동 없음"
-			or nil;
-		return;
-	end
-
-	Terminate();
+	local OtomoSpyUnitManager = this:getOtomoSpyUnitManager();
+	local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
+	this.currentStep = isOperating == true and string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
+		or isOperating == false and "활동 없음"
+		or nil;
 end
-
-this.get_currentStepCount = get_currentStepCount;
 
 local function skipReturnAnimation()
 	isReturnAnimation = true;
@@ -133,14 +136,15 @@ local function onChangedGameStatus(args)
 	if to_int64(args[3]) == Village then
 		get_currentStepCount();
 	else
-		Terminate();
+		this:Terminate();
 	end
 end
 
 local function init()
-	if checkGameStatus(Constants.GameStatusType.Village) == true then
+	if checkGameStatus(Village) == true then
 		get_currentStepCount();
 	end
+
 	hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
 	hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
 	hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
@@ -153,5 +157,6 @@ local function init()
 end
 
 this.init = init;
+this.get_currentStepCount = get_currentStepCount;
 --
 return this;

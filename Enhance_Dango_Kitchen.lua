@@ -49,23 +49,35 @@ hook(MealFunc_type_def:get_method("updateList(System.Boolean)"), PreHook_updateL
 
 -- Skip Dango Song Main Function
 --CookDemo
+local GuiKitchenCookingEventDemoFsmAction = nil;
 local function PreHook_CookingDemoUpdate(args)
-	if CookingDemoState_field:get_data(to_managed_object(args[2])) == CookingDemoState_Demo_Update then
+	GuiKitchenCookingEventDemoFsmAction = to_managed_object(args[2]);
+end
+local function PostHook_CookingDemoUpdate()
+	if CookingDemoState_field:get_data(GuiKitchenCookingEventDemoFsmAction) == CookingDemoState_Demo_Update then
 		reqFinish_method:call(get_KitchenCookDemoHandler_method:call(get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
 	end
+
+	GuiKitchenCookingEventDemoFsmAction = nil;
 end
-hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate);
+hook(GuiKitchenCookingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_CookingDemoUpdate, PostHook_CookingDemoUpdate);
 
 --EatDemo
 local showDangoLog = false;
 
+local GuiKitchenEatingEventDemoFsmAction = nil;
 local function PreHook_EatingDemoUpdate(args)
-	if EatingDemoState_field:get_data(to_managed_object(args[2])) == EatingDemoState_Demo_Update then
+	GuiKitchenEatingEventDemoFsmAction = to_managed_object(args[2]);
+end
+local function PostHook_EatingDemoUpdate()
+	if EatingDemoState_field:get_data(GuiKitchenEatingEventDemoFsmAction) == EatingDemoState_Demo_Update then
 		reqFinish_method:call(get_KitchenEatDemoHandler_method:call(get_managed_singleton("snow.gui.fsm.kitchen.GuiKitchenFsmManager")), 0.0);
 		showDangoLog = true;
 	end
+
+	GuiKitchenEatingEventDemoFsmAction = nil;
 end
-hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate);
+hook(GuiKitchenEatingEventDemoFsmAction_type_def:get_method("update(via.behaviortree.ActionArg)"), PreHook_EatingDemoUpdate, PostHook_EatingDemoUpdate);
 
 local function PostHook_requestAutoSaveAll()
 	if showDangoLog == true then
@@ -76,10 +88,15 @@ end
 hook(find_type_definition("snow.SnowSaveService"):get_method("requestAutoSaveAll"), nil, PostHook_requestAutoSaveAll);
 
 --BBQ
+local GuiKitchen_BBQ = nil;
 local function PreHook_BBQ_updatePlayDemo(args)
-	local GuiKitchen_BBQ = to_managed_object(args[2]);
+	GuiKitchen_BBQ = to_managed_object(args[2]);
+end
+local function PostHook_BBQ_updatePlayDemo()
 	if BBQ_DemoState[getDemoState_method:call(GuiKitchen_BBQ)] == true then
 		reqFinish_method:call(BBQ_DemoHandler_field:get_data(GuiKitchen_BBQ), 0.0);
 	end
+
+	GuiKitchen_BBQ = nil;
 end
-hook(GuiKitchen_BBQ_type_def:get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo);
+hook(GuiKitchen_BBQ_type_def:get_method("updatePlayDemo"), PreHook_BBQ_updatePlayDemo, PostHook_BBQ_updatePlayDemo);

@@ -38,8 +38,11 @@ end
 hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
 
 -- Skip End Flow
+local QuestManager = nil;
 local function PreHook_updateQuestEndFlow(args)
-	local QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+	QuestManager = to_managed_object(args[2]) or get_managed_singleton("snow.QuestManager");
+end
+local function PostHook_updateQuestEndFlow()
 	local endFlow = EndFlow_field:get_data(QuestManager);
 
 	if endFlow == EndFlow.WaitEndTimer then
@@ -53,6 +56,8 @@ local function PreHook_updateQuestEndFlow(args)
 	elseif endFlow == EndFlow.WaitFadeCameraDemo or endFlow == EndFlow.WaitFadeOut then
 		ClearFade();
 	end
+
+	QuestManager = nil;
 end
-hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow);
+hook(QuestManager_type_def:get_method("updateQuestEndFlow"), PreHook_updateQuestEndFlow, PostHook_updateQuestEndFlow);
 hook(find_type_definition("snow.gui.GuiQuestEndBase"):get_method("isEndQuestEndStamp"), nil, RETURN_TRUE_func);

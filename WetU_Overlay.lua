@@ -30,6 +30,7 @@ local checkGameStatus = Constants.checkGameStatus;
 --
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
+
 local function onQuestStart()
 	QuestInfo_onQuestStart();
 	SpiribirdsStatus_onQuestStart();
