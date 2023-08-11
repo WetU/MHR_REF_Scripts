@@ -2,11 +2,11 @@ local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
-
-local getVillagePoint = Constants.getVillagePoint;
 --
-local subPoint_method = Constants.type_definitions.VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
-
+local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
+local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
+--
 local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
 
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
@@ -110,7 +110,7 @@ local this = {
 				local NegotiationType = get_NegotiationType_method:call(TradeOrder) + 1;
 				local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
 
-				if getVillagePoint() >= NegotiationCostData then
+				if get_Point_method:call(nil) >= NegotiationCostData then
 					addNegoCount = addNegoCount + cacheNegotiationData.Count[NegotiationType];
 					subPoint_method:call(nil, NegotiationCostData);
 				end

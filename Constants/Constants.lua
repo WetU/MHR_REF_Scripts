@@ -12,7 +12,6 @@ local string = _G.string;
 local string_format = string.format;
 --
 local sdk = _G.sdk;
-local create_managed_array = sdk.create_managed_array;
 local hook = sdk.hook;
 local hook_vtable = sdk.hook_vtable;
 local find_type_definition = sdk.find_type_definition;
@@ -53,6 +52,19 @@ local Vector3f_new = Vector3f.new;
 local TRUE_POINTER = to_ptr(true);
 local FALSE_POINTER = to_ptr(false);
 --
+local Application_type_def = find_type_definition("via.Application");
+local CameraManager_type_def = find_type_definition("snow.CameraManager");
+local QuestManager_type_def = find_type_definition("snow.QuestManager");
+local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
+local ItemId_type_def = find_type_definition("snow.data.ContentsIdSystem.ItemId");
+local DataManager_type_def = find_type_definition("snow.data.DataManager");
+local EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
+local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
+local EnemyUtility_type_def = find_type_definition("snow.enemy.EnemyUtility");
+local GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
+local StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
+local WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
+--
 local Font = load_font("NotoSansKR-Bold.otf", 24, {
 	0x0020, 0x00FF, -- Basic Latin + Latin Supplement
 	0x2000, 0x206F, -- General Punctuation
@@ -66,23 +78,6 @@ local Font = load_font("NotoSansKR-Bold.otf", 24, {
 	0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
 	0
 });
---
-local Application_type_def = find_type_definition("via.Application");
-local CameraManager_type_def = find_type_definition("snow.CameraManager");
-local QuestManager_type_def = find_type_definition("snow.QuestManager");
-local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
-local ItemId_type_def = find_type_definition("snow.data.ContentsIdSystem.ItemId");
-local DataManager_type_def = find_type_definition("snow.data.DataManager");
-local EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
-local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
-local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
-local EnemyUtility_type_def = find_type_definition("snow.enemy.EnemyUtility");
-local MealFunc_type_def = find_type_definition("snow.facility.kitchen.MealFunc");
-local GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
-local StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
-local PlayerBase_type_def = find_type_definition("snow.player.PlayerBase");
-local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
-local WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
 local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 
@@ -125,6 +120,7 @@ local function ClearFade()
 end
 --
 local getMasterPlayer_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
+local PlayerBase_type_def = getMasterPlayer_method:get_return_type();
 
 local function getMasterPlayerBase()
 	return getMasterPlayer_method:call(nil);
@@ -183,12 +179,6 @@ local function getDeathNum(nullable_questManager)
 	return getDeathNum_method:call(nullable_questManager);
 end
 --
-local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
-
-local function getVillagePoint()
-	return get_Point_method:call(nil);
-end
---
 local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 local function SendMessage(nullable_chatManager, text)
@@ -196,31 +186,7 @@ local function SendMessage(nullable_chatManager, text)
 		nullable_chatManager = get_managed_singleton("snow.gui.ChatManager");
 	end
 
-	reqAddChatInfomation_method:call(nullable_chatManager, text, 2289944406);
-end
---
-local getItemData_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getItemData");
-local getCountInBox_method = getItemData_method:get_return_type():get_method("getCountInBox");
-
-local MealTicket_Id = ItemId_type_def:get_field("I_Normal_0124"):get_data(nil);
-
-local setMealTicketFlag_method = MealFunc_type_def:get_method("setMealTicketFlag(System.Boolean)");
-
-local function setMealTicketFlag(mealFunc)
-	local count = getCountInBox_method:call(getItemData_method:call(get_managed_singleton("snow.data.ContentsIdDataManager"), MealTicket_Id));
-
-	if count <= 0 then
-		SendMessage(nil, "식사권이 없습니다!");
-		setMealTicketFlag_method:call(mealFunc, false);
-	else
-		setMealTicketFlag_method:call(mealFunc, true);
-	end
-end
---
-local reqDangoLogStart_method = GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
-
-local function reqDangoLogStart(dangoLogParam)
-	reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), dangoLogParam, 5.0);
+	reqAddChatInfomation_method:call(nullable_chatManager, text, 0); -- sound on : 2289944406
 end
 --
 local function SKIP_ORIGINAL_func()
@@ -246,7 +212,6 @@ local this = {
 	},
 
 	sdk = {
-		create_managed_array = create_managed_array,
 		hook = hook,
 		hook_vtable = hook_vtable,
 		find_type_definition = find_type_definition,
@@ -301,14 +266,11 @@ local this = {
 		DataManager_type_def = DataManager_type_def,
 		EquipDataManager_type_def = EquipDataManager_type_def,
 		FacilityDataManager_type_def = FacilityDataManager_type_def,
-		VillagePoint_type_def = VillagePoint_type_def,
 		EnemyUtility_type_def = EnemyUtility_type_def,
 		KitchenFacility_type_def = KitchenFacility_type_def,
-		MealFunc_type_def = MealFunc_type_def,
 		GuiManager_type_def = GuiManager_type_def,
 		StmGuiInput_type_def = StmGuiInput_type_def,
 		PlayerBase_type_def = PlayerBase_type_def,
-		PlayerManager_type_def = PlayerManager_type_def,
 		WwiseChangeSpaceWatcher_type_def = WwiseChangeSpaceWatcher_type_def
 	},
 
@@ -332,13 +294,7 @@ local this = {
 	getQuestLife = getQuestLife,
 	getDeathNum = getDeathNum,
 
-	getVillagePoint = getVillagePoint,
-
 	SendMessage = SendMessage,
-
-	setMealTicketFlag = setMealTicketFlag,
-
-	reqDangoLogStart = reqDangoLogStart,
 
 	SKIP_ORIGINAL_func = SKIP_ORIGINAL_func,
 

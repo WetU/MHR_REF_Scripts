@@ -62,7 +62,7 @@ local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("
 
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 --
-local PlayerManager_type_def = Constants.type_definitions.PlayerManager_type_def;
+local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
 local getMasterPlayer_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayer"); -- static
