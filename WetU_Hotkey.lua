@@ -3,7 +3,9 @@ local Constants = _G.require("Constants.Constants");
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
+local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
+local hook_vtable = Constants.sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
@@ -12,8 +14,6 @@ local Keys = Constants.Keys;
 
 local SendMessage = Constants.SendMessage;
 local getKitchenFacility = Constants.getKitchenFacility;
-local getMasterPlayerBase = Constants.getMasterPlayerBase;
-local getPlayerData = Constants.getPlayerData;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -48,6 +48,16 @@ local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:g
 local DangoLogParam_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam");
 local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType, System.UInt32)");
 --
+local PlayerLobbyBase_type_def = find_type_definition("snow.player.PlayerLobbyBase");
+local onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");
+local Player_setKitchenData_method = PlayerLobbyBase_type_def:get_method("setKitchenData");
+--
+local OtomoManager_type_def = find_type_definition("snow.otomo.OtomoManager");
+local getMasterFirstOtomo_method = OtomoManager_type_def:get_method("getMasterFirstOtomo");
+local getMasterSecondOtomo_method = OtomoManager_type_def:get_method("getMasterSecondOtomo");
+
+local Otomo_setKitchenData_method = getMasterFirstOtomo_method:get_return_type():get_method("setKitchenData");
+--
 local get_AcitvePlKitchenSkillList_method = find_type_definition("snow.data.SkillDataManager"):get_method("get_AcitvePlKitchenSkillList");
 
 local AcitvePlKitchenSkillList_type_def = get_AcitvePlKitchenSkillList_method:get_return_type();
@@ -79,6 +89,28 @@ local PaymentTypes = {
 	PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
 };
 --
+local PlayerLobbyBase = nil;
+local function destroyPlayerLobbyBase()
+	PlayerLobbyBase = nil;
+end
+
+local function getPlayerLobbyBase(args)
+	if PlayerLobbyBase == nil then
+		PlayerLobbyBase = to_managed_object(args[2]);
+		hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
+	end
+end
+hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBase);
+
+local function applyKitchenBuff()
+	if PlayerLobbyBase ~= nil then
+		Player_setKitchenData_method:call(PlayerLobbyBase);
+	end
+	local OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
+	Otomo_setKitchenData_method:call(getMasterFirstOtomo_method:call(OtomoManager));
+	Otomo_setKitchenData_method:call(getMasterSecondOtomo_method:call(OtomoManager));
+end
+
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], vitalBuff);
@@ -95,6 +127,11 @@ local function makeDangoLogParam(vitalBuff, staminaBuff)
 	DangoLogParam:set_field("_SkillDataList", newArray);
 	newArray:force_release();
 	return DangoLogParam;
+end
+
+local function printDangoLog(dangoLogParam)
+	reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), dangoLogParam, 5.0);
+	dangoLogParam:force_release();
 end
 
 local isOrdering = false;
@@ -125,26 +162,17 @@ local function PostHook_villageUpdate()
 					SendMessage(nil, "식사권이 없습니다!");
 				else
 					local FacilityLv = get_FacilityLv_method:call(MealFunc);
-
+					-- order
 					resetDailyDango_method:call(MealFunc);
-
 					isOrdering = true;
 					setMealTicketFlag_method:call(MealFunc, true);
 					order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
 					isOrdering = false;
-
-					local MasterPlayerData = getPlayerData(getMasterPlayerBase());
-					local VitalBuff = getVitalBuff_method:call(MealFunc, FacilityLv);
-					local StaminaBuff = getStaminaBuff_method:call(MealFunc, FacilityLv);
-					MasterPlayerData:set_field("_vitalMax", MasterPlayerData:get_field("_vitalMax") + VitalBuff);
-					MasterPlayerData:set_field("_staminaMax", MasterPlayerData:get_field("_staminaMax") + (StaminaBuff * 30.0));
+					-- buffs & skills
 					addBuff_method:call(MealFunc, FacilityLv);
-
+					applyKitchenBuff();
 					setWaitTimer_method:call(MealFunc);
-
-					local DangoLogParam = makeDangoLogParam(VitalBuff, StaminaBuff);
-					reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), DangoLogParam, 5.0);
-					DangoLogParam:force_release();
+					printDangoLog(makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)));
 				end
 			end
 		end
