@@ -14,7 +14,6 @@ local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 local to_bool = Constants.to_bool;
 
 local checkGameStatus = Constants.checkGameStatus;
-local Quest = Constants.GameStatusType.Quest;
 
 -- Region lock fix
 local session_steam_type_def = find_type_definition("via.network.SessionSteam");
@@ -240,6 +239,6 @@ hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
-	return checkGameStatus(Quest) == true and SKIP_ORIGINAL or CALL_ORIGINAL;
+	return checkGameStatus(2) == true and SKIP_ORIGINAL or CALL_ORIGINAL;
 end
 hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);

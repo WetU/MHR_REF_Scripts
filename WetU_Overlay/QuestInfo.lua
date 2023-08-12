@@ -76,7 +76,7 @@ local function Terminate()
 end
 
 local function init()
-	if checkGameStatus(Constants.GameStatusType.Quest) == true then
+	if checkGameStatus(2) == true then
 		onQuestStart();
 	end
 

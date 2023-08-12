@@ -86,11 +86,6 @@ end
 --
 local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
-local GameStatusType = {
-	Village = 1,
-	Quest = 2
-};
-
 local function checkGameStatus(checkType)
 	local SnowGameManager = get_managed_singleton("snow.SnowGameManager");
 	return SnowGameManager ~= nil and checkType == get_CurrentStatus_method:call(SnowGameManager) or nil;
@@ -240,10 +235,8 @@ local this = {
 		WwiseChangeSpaceWatcher_type_def = WwiseChangeSpaceWatcher_type_def
 	},
 
-	Keys = Keys,
 	checkKeyTrg = checkKeyTrg,
 	
-	GameStatusType = GameStatusType,
 	checkGameStatus = checkGameStatus,
 
 	ClearFade = ClearFade,
