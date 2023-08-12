@@ -22,15 +22,14 @@ local nextEndFlowToCameraDemo_method = QuestManager_type_def:get_method("nextEnd
 local getQuestPlayerCount_method = QuestManager_type_def:get_method("getQuestPlayerCount");
 local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
 
-local EndFlow_type_def = EndFlow_field:get_type();
 local EndFlow = {
-	WaitEndTimer = EndFlow_type_def:get_field("WaitEndTimer"):get_data(nil),
-	WaitFadeCameraDemo = EndFlow_type_def:get_field("WaitFadeCameraDemo"):get_data(nil),
-	CameraDemo = EndFlow_type_def:get_field("CameraDemo"):get_data(nil),
-	WaitFadeOut = EndFlow_type_def:get_field("WaitFadeOut"):get_data(nil)
+	WaitEndTimer = 1,
+	WaitFadeCameraDemo = 3,
+	CameraDemo = 8,
+	WaitFadeOut = 10
 };
 
-local Success = find_type_definition("snow.QuestManager.Status"):get_field("Success"):get_data(nil);
+local Success = 3;
 -- Skip Demo Camera
 local function skipDemo()
 	DemoEnd_method:call(get_managed_singleton("snow.camera.DemoCamera"));

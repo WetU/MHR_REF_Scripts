@@ -21,7 +21,7 @@ local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
 local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId");
 
-local HarvestMoonCircleType_OutSide = CircleType_field:get_type():get_field("Outside"):get_data(nil);
+local HarvestMoonCircleType_OutSide = 1;
 --
 local this = {
 	init = true,

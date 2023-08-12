@@ -17,10 +17,9 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 	local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
 	--
 	local get_GameStartState_method = find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
-	local GameStartState_type_def = get_GameStartState_method:get_return_type();
 	local GameStartState = {
-		Caution = GameStartState_type_def:get_field("Caution"):get_data(nil),
-		Nvidia_Logo = GameStartState_type_def:get_field("Nvidia_Logo"):get_data(nil)
+		Caution = 0,
+		Nvidia_Logo = 7
 	};
 	--
 	local notifyActionEnd_method = find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");

@@ -19,10 +19,9 @@ local getKitchenFacility = Constants.getKitchenFacility;
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
 
-local VillageFastTravelType_type_def = find_type_definition("snow.stage.StageDef.VillageFastTravelType");
 local VillageFastTravelType = {
-	ELGADO_CHICHE = VillageFastTravelType_type_def:get_field("v02a06_00"):get_data(nil),
-	ELGADO_KITCHEN = VillageFastTravelType_type_def:get_field("v02a06_01"):get_data(nil)
+	ELGADO_CHICHE = 8,
+	ELGADO_KITCHEN = 9
 };
 --
 local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
@@ -66,27 +65,24 @@ local get_Item_method = AcitvePlKitchenSkillList_type_def:get_method("get_Item(S
 
 local PlayerKitchenSkillData_type_def = get_Item_method:get_return_type();
 --
-local DangoLogStatusItemType_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType");
 local DangoLogStatusItemType = {
-	DangoLogStatusItemType_type_def:get_field("Vital"):get_data(nil),
-	DangoLogStatusItemType_type_def:get_field("Stamina"):get_data(nil)
+	0,  -- Vital
+	1   -- Stamina
 };
 
-local DailyDango_type_def = get_DailyDango_method:get_return_type();
 local DailyDango = {
-	[DailyDango_type_def:get_field("Dango_035"):get_data(nil)] = true,  -- 보수금 보험
-	[DailyDango_type_def:get_field("Dango_041"):get_data(nil)] = true,  -- 환산술
-	[DailyDango_type_def:get_field("Dango_042"):get_data(nil)] = true,  -- 금전운
-	[DailyDango_type_def:get_field("Dango_043"):get_data(nil)] = true,  -- 해체술[소]
-	[DailyDango_type_def:get_field("Dango_044"):get_data(nil)] = true,  -- 해체술[대]
-	[DailyDango_type_def:get_field("Dango_045"):get_data(nil)] = true,  -- 행운술
-	[DailyDango_type_def:get_field("Dango_046"):get_data(nil)] = true   -- 격운술
+	[35] = true,  -- 보수금 보험
+	[41] = true,  -- 환산술
+	[42] = true,  -- 금전운
+	[43] = true,  -- 해체술[소]
+	[44] = true,  -- 해체술[대]
+	[45] = true,  -- 행운술
+	[46] = true   -- 격운술
 };
 
-local PaymentTypes_type_def = find_type_definition("snow.facility.kitchen.MealFunc.PaymentTypes");
 local PaymentTypes = {
-	PaymentTypes_type_def:get_field("Money"):get_data(nil),
-	PaymentTypes_type_def:get_field("VillagePoint"):get_data(nil)
+	0, -- Money
+	1  -- VillagePoint
 };
 --
 local PlayerLobbyBase = nil;

@@ -8,14 +8,12 @@ local hook = Constants.sdk.hook;
 local GuiKitchen_BBQ_type_def = find_type_definition("snow.gui.GuiKitchen_BBQ");
 local getDemoState_method = GuiKitchen_BBQ_type_def:get_method("getDemoState");
 local BBQ_DemoHandler_field = GuiKitchen_BBQ_type_def:get_field("_DemoHandler");
-
-local BBQ_DemoState_type_def = getDemoState_method:get_return_type();
-local BBQ_DemoState = {
-	[BBQ_DemoState_type_def:get_field("Update"):get_data(nil)] = true,
-	[BBQ_DemoState_type_def:get_field("ResultDemoUpdate"):get_data(nil)] = true
-};
-
 local reqFinish_method = BBQ_DemoHandler_field:get_type():get_method("reqFinish(System.Single)");
+
+local BBQ_DemoState = {
+	[3] = true,  -- Update
+	[6] = true   -- ResultDemoUpdate
+};
 
 --BBQ
 local GuiKitchen_BBQ = nil;

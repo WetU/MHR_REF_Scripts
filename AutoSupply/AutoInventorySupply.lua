@@ -45,17 +45,16 @@ local PaletteSetList_get_Item_method = getPaletteSetList_method:get_return_type(
 
 local PaletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
 
-local SycleTypes_Quest = find_type_definition("snow.data.CustomShortcutSystem.SycleTypes"):get_field("Quest"):get_data(nil);
+local SycleTypes_Quest = 0;
 --
 local get_ItemPouch_method = DataManager_type_def:get_method("get_ItemPouch"); -- static
 
 local tryAddGameItem_method = get_ItemPouch_method:get_return_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
 
-local ItemId_type_def = Constants.type_definitions.ItemId_type_def;
 local ItemIds = {
-	[ItemId_type_def:get_field("I_Normal_0502"):get_data(nil)] = 10, -- 그레이트 응급약
-	[ItemId_type_def:get_field("I_Normal_0500"):get_data(nil)] = 10, -- 지급전용 휴대 식량
-	[ItemId_type_def:get_field("I_Normal_0514"):get_data(nil)] = 1  -- 지급전용 귀환옥
+	[68157942] = 10, -- 그레이트 응급약
+	[68157940] = 10, -- 지급전용 휴대 식량
+	[68157954] = 1  -- 지급전용 귀환옥
 };
 --
 local LocalizedStrings = {

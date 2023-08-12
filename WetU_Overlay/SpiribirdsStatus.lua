@@ -78,21 +78,19 @@ local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
 local SpiribirdsCallTimer_field = find_type_definition("snow.player.PlayerData"):get_field("_EquipSkill211_Timer");
 --
-local LvBuff_type_def = find_type_definition("snow.player.PlayerDefine.LvBuff");
 local LvBuff = {
-	Atk = LvBuff_type_def:get_field("Attack"):get_data(nil),
-	Def = LvBuff_type_def:get_field("Defence"):get_data(nil),
-	Vital = LvBuff_type_def:get_field("Vital"):get_data(nil),
-	Stamina = LvBuff_type_def:get_field("Stamina"):get_data(nil),
-	Rainbow = LvBuff_type_def:get_field("Rainbow"):get_data(nil)
+	Atk = 0,
+	Def = 1,
+	Vital = 2,
+	Stamina = 3,
+	Rainbow = 4
 };
 --
-local NormalLvBuffCageData_BuffTypes_type_def = find_type_definition("snow.data.NormalLvBuffCageData.BuffTypes");
 local BuffTypes = {
-	Atk = NormalLvBuffCageData_BuffTypes_type_def:get_field("Atk"):get_data(nil),
-	Def = NormalLvBuffCageData_BuffTypes_type_def:get_field("Def"):get_data(nil),
-	Vital = NormalLvBuffCageData_BuffTypes_type_def:get_field("Vital"):get_data(nil),
-	Stamina = NormalLvBuffCageData_BuffTypes_type_def:get_field("Stamina"):get_data(nil)
+	Atk = 2,
+	Def = 3,
+	Vital = 0,
+	Stamina = 1
 };
 --
 local hasRainbow = false;

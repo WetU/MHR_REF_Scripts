@@ -36,7 +36,7 @@ local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get
 
 local nullable_uint32_type_def = find_type_definition("System.Nullable`1<System.UInt32>");
 --
-local SessionAttr_Quest = find_type_definition("snow.network.session.SessionAttr"):get_field("Quest"):get_data(nil);
+local SessionAttr_Quest = 2;
 --
 local quest_types = {
 	"regular",
@@ -47,7 +47,7 @@ local quest_types = {
 	"anomaly_investigation"
 };
 
-local I_Unclassified_None = Constants.type_definitions.ItemId_type_def:get_field("I_Unclassified_None"):get_data(nil);
+local I_Unclassified_None = 67108864;
 --
 local isSearching = false;
 local quest_vars = nil;

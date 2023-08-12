@@ -57,7 +57,6 @@ local Application_type_def = find_type_definition("via.Application");
 local CameraManager_type_def = find_type_definition("snow.CameraManager");
 local QuestManager_type_def = find_type_definition("snow.QuestManager");
 local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
-local ItemId_type_def = find_type_definition("snow.data.ContentsIdSystem.ItemId");
 local DataManager_type_def = find_type_definition("snow.data.DataManager");
 local EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
 local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
@@ -82,12 +81,11 @@ local Font = load_font("NotoSansKR-Bold.otf", 24, {
 --
 local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 
-local KeyboardKey_type_def = find_type_definition("via.hid.KeyboardKey");
 local Keys = {
-	Home = KeyboardKey_type_def:get_field("Home"):get_data(nil),
-	F5 = KeyboardKey_type_def:get_field("F5"):get_data(nil),
-	F6 = KeyboardKey_type_def:get_field("F6"):get_data(nil),
-	F8 = KeyboardKey_type_def:get_field("F8"):get_data(nil)
+	Home = 36,
+	F5 = 116,
+	F6 = 117,
+	F8 = 119
 };
 
 local function checkKeyTrg(key)
@@ -96,10 +94,9 @@ end
 --
 local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
-local GameStatusType_type_def = get_CurrentStatus_method:get_return_type();
 local GameStatusType = {
-	Village = GameStatusType_type_def:get_field("Village"):get_data(nil),
-	Quest = GameStatusType_type_def:get_field("Quest"):get_data(nil)
+	Village = 1,
+	Quest = 2
 };
 
 local function checkGameStatus(checkType)
@@ -108,7 +105,7 @@ local function checkGameStatus(checkType)
 end
 --
 local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-local FadeMode_FINISH = find_type_definition("snow.FadeManager.MODE"):get_field("FINISH"):get_data(nil);
+local FadeMode_FINISH = 3;
 
 local function ClearFade()
 	local FadeManager = get_managed_singleton("snow.FadeManager");
@@ -132,15 +129,14 @@ end
 --
 local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
 
-local MapNoType_type_def = getMapNo_method:get_return_type();
 local QuestMapList = {
-	ShrineRuins = MapNoType_type_def:get_field("No01"):get_data(nil),
-	SandyPlains = MapNoType_type_def:get_field("No02"):get_data(nil),
-	FloodedForest = MapNoType_type_def:get_field("No03"):get_data(nil),
-	FrostIslands = MapNoType_type_def:get_field("No04"):get_data(nil),
-	LavaCaverns = MapNoType_type_def:get_field("No05"):get_data(nil),
-	Jungle = MapNoType_type_def:get_field("No31"):get_data(nil),
-	Citadel = MapNoType_type_def:get_field("No32"):get_data(nil)
+	ShrineRuins = 1,
+	SandyPlains = 2,
+	FloodedForest = 3,
+	FrostIslands = 4,
+	LavaCaverns = 5,
+	Jungle = 12,
+	Citadel = 13
 };
 
 local function getQuestMapNo(nullable_questManager)
@@ -242,7 +238,6 @@ local this = {
 		CameraManager_type_def = CameraManager_type_def,
 		QuestManager_type_def = QuestManager_type_def,
 		VillageAreaManager_type_def = VillageAreaManager_type_def,
-		ItemId_type_def = ItemId_type_def,
 		DataManager_type_def = DataManager_type_def,
 		EquipDataManager_type_def = EquipDataManager_type_def,
 		FacilityDataManager_type_def = FacilityDataManager_type_def,

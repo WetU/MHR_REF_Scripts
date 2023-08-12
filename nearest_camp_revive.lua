@@ -21,7 +21,7 @@ local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):ge
 local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 
-local GameObjectType_MasterPlayer = find_type_definition("snow.CameraManager.GameObjectType"):get_field("MasterPlayer"):get_data(nil);
+local GameObjectType_MasterPlayer = 1;
 --
 local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 --
@@ -32,7 +32,7 @@ local get_Points_method = find_type_definition("snow.stage.StagePointManager.Sta
 local StageManager_type_def = find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 
-local Die = find_type_definition("snow.stage.StageManager.AreaMoveQuest"):get_field("Die"):get_data(nil);
+local Die = 20;
 --
 local QuestMapList = Constants.QuestMapList;
 local SubCampRevivalPos = {

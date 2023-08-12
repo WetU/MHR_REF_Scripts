@@ -5,20 +5,21 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 
+local TRUE_POINTER = Constants.TRUE_POINTER;
+local FALSE_POINTER = Constants.FALSE_POINTER;
+
 local getKitchenFacility = Constants.getKitchenFacility;
 local to_bool = Constants.to_bool;
-local FALSE_POINTER = Constants.FALSE_POINTER;
 --
 local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
 local Otomo_supply_method = find_type_definition("snow.progress.ProgressOtomoTicketManager"):get_method("supply");
 --
-local TicketType_type_def = find_type_definition("snow.progress.ProgressTicketSupplyManager.TicketType");
 local TicketType = {
-	--Village = TicketType_type_def:get_field("Village"):get_data(nil),
-	--Hall = TicketType_type_def:get_field("Hall"):get_data(nil),
-	V02Ticket = TicketType_type_def:get_field("V02Ticket"):get_data(nil),
-	MysteryTicket = TicketType_type_def:get_field("MysteryTicket"):get_data(nil)
+	--Village = 0,
+	--Hall = 1,
+	V02Ticket = 2,
+	MysteryTicket = 3
 };
 local Ticket_supply_method = find_type_definition("snow.progress.ProgressTicketSupplyManager"):get_method("supply(snow.progress.ProgressTicketSupplyManager.TicketType)");
 --
@@ -47,7 +48,7 @@ local CommercialStuffFacility_type_def = getCommercialStuffFacility_method:get_r
 local get_CommercialStuffID_method = CommercialStuffFacility_type_def:get_method("get_CommercialStuffID");
 local get_CanObtainlItem_method = CommercialStuffFacility_type_def:get_method("get_CanObtainlItem");
 
-local CommercialStuff_None = get_CommercialStuffID_method:get_return_type():get_field("CommercialStuff_None"):get_data(nil);
+local CommercialStuff_None = 0;
 --
 local NpcTalkMessageCtrl_type_def = find_type_definition("snow.npc.NpcTalkMessageCtrl");
 local get_NpcId_method = NpcTalkMessageCtrl_type_def:get_method("get_NpcId");
@@ -57,13 +58,18 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_SupplyMysteryResearchRequestReward(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 
-local TalkAttribute_NONE = find_type_definition("snow.npc.TalkAttribute"):get_field("TALK_ATTR_NONE"):get_data(nil);
+local TalkAttribute_NONE = 0;
 
-local NpcId_type_def = get_NpcId_method:get_return_type();
 local npcList = {
-	NpcId_type_def:get_field("nid503"):get_data(nil),
-	NpcId_type_def:get_field("nid715"):get_data(nil)
+	78,  -- Bahari
+	106  -- Pingarh
 };
+--
+local GuiRewardDialog_type_def = find_type_definition("snow.gui.GuiRewardDialog");
+local Reward_Ids_field = GuiRewardDialog_type_def:get_field("Reward_Ids");
+local mItems_field = Reward_Ids_field:get_type():get_field("mItems");
+
+local I_Normal_2900 = 68160340;
 --
 local MysteryResearchRequestEnd = nil;
 local CommercialStuff = nil;
@@ -234,6 +240,24 @@ local function PostHook_checkCommercialStuff(retval)
 	return retval;
 end
 
+local isOpenMysteryResearchReward = false;
+local GuiRewardDialog = nil;
+local function PreHook_doOpen(args)
+	GuiRewardDialog = to_managed_object(args[2]);
+end
+local function PostHook_doOpen()
+	isOpenMysteryResearchReward = mItems_field:get_data(Reward_Ids_field:get_data(GuiRewardDialog)):get_element(0) == I_Normal_2900;
+	GuiRewardDialog = nil;
+end
+
+local function closeRewardDialog(retval)
+	return isOpenMysteryResearchReward == true and TRUE_POINTER or retval;
+end
+
+local function finishedRewardDialog()
+	isOpenMysteryResearchReward = false;
+end
+
 local function init()
 	hook(NpcTalkMessageCtrl_type_def:get_method("start"), PreHook_getTalkTarget, PostHook_getTalkTarget);
 	hook(NpcTalkMessageCtrl_type_def:get_method("onLoad"), PreHook_getTalkTarget, PostHook_getTalkTarget);
@@ -251,6 +275,9 @@ local function init()
 	--hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
+	hook(GuiRewardDialog_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
+	hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, closeRewardDialog);
+	hook(GuiRewardDialog_type_def:get_method("doClose"), finishedRewardDialog);
 end
 --
 local this = {

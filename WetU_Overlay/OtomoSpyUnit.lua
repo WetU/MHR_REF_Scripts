@@ -46,7 +46,7 @@ local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
 
 local GuiOtomoSpyUnitReturn_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
 --
-local ItemReceive = spyOpenType_field:get_type():get_field("ItemReceive"):get_data(nil);
+local ItemReceive = 5;
 local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 --
 local isReturnAnimation = false;
