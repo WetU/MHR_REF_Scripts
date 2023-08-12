@@ -1,7 +1,5 @@
 local Constants = _G.require("Constants.Constants");
 
-local ipairs = Constants.lua.ipairs;
-
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
@@ -20,8 +18,6 @@ local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):ge
 --
 local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
-
-local GameObjectType_MasterPlayer = 1;
 --
 local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
 --
@@ -31,8 +27,6 @@ local get_Points_method = find_type_definition("snow.stage.StagePointManager.Sta
 --
 local StageManager_type_def = find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
-
-local Die = 20;
 --
 local QuestMapList = Constants.QuestMapList;
 local SubCampRevivalPos = {
@@ -70,18 +64,23 @@ local function PreHook_startToPlayPlayerDieMusic()
 	local subCamps = SubCampRevivalPos[getQuestMapNo(QuestManager)];
 
 	if subCamps ~= nil and getDeathNum(QuestManager) < getQuestLife(QuestManager) then
-		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), GameObjectType_MasterPlayer));
+		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), 1));
 		local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
+		local subCampCount = #subCamps;
+		if subCampCount > 1 then
+			for i = 1, subCampCount, 1 do
+				local subCampPos = subCamps[i];
 
-		if #subCamps > 1 then
-			for i, subCampPos in ipairs(subCamps) do
-				local distance = calcDistance_method:call(nil, currentPos, subCampPos);
-
-				if distance < nearestDistance then
-					if i == 1 then
+				if i < subCampCount then
+					local distance = calcDistance_method:call(nil, currentPos, subCampPos);
+					if distance < nearestDistance then
 						nearestDistance = distance;
+						reviveCampPos = subCampPos;
 					end
-					reviveCampPos = subCampPos;
+				else
+					if calcDistance_method:call(nil, currentPos, subCampPos) < nearestDistance then
+						reviveCampPos = subCampPos;
+					end
 				end
 			end
 		else
@@ -95,7 +94,7 @@ end
 
 local function PreHook_setPlWarpInfo_Nekotaku(args)
 	if reviveCampPos ~= nil then
-		setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, Die);
+		setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, 20);
 		return SKIP_ORIGINAL;
 	end
 end

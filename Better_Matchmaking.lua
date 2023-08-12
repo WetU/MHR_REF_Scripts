@@ -9,9 +9,9 @@ local to_valuetype = Constants.sdk.to_valuetype;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
 local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
 
-local to_bool = Constants.to_bool;
 local SendMessage = Constants.SendMessage;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
+local to_bool = Constants.to_bool;
 
 local checkGameStatus = Constants.checkGameStatus;
 local Quest = Constants.GameStatusType.Quest;
@@ -36,8 +36,6 @@ local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get
 
 local nullable_uint32_type_def = find_type_definition("System.Nullable`1<System.UInt32>");
 --
-local SessionAttr_Quest = 2;
---
 local quest_types = {
 	"regular",
 	"random",
@@ -46,15 +44,13 @@ local quest_types = {
 	"random_anomaly",
 	"anomaly_investigation"
 };
-
-local I_Unclassified_None = 67108864;
 --
 local isSearching = false;
 local quest_vars = nil;
 local skip_next_hook = nil;
 
 local function prehook_on_timeout(args)
-	if quest_vars ~= nil and to_int64(args[3]) == SessionAttr_Quest then
+	if quest_vars ~= nil and to_int64(args[3]) == 2 then
 		local session_manager = to_managed_object(args[2]) or get_managed_singleton("snow.SnowSessionManager");
 
 		local questType = quest_vars.quest_type;
@@ -200,7 +196,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 		max_level = to_int64(args[4]),
 		party_limit = to_int64(args[5]),
 		enemy_id = to_valuetype(args[6], nullable_uint32_type_def),
-		reward_item = to_int64(args[7]) or I_Unclassified_None,
+		reward_item = to_int64(args[7]) or 67108864,
 		is_special_random_mystery = to_bool(args[8])
 	};
 end

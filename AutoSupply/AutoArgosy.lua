@@ -12,7 +12,6 @@ local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFaci
 local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
 local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
 local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData(snow.facility.tradeCenter.NegotiationTypes)");
-local AcornAddCount = TradeFunc_type_def:get_field("_AcornAddCount"):get_data(nil);
 
 local NegotiationData_type_def = getNegotiationData_method:get_return_type();
 local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count");
@@ -36,13 +35,6 @@ local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(
 local getItemBox_method = DataManager_type_def:get_method("getItemBox");
 
 local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
---
-local Acorn_Id = 68158481;
-local PlayerItemBox = 65536;
-local SendInventoryResult = {
-	AllSended = 0,
-	Error = 4
-};
 --
 local cacheNegotiationData = nil;
 --
@@ -75,7 +67,7 @@ local function buildCache(tradeFunc)
 end
 
 local function isAcornEnough(dataManager)
-	local acornInventoryData = findInventoryData_method:call(getItemBox_method:call(dataManager), Acorn_Id);
+	local acornInventoryData = findInventoryData_method:call(getItemBox_method:call(dataManager), 68158481);
 	local isAvailable = not isEmpty_method:call(acornInventoryData);
 	return acornInventoryData, isAvailable;
 end
@@ -90,7 +82,7 @@ local this = {
 		local countUpdated = false;
 		local isReceived = false;
 		local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
-		local addCount = acornAvailable == true and (1 + AcornAddCount) or 1;
+		local addCount = acornAvailable == true and (1 + 3) or 1;
 
 		for i = 0, TradeOrderList:get_size() - 1, 1 do
 			local TradeOrder = TradeOrderList:get_element(i);
@@ -118,10 +110,10 @@ local this = {
 				if Inventory == nil or isEmpty_method:call(Inventory) == true then
 					break;
 				else
-					local sendResult = sendInventory_method:call(nil, Inventory, PlayerItemBox);
-					if sendResult ~= nil and sendResult ~= SendInventoryResult.Error then
+					local sendResult = sendInventory_method:call(nil, Inventory, 65536);
+					if sendResult ~= nil and sendResult ~= 4 then
 						inventoryReceived = true;
-						if sendResult ~= SendInventoryResult.AllSended then
+						if sendResult ~= 0 then
 							trySellGameItem_method:call(DataManager, Inventory, Inventory_get_Count_method:call(Inventory));
 						end
 					end

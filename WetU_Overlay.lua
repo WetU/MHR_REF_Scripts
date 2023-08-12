@@ -25,8 +25,6 @@ local end_table = Constants.imgui.end_table;
 local text = Constants.imgui.text;
 local text_colored = Constants.imgui.text_colored;
 local spacing = Constants.imgui.spacing;
-
-local checkGameStatus = Constants.checkGameStatus;
 --
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
@@ -84,9 +82,20 @@ local function drawQuestInfo()
 	end
 end
 
-local SpiriBuffs = SpiribirdsStatus.Buffs;
-local LocalizedBirdTypes = SpiribirdsStatus.LocalizedBirdTypes;
-local BirdTypeToColor = SpiribirdsStatus.BirdTypeToColor;
+local StaticBuffData = {
+	LocalizedNames = {
+		"공격력",
+		"방어력",
+		"체력",
+		"스태미나"
+	},
+	Colors = {
+		4278190335,
+		4278222847,
+		4278222848,
+		4278255615
+	}
+};
 
 local function drawSpiribirdsStatus()
 	local SpiribirdsCall_Timer = SpiribirdsStatus.SpiribirdsCall_Timer;
@@ -105,14 +114,13 @@ local function drawSpiribirdsStatus()
 				table_headers_row();
 
 				for i = 1, 4, 1 do
-					local buffType = SpiriBuffs[i];
 					table_next_row();
 					table_next_column();
-					text_colored(LocalizedBirdTypes[i] .. ": ", BirdTypeToColor[i]);
+					text_colored(StaticBuffData.LocalizedNames[i] .. ": ", StaticBuffData.Colors[i]);
 					table_next_column();
-					text(tostring(AcquiredCounts[buffType]) .. "/" .. tostring(BirdsMaxCounts[buffType]));
+					text(tostring(AcquiredCounts[i]) .. "/" .. tostring(BirdsMaxCounts[i]));
 					table_next_column();
-					text(tostring(AcquiredValues[buffType]) .. "/" .. tostring(StatusBuffLimits[buffType]));
+					text(tostring(AcquiredValues[i]) .. "/" .. tostring(StatusBuffLimits[i]));
 				end
 
 				end_table();

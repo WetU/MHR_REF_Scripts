@@ -12,11 +12,9 @@ local Vector2f_new = Constants.Vector2f.new;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkGameStatus = Constants.checkGameStatus;
-local Village = Constants.GameStatusType.Village;
 --
 local this = {
 	OtomoSpyUnitManager = nil,
-
 	init = true,
 	get_currentStepCount = true,
 	currentStep = nil
@@ -46,7 +44,6 @@ local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
 
 local GuiOtomoSpyUnitReturn_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
 --
-local ItemReceive = 5;
 local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 --
 local isReturnAnimation = false;
@@ -92,7 +89,7 @@ end
 local function handleReward(args)
 	local GuiOtomoSpyUnitMainControll = to_managed_object(args[2]);
 
-	if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == ItemReceive then
+	if spyOpenType_field:get_data(GuiOtomoSpyUnitMainControll) == 5 then
 		local RewardListCursor = RewardListCursor_field:get_data(GuiOtomoSpyUnitMainControll);
 
 		local PageCursor = get__PageCursor_method:call(RewardListCursor);
@@ -133,7 +130,7 @@ local function PreHook_addAllGameItemtoBox()
 end
 
 local function onChangedGameStatus(args)
-	if to_int64(args[3]) == Village then
+	if to_int64(args[3]) == 1 then
 		get_currentStepCount();
 	else
 		this:Terminate();
@@ -141,7 +138,7 @@ local function onChangedGameStatus(args)
 end
 
 local function init()
-	if checkGameStatus(Village) == true then
+	if checkGameStatus(1) == true then
 		get_currentStepCount();
 	end
 

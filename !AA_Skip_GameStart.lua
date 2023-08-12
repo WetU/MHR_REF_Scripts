@@ -17,10 +17,6 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 	local get_DurationTime_method = Movie_type_def:get_method("get_DurationTime");
 	--
 	local get_GameStartState_method = find_type_definition("snow.gui.fsm.title.GuiGameStartFsmManager"):get_method("get_GameStartState");
-	local GameStartState = {
-		Caution = 0,
-		Nvidia_Logo = 7
-	};
 	--
 	local notifyActionEnd_method = find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 	--
@@ -29,7 +25,7 @@ if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"
 		local GuiGameStartFsmManager = get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager ~= nil then
 			local gameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
-			if gameStartState ~= nil and gameStartState >= GameStartState.Caution and gameStartState <= GameStartState.Nvidia_Logo then
+			if gameStartState ~= nil and gameStartState >= 0 and gameStartState <= 7 then
 				Movie = to_managed_object(args[2]);
 			end
 		end

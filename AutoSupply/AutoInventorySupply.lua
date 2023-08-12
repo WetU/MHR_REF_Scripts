@@ -44,13 +44,11 @@ local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPa
 local PaletteSetList_get_Item_method = getPaletteSetList_method:get_return_type():get_method("get_Item(System.Int32)");
 
 local PaletteSetData_get_Name_method = PaletteSetList_get_Item_method:get_return_type():get_method("get_Name");
-
-local SycleTypes_Quest = 0;
 --
 local get_ItemPouch_method = DataManager_type_def:get_method("get_ItemPouch"); -- static
 
 local tryAddGameItem_method = get_ItemPouch_method:get_return_type():get_method("tryAddGameItem(snow.data.ContentsIdSystem.ItemId, System.Int32)");
-
+--
 local ItemIds = {
 	[68157942] = 10, -- 그레이트 응급약
 	[68157940] = 10, -- 지급전용 휴대 식량
@@ -87,11 +85,6 @@ local LocalizedStrings = {
 	PaletteListEmpty = "팔레트 설정이 비어있습니다",
 
 	WeaponTypeNilError = "<ERROR>:GetWeaponName failed"
-};
-
-local MATCH_TYPE = {
-	1, -- Loadout
-	2  -- WeaponType
 };
 --
 local lastHitLoadoutIndex = nil;
@@ -130,21 +123,21 @@ end
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 	if expectedLoadoutIndex ~= nil then
 		lastHitLoadoutIndex = expectedLoadoutIndex;
-		return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
+		return 1, GetEquipmentLoadoutName(equipDataManager, expectedLoadoutIndex), nil;
 	else
 		if lastHitLoadoutIndex ~= nil and EquipmentLoadoutIsEquipped(equipDataManager, lastHitLoadoutIndex) == true then
-			return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex), nil;
+			return 1, GetEquipmentLoadoutName(equipDataManager, lastHitLoadoutIndex), nil;
 		end
 
 		for i = 0, 223, 1 do
 			if EquipmentLoadoutIsEquipped(equipDataManager, i) == true then
 				lastHitLoadoutIndex = i;
-				return MATCH_TYPE[1], GetEquipmentLoadoutName(equipDataManager, i), nil;
+				return 1, GetEquipmentLoadoutName(equipDataManager, i), nil;
 			end
 		end
 	end
 
-	return MATCH_TYPE[2], GetWeaponName(GetCurrentWeaponType()), true;
+	return 2, GetWeaponName(GetCurrentWeaponType()), true;
 end
 --
 local function onQuestStart()
@@ -169,8 +162,8 @@ local this = {
 			if isEnoughItem_method:call(loadout) == true then
 				local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
 				applyItemMySet_method:call(ItemMySet, DefaultSet);
-				msg = matchedType == MATCH_TYPE[1] and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
-					or matchedType == MATCH_TYPE[2] and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
+				msg = matchedType == 1 and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
+					or matchedType == 2 and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)
 					or FromDefault(itemLoadoutName, loadoutMismatch);
 
 				local paletteIndex = get_PaletteSetIndex_method:call(loadout);
@@ -180,10 +173,10 @@ local this = {
 				elseif get_HasValue_method:call(paletteIndex) == true then
 					local radialSetIndex = get_Value_method:call(paletteIndex);
 					local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-					local paletteList = getPaletteSetList_method:call(ShortcutManager, SycleTypes_Quest);
+					local paletteList = getPaletteSetList_method:call(ShortcutManager, 0);
 					msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
 						or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, PaletteSetData_get_Name_method:call(PaletteSetList_get_Item_method:call(paletteList, radialSetIndex)));
-					setUsingPaletteIndex_method:call(ShortcutManager, SycleTypes_Quest, radialSetIndex);
+					setUsingPaletteIndex_method:call(ShortcutManager, 0, radialSetIndex);
 				end
 			end
 

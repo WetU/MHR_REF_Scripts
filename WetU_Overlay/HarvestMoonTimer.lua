@@ -20,14 +20,14 @@ local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
 
 local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId");
-
-local HarvestMoonCircleType_OutSide = 1;
 --
 local this = {
 	init = true,
 	CircleTimer = nil
 };
 --
+local LongSwordShell010 = nil;
+
 local function Terminate()
 	this.CircleTimer = nil;
 end
@@ -36,17 +36,12 @@ local function UpdateHarvestMoonTimer(longSwordShell010)
 	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
 end
 
-local PreHook_update = nil;
-local PostHook_update = nil;
-do
-	local LongSwordShell010 = nil;
-	PreHook_update = function(args)
-		LongSwordShell010 = to_managed_object(args[2]);
-	end
-	PostHook_update = function()
-		UpdateHarvestMoonTimer(LongSwordShell010);
-		LongSwordShell010 = nil;
-	end
+local function PreHook_update(args)
+	LongSwordShell010 = to_managed_object(args[2]);
+end
+local function PostHook_update()
+	UpdateHarvestMoonTimer(LongSwordShell010);
+	LongSwordShell010 = nil;
 end
 
 local function HarvestMoon_init(obj)
@@ -55,20 +50,15 @@ local function HarvestMoon_init(obj)
 	hook_vtable(obj, onDestroy_method, nil, Terminate);
 end
 
-local PreHook = nil;
-local PostHook = nil;
-do
-	local LongSwordShell010 = nil;
-	PreHook = function(args)
-		LongSwordShell010 = to_managed_object(args[2]);
+local function PreHook(args)
+	LongSwordShell010 = to_managed_object(args[2]);
+end
+local function PostHook()
+	if CircleType_field:get_data(LongSwordShell010) == 1 and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
+		HarvestMoon_init(LongSwordShell010);
 	end
-	PostHook = function()
-		if CircleType_field:get_data(LongSwordShell010) == HarvestMoonCircleType_OutSide and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
-			HarvestMoon_init(LongSwordShell010);
-		end
 
-		LongSwordShell010 = nil;
-	end
+	LongSwordShell010 = nil;
 end
 
 local function init()
@@ -84,7 +74,7 @@ local function init()
 					if MasterShell010List_count > 0 then
 						for i = 0, MasterShell010List_count - 1, 1 do
 							local MasterShell010 = MasterShell010List:get_element(i);
-							if CircleType_field:get_data(MasterShell010) == HarvestMoonCircleType_OutSide then
+							if CircleType_field:get_data(MasterShell010) == 1 then
 								HarvestMoon_init(MasterShell010);
 								break;
 							end

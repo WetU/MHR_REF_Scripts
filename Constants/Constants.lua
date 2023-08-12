@@ -1,7 +1,6 @@
 local _G = _G;
 
 local pairs = _G.pairs;
-local ipairs = _G.ipairs;
 local tostring = _G.tostring;
 
 local math = _G.math;
@@ -80,13 +79,6 @@ local Font = load_font("NotoSansKR-Bold.otf", 24, {
 });
 --
 local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
-
-local Keys = {
-	Home = 36,
-	F5 = 116,
-	F6 = 117,
-	F8 = 119
-};
 
 local function checkKeyTrg(key)
 	return getTrg_method:call(nil, key);
@@ -179,7 +171,6 @@ end
 local this = {
 	lua = {
 		pairs = pairs,
-		ipairs = ipairs,
 		tostring = tostring,
 		math_min = math_min,
 		math_max = math_max,

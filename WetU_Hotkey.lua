@@ -18,11 +18,6 @@ local getKitchenFacility = Constants.getKitchenFacility;
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
-
-local VillageFastTravelType = {
-	ELGADO_CHICHE = 8,
-	ELGADO_KITCHEN = 9
-};
 --
 local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
 
@@ -65,11 +60,6 @@ local get_Item_method = AcitvePlKitchenSkillList_type_def:get_method("get_Item(S
 
 local PlayerKitchenSkillData_type_def = get_Item_method:get_return_type();
 --
-local DangoLogStatusItemType = {
-	0,  -- Vital
-	1   -- Stamina
-};
-
 local DailyDango = {
 	[35] = true,  -- 보수금 보험
 	[41] = true,  -- 환산술
@@ -78,11 +68,6 @@ local DailyDango = {
 	[44] = true,  -- 해체술[대]
 	[45] = true,  -- 행운술
 	[46] = true   -- 격운술
-};
-
-local PaymentTypes = {
-	0, -- Money
-	1  -- VillagePoint
 };
 --
 local PlayerLobbyBase = nil;
@@ -129,8 +114,8 @@ local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
 	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 
-	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], vitalBuff);
-	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], staminaBuff);
+	setStatusParam_method:call(DangoLogParam, 0, vitalBuff);
+	setStatusParam_method:call(DangoLogParam, 1, staminaBuff);
 
 	for i = 0, AcitvePlKitchenSkill_count - 1, 1 do
 		AcitvePlKitchenSkillArray[i] = get_Item_method:call(AcitvePlKitchenSkillList, i);
@@ -149,21 +134,21 @@ end
 
 local isOrdering = false;
 local function PostHook_villageUpdate()
-	if checkKeyTrg(Keys.F5) == true then
-		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_CHICHE);
+	if checkKeyTrg(116) == true then
+		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), 8);
 
-	elseif checkKeyTrg(Keys.F6) == true then
-		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), VillageFastTravelType.ELGADO_KITCHEN);
+	elseif checkKeyTrg(117) == true then
+		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), 9);
 
-	elseif checkKeyTrg(Keys.F8) == true then
+	elseif checkKeyTrg(119) == true then
 		local MealFunc = get_MealFunc_method:call(getKitchenFacility());
 
 		if checkAvailableMealSystem_method:call(MealFunc) == true then
 			local paymentType = nil;
 			if checkHandMoney_method:call(MealFunc) == true then
-				paymentType = PaymentTypes[1];
+				paymentType = 0;
 			elseif checkVillagePoint_method:call(MealFunc) == true then
-				paymentType = PaymentTypes[2];
+				paymentType = 1;
 				SendMessage(nil, "소지금이 부족합니다!");
 			else
 				SendMessage(nil, "소지금과 포인트가 부족합니다!");
@@ -203,7 +188,7 @@ local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
 local function PostHook_updateNormalQuest()
-	if checkKeyTrg(Keys.F5) == true then
+	if checkKeyTrg(116) == true then
 		notifyReset_method:call(get_managed_singleton("snow.QuestManager"));
 	end
 end
