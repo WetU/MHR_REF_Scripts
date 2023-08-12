@@ -134,23 +134,17 @@ local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
 
 local MapNoType_type_def = getMapNo_method:get_return_type();
 local QuestMapList = {
-	ShrineRuins = MapNoType_type_def:get_field("No01"):get_data(nil), -- 사원 폐허
-	SandyPlains = MapNoType_type_def:get_field("No02"):get_data(nil), -- 모래 평원
-	FloodedForest = MapNoType_type_def:get_field("No03"):get_data(nil), -- 수몰된 숲
-	FrostIslands = MapNoType_type_def:get_field("No04"):get_data(nil), -- 한랭 군도
-	LavaCaverns = MapNoType_type_def:get_field("No05"):get_data(nil), -- 용암 동굴
-	Jungle = MapNoType_type_def:get_field("No31"):get_data(nil), -- 밀림
-	Citadel = MapNoType_type_def:get_field("No32"):get_data(nil)  -- 요새 고원
+	ShrineRuins = MapNoType_type_def:get_field("No01"):get_data(nil),
+	SandyPlains = MapNoType_type_def:get_field("No02"):get_data(nil),
+	FloodedForest = MapNoType_type_def:get_field("No03"):get_data(nil),
+	FrostIslands = MapNoType_type_def:get_field("No04"):get_data(nil),
+	LavaCaverns = MapNoType_type_def:get_field("No05"):get_data(nil),
+	Jungle = MapNoType_type_def:get_field("No31"):get_data(nil),
+	Citadel = MapNoType_type_def:get_field("No32"):get_data(nil)
 };
 
 local function getQuestMapNo(nullable_questManager)
 	return nullable_questManager ~= nil and getMapNo_method:call(nullable_questManager) or getMapNo_method:call(get_managed_singleton("snow.QuestManager"));
-end
---
-local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
-
-local function getPlayerData(playerBase)
-	return playerBase ~= nil and get_PlayerData_method:call(playerBase) or get_PlayerData_method:call(getMasterPlayer_method:call(nil));
 end
 --
 local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
@@ -274,8 +268,6 @@ local this = {
 	
 	QuestMapList = QuestMapList,
 	getQuestMapNo = getQuestMapNo,
-
-	getPlayerData = getPlayerData,
 
 	getQuestLife = getQuestLife,
 	getDeathNum = getDeathNum,

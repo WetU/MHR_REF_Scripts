@@ -15,7 +15,7 @@ local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 local to_int64 = Constants.sdk.to_int64;
 
-local getPlayerData = Constants.getPlayerData;
+local getMasterPlayerBase = Constants.getMasterPlayerBase;
 local getQuestMapNo = Constants.getQuestMapNo;
 local QuestMapList = Constants.QuestMapList;
 local to_bool = Constants.to_bool;
@@ -72,7 +72,9 @@ local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 local get_IsInTrainingArea_method = PlayerQuestBase_type_def:get_method("get_IsInTrainingArea");
 local IsEnableStage_Skill211_field = PlayerQuestBase_type_def:get_field("_IsEnableStage_Skill211");
 
-local isMasterPlayer_method = Constants.type_definitions.PlayerBase_type_def:get_method("isMasterPlayer");
+local PlayerBase_type_def = Constants.type_definitions.PlayerBase_type_def;
+local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer");
+local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
 local SpiribirdsCallTimer_field = find_type_definition("snow.player.PlayerData"):get_field("_EquipSkill211_Timer");
 --
@@ -179,7 +181,7 @@ function this:getBuffParameters(equipDataManager, playerManager, buffType)
 end
 
 local function getCallTimer()
-	this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(getPlayerData(getMasterPlayer_method:call(nil))) / 60.0));
+	this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(getMasterPlayerBase())) / 60.0));
 end
 
 local function init_Data(playerQuestBase)

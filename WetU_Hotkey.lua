@@ -90,42 +90,58 @@ local PaymentTypes = {
 };
 --
 local PlayerLobbyBase = nil;
+
 local function destroyPlayerLobbyBase()
 	PlayerLobbyBase = nil;
 end
 
 local function getPlayerLobbyBase(args)
+	PlayerLobbyBase = to_managed_object(args[2]);
+	hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
+end
+hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
+
+local function getPlayerLobbyBaseFromUpdate(args)
 	if PlayerLobbyBase == nil then
-		PlayerLobbyBase = to_managed_object(args[2]);
-		hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
+		getPlayerLobbyBase(args);
 	end
 end
-hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBase);
+hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
 
 local function applyKitchenBuff()
 	if PlayerLobbyBase ~= nil then
 		Player_setKitchenData_method:call(PlayerLobbyBase);
 	end
+
 	local OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
-	Otomo_setKitchenData_method:call(getMasterFirstOtomo_method:call(OtomoManager));
-	Otomo_setKitchenData_method:call(getMasterSecondOtomo_method:call(OtomoManager));
+
+	local MasterFirstOtomo = getMasterFirstOtomo_method:call(OtomoManager);
+	if MasterFirstOtomo ~= nil then
+		Otomo_setKitchenData_method:call(MasterFirstOtomo);
+	end
+
+	local MasterSecondOtomo = getMasterSecondOtomo_method:call(OtomoManager);
+	if MasterSecondOtomo ~= nil then
+		Otomo_setKitchenData_method:call(MasterSecondOtomo);
+	end
 end
 
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
+	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
+	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
+	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
+
 	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], vitalBuff);
 	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], staminaBuff);
 
-	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
-	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
-	local newArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
-
 	for i = 0, AcitvePlKitchenSkill_count - 1, 1 do
-		newArray[i] = get_Item_method:call(AcitvePlKitchenSkillList, i);
+		AcitvePlKitchenSkillArray[i] = get_Item_method:call(AcitvePlKitchenSkillList, i);
 	end
 
-	DangoLogParam:set_field("_SkillDataList", newArray);
-	newArray:force_release();
+	DangoLogParam:set_field("_SkillDataList", AcitvePlKitchenSkillArray);
+	AcitvePlKitchenSkillArray:force_release();
+
 	return DangoLogParam;
 end
 
