@@ -128,9 +128,10 @@ end
 
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
-	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
+
 	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
 	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
+	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 
 	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[1], vitalBuff);
 	setStatusParam_method:call(DangoLogParam, DangoLogStatusItemType[2], staminaBuff);
