@@ -98,9 +98,7 @@ local StaticBuffData = {
 };
 
 local function drawSpiribirdsStatus()
-	local SpiribirdsCall_Timer = SpiribirdsStatus.SpiribirdsCall_Timer;
-
-	if SpiribirdsStatus.SpiribirdsHudDataCreated ~= nil then
+	if SpiribirdsStatus.SpiribirdsHudDataCreated == true then
 		local AcquiredCounts = SpiribirdsStatus.AcquiredCounts;
 		local BirdsMaxCounts = SpiribirdsStatus.BirdsMaxCounts;
 		local AcquiredValues = SpiribirdsStatus.AcquiredValues;
@@ -131,12 +129,6 @@ local function drawSpiribirdsStatus()
 				text(SpiribirdsCall_Timer);
 			end
 
-			end_window();
-		end
-
-	elseif SpiribirdsCall_Timer ~= nil then
-		if begin_window("인혼조", nil, WINDOW_FLAG) == true then
-			text(SpiribirdsCall_Timer);
 			end_window();
 		end
 	end
