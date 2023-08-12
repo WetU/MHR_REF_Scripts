@@ -52,7 +52,7 @@ local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl
 --
 local GuiRewardDialog_type_def = find_type_definition("snow.gui.GuiRewardDialog");
 local Reward_Ids_field = GuiRewardDialog_type_def:get_field("Reward_Ids");
-local mItems_field = Reward_Ids_field:get_type():get_field("mItems");
+local get_Item_method = Reward_Ids_field:get_type():get_method("get_Item(System.Int32)");
 --
 local MysteryResearchRequestEnd = nil;
 local CommercialStuff = nil;
@@ -229,7 +229,7 @@ local function PreHook_doOpen(args)
 	GuiRewardDialog = to_managed_object(args[2]);
 end
 local function PostHook_doOpen()
-	isOpenMysteryResearchReward = mItems_field:get_data(Reward_Ids_field:get_data(GuiRewardDialog)):get_element(0) == 68160340;
+	isOpenMysteryResearchReward = get_Item_method:call(Reward_Ids_field:get_data(GuiRewardDialog), 0) == 68160340;
 	GuiRewardDialog = nil;
 end
 

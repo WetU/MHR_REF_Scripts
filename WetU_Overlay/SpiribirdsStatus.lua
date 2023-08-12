@@ -105,6 +105,18 @@ local function mkTable()
 	return table;
 end
 
+local function checkNoRainbowMap()
+	local QuestMapNo = getQuestMapNo(nil);
+
+	for _, v in pairs(QuestMapList) do
+		if v == QuestMapNo then
+			return true;
+		end
+	end
+
+	return false;
+end
+
 local function Terminate()
 	this.SpiribirdsHudDataCreated = nil;
 	this.SpiribirdsCall_Timer = nil;
@@ -117,30 +129,32 @@ local function Terminate()
 	skipUpdate = false;
 end
 
-local function CreateData()
-	local PlayerManager = this:getPlayerManager();
-	local EquipDataManager = this:getEquipDataManager();
+local function CreateData(checkMap)
+	if checkMap == false or checkNoRainbowMap() == true then
+		local PlayerManager = this:getPlayerManager();
+		local EquipDataManager = this:getEquipDataManager();
 
-	hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
-	local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
+		hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
+		local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
 
-	this.StatusBuffLimits = mkTable();
-	this.BirdsMaxCounts = mkTable();
-	this.AcquiredCounts = mkTable();
-	this.AcquiredValues = mkTable();
+		this.StatusBuffLimits = mkTable();
+		this.BirdsMaxCounts = mkTable();
+		this.AcquiredCounts = mkTable();
+		this.AcquiredValues = mkTable();
 
-	for i = 1, 4, 1 do
-		local BuffType = BuffTypes[i];
-		local LvBuffType = LvBuff[i];
-		local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffType);
-		local LvBuffNumToMax = calcLvBuffNumToMax_method:call(EquipDataManager, LvBuffType);
-		this.StatusBuffLimits[i] = StatusBuffLimit;
-		this.BirdsMaxCounts[i] = LvBuffNumToMax;
-		this.AcquiredValues[i] = hasRainbow == true and StatusBuffLimit or math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffType), 0), StatusBuffLimit);
-		this.AcquiredCounts[i] = hasRainbow == true and LvBuffNumToMax or math_min(math_max(getLvBuffCnt_method:call(PlayerManager, LvBuffType), 0), LvBuffNumToMax);
+		for i = 1, 4, 1 do
+			local BuffType = BuffTypes[i];
+			local LvBuffType = LvBuff[i];
+			local StatusBuffLimit = getStatusBuffLimit_method:call(EquippingLvBuffcageData, BuffType);
+			local LvBuffNumToMax = calcLvBuffNumToMax_method:call(EquipDataManager, LvBuffType);
+			this.StatusBuffLimits[i] = StatusBuffLimit;
+			this.BirdsMaxCounts[i] = LvBuffNumToMax;
+			this.AcquiredValues[i] = hasRainbow == true and StatusBuffLimit or math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffType), 0), StatusBuffLimit);
+			this.AcquiredCounts[i] = hasRainbow == true and LvBuffNumToMax or math_min(math_max(getLvBuffCnt_method:call(PlayerManager, LvBuffType), 0), LvBuffNumToMax);
+		end
+
+		this.SpiribirdsHudDataCreated = true;
 	end
-
-	this.SpiribirdsHudDataCreated = true;
 end
 
 function this:getBuffParameters(equipDataManager, playerManager, buffType)
@@ -166,7 +180,7 @@ local function getCallTimer()
 end
 
 local function init_Data(playerQuestBase)
-	CreateData();
+	CreateData(true);
 	hook_vtable(playerQuestBase, onDestroy_method, nil, Terminate);
 end
 
@@ -190,7 +204,7 @@ local subBuffType = nil;
 local function PreHook_subLvBuffFromEnemy(args)
 	if isMasterPlayer_method:call(to_managed_object(args[2])) == true then
 		if this.SpiribirdsHudDataCreated ~= true then
-			CreateData();
+			CreateData(false);
 		end
 
 		subBuffType = to_int64(args[3]);
@@ -217,7 +231,7 @@ end
 local addBuffType = nil;
 local function PreHook_addLvBuffCnt(args)
 	if this.SpiribirdsHudDataCreated ~= true then
-		CreateData();
+		CreateData(true);
 	end
 
 	local buffType = to_int64(args[4]);
@@ -271,18 +285,13 @@ local function init()
 end
 
 local function onQuestStart()
-	if this.SpiribirdsHudDataCreated ~= true then
-		CreateData();
-	end
+	if checkNoRainbowMap() == true then
+		if this.SpiribirdsHudDataCreated ~= true then
+			CreateData(false);
+		end
 
-	local MapNo = getQuestMapNo(nil);
-
-	for _, map in pairs(QuestMapList) do
-		if map == MapNo then
-			for i = 1, 4, 1 do
-				addLvBuffCount_method:call(nil, BuffTypes[i], this.BirdsMaxCounts[i]);
-			end
-			break;
+		for i = 1, 4, 1 do
+			addLvBuffCount_method:call(nil, BuffTypes[i], this.BirdsMaxCounts[i]);
 		end
 	end
 end
