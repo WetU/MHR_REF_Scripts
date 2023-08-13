@@ -5,7 +5,7 @@ local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 --
-if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 120.0 then
+if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 35.0 then
 	local find_type_definition = Constants.sdk.find_type_definition;
 	local get_managed_singleton = Constants.sdk.get_managed_singleton;
 	local to_managed_object = Constants.sdk.to_managed_object;

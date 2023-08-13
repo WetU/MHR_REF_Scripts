@@ -80,7 +80,6 @@ local function getPlayerLobbyBase(args)
 	PlayerLobbyBase = to_managed_object(args[2]);
 	hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
 end
-
 hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
 
 local function getPlayerLobbyBaseFromUpdate(args)
