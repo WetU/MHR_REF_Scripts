@@ -26,7 +26,7 @@ local this = {
 	init = true,
 	onQuestStart = true,
 
-	SpiribirdsHudDataCreated = nil,
+	SpiribirdsHudDataCreated = false,
 	SpiribirdsCall_Timer = nil,
 
 	StatusBuffLimits = nil,
@@ -88,7 +88,7 @@ function this:getEquipDataManager()
 end
 
 local function Terminate()
-	this.SpiribirdsHudDataCreated = nil;
+	this.SpiribirdsHudDataCreated = false;
 	this.SpiribirdsCall_Timer = nil;
 	this.StatusBuffLimits = nil;
 	this.AcquiredValues = nil;

@@ -13,8 +13,11 @@ local getDeathNum = Constants.getDeathNum;
 --
 local this = {
 	QuestManager = nil,
+
 	init = true,
 	onQuestStart = true,
+
+	QuestInfoDataCreated = false,
 	QuestTimer = nil,
 	DeathCount = nil
 };
@@ -27,7 +30,6 @@ local isQuestMaxTimeUnlimited_method = QuestManager_type_def:get_method("isQuest
 local getQuestElapsedTimeSec_method = QuestManager_type_def:get_method("getQuestElapsedTimeSec");
 local isTourQuest_method = QuestManager_type_def:get_method("isTourQuest");
 --
-local isTourQuest = false;
 local curQuestLife = nil;
 local curQuestMaxTimeMin = nil;
 
@@ -41,7 +43,7 @@ end
 
 local function onQuestStart()
 	local QuestManager = this:getQuestManager();
-	isTourQuest = isTourQuest_method:call(QuestManager);
+	local isTourQuest = isTourQuest_method:call(QuestManager);
 
 	if curQuestLife == nil then
 		curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(QuestManager);
@@ -51,16 +53,11 @@ local function onQuestStart()
 
 	curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
 	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(QuestManager)), curQuestMaxTimeMin);
+	this.QuestInfoDataCreated = true;
 end
 
 local function updateDeathCount()
-	local QuestManager = this:getQuestManager();
-
-	if curQuestLife == nil then
-		curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(QuestManager);
-	end
-
-	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(QuestManager), curQuestLife);
+	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(this:getQuestManager()), curQuestLife);
 end
 
 local function updateQuestTimer()
@@ -68,9 +65,9 @@ local function updateQuestTimer()
 end
 
 local function Terminate()
+	this.QuestInfoDataCreated = false;
 	this.QuestTimer = nil;
 	this.DeathCount = nil;
-	isTourQuest = false;
 	curQuestLife = nil;
 	curQuestMaxTimeMin = nil;
 end

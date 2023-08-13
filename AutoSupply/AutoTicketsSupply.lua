@@ -209,9 +209,9 @@ end]]
 local function PostHook_checkMysteryResearchRequestEnd(retval)
 	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, 78, 0, 0) == true then
 		MysteryResearchRequestEnd = false;
-		resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
+		--[[resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
-		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);
+		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);]]
 		MysteryLaboNpcTalkMessageCtrl = nil;
 		isOpenMysteryResearchReward = true;
 		return FALSE_POINTER;
@@ -227,11 +227,12 @@ local function PostHook_checkCommercialStuff(retval)
 end
 
 local function closeRewardDialog(retval)
-	return isOpenMysteryResearchReward == true and TRUE_POINTER or retval;
-end
+	if isOpenMysteryResearchReward == true then
+		isOpenMysteryResearchReward = false;
+		return TRUE_POINTER;
+	end
 
-local function finishedRewardDialog()
-	isOpenMysteryResearchReward = false;
+	return retval;
 end
 
 local function init()
@@ -252,7 +253,6 @@ local function init()
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
 	hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, closeRewardDialog);
-	hook(GuiRewardDialog_type_def:get_method("doClose"), finishedRewardDialog);
 end
 --
 local this = {

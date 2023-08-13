@@ -60,23 +60,10 @@ local function drawOtomoSpyUnit()
 end
 
 local function drawQuestInfo()
-	local QuestTimer = QuestInfo.QuestTimer;
-	local DeathCount = QuestInfo.DeathCount;
-
-	if QuestTimer ~= nil then
+	if QuestInfo.QuestInfoDataCreated == true then
 		if begin_window("퀘스트 정보", nil, WINDOW_FLAG) == true then
-			text(QuestTimer);
-
-			if DeathCount ~= nil then
-				text(DeathCount);
-			end
-
-			end_window();
-		end
-
-	elseif DeathCount ~= nil then
-		if begin_window("퀘스트 정보", nil, WINDOW_FLAG) == true then
-			text(DeathCount);
+			text(QuestInfo.QuestTimer);
+			text(QuestInfo.DeathCount);
 			end_window();
 		end
 	end

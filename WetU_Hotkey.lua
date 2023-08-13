@@ -80,6 +80,7 @@ local function getPlayerLobbyBase(args)
 	PlayerLobbyBase = to_managed_object(args[2]);
 	hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
 end
+
 hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
 
 local function getPlayerLobbyBaseFromUpdate(args)
@@ -122,14 +123,8 @@ local function makeDangoLogParam(vitalBuff, staminaBuff)
 	end
 
 	DangoLogParam:set_field("_SkillDataList", AcitvePlKitchenSkillArray);
-	AcitvePlKitchenSkillArray:force_release();
 
 	return DangoLogParam;
-end
-
-local function printDangoLog(dangoLogParam)
-	reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), dangoLogParam, 5.0);
-	dangoLogParam:force_release();
 end
 
 local isOrdering = false;
@@ -170,7 +165,7 @@ local function PostHook_villageUpdate()
 					addBuff_method:call(MealFunc, FacilityLv);
 					applyKitchenBuff();
 					setWaitTimer_method:call(MealFunc);
-					printDangoLog(makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)));
+					reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)), 5.0);
 				end
 			end
 		end
