@@ -99,13 +99,13 @@ local StaticBuffData = {
 
 local function drawSpiribirdsStatus()
 	if SpiribirdsStatus.SpiribirdsHudDataCreated == true then
-		local AcquiredCounts = SpiribirdsStatus.AcquiredCounts;
-		local BirdsMaxCounts = SpiribirdsStatus.BirdsMaxCounts;
-		local AcquiredValues = SpiribirdsStatus.AcquiredValues;
-		local StatusBuffLimits = SpiribirdsStatus.StatusBuffLimits;
-
 		if begin_window("인혼조", nil, WINDOW_FLAG) == true then
 			if begin_table("종류", 3, 2097152) == true then
+				local AcquiredCounts = SpiribirdsStatus.AcquiredCounts;
+				local BirdsMaxCounts = SpiribirdsStatus.BirdsMaxCounts;
+				local AcquiredValues = SpiribirdsStatus.AcquiredValues;
+				local StatusBuffLimits = SpiribirdsStatus.StatusBuffLimits;
+
 				table_setup_column("유형", 8, 25.0);
 				table_setup_column("횟수", 8, 20.0);
 				table_setup_column("수치", 8, 25.0);
@@ -124,7 +124,7 @@ local function drawSpiribirdsStatus()
 				end_table();
 			end
 
-			if SpiribirdsCall_Timer ~= nil then
+			if SpiribirdsStatus.SpiribirdsCall_Timer ~= nil then
 				spacing();
 				text(SpiribirdsCall_Timer);
 			end

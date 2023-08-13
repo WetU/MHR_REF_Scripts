@@ -80,6 +80,7 @@ end
 --
 local CommercialNpcTalkMessageCtrl = nil;
 local MysteryLaboNpcTalkMessageCtrl = nil;
+local isOpenMysteryResearchReward = false;
 
 local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
@@ -106,6 +107,7 @@ local function talkHandler()
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
 		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);
 		MysteryLaboNpcTalkMessageCtrl = nil;
+		isOpenMysteryResearchReward = true;
 	end
 end
 --
@@ -211,6 +213,7 @@ local function PostHook_checkMysteryResearchRequestEnd(retval)
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
 		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);
 		MysteryLaboNpcTalkMessageCtrl = nil;
+		isOpenMysteryResearchReward = true;
 		return FALSE_POINTER;
 	end
 
@@ -221,16 +224,6 @@ end
 local function PostHook_checkCommercialStuff(retval)
 	CommercialStuff = to_bool(retval);
 	return retval;
-end
-
-local isOpenMysteryResearchReward = false;
-local GuiRewardDialog = nil;
-local function PreHook_doOpen(args)
-	GuiRewardDialog = to_managed_object(args[2]);
-end
-local function PostHook_doOpen()
-	isOpenMysteryResearchReward = get_Item_method:call(Reward_Ids_field:get_data(GuiRewardDialog), 0) == 68160340;
-	GuiRewardDialog = nil;
 end
 
 local function closeRewardDialog(retval)
@@ -258,7 +251,6 @@ local function init()
 	--hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
-	hook(GuiRewardDialog_type_def:get_method("doOpen"), PreHook_doOpen, PostHook_doOpen);
 	hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, closeRewardDialog);
 	hook(GuiRewardDialog_type_def:get_method("doClose"), finishedRewardDialog);
 end
