@@ -209,9 +209,6 @@ end]]
 local function PostHook_checkMysteryResearchRequestEnd(retval)
 	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, 78, 0, 0) == true then
 		MysteryResearchRequestEnd = false;
-		--[[resetTalkDispName_method:call(MysteryLaboNpcTalkMessageCtrl);
-		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
-		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);]]
 		MysteryLaboNpcTalkMessageCtrl = nil;
 		isOpenMysteryResearchReward = true;
 		return FALSE_POINTER;
