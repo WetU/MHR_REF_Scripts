@@ -19,11 +19,11 @@ local this = {
 };
 --
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
-
+--
 local OtomoSpyUnitManager_type_def = find_type_definition("snow.data.OtomoSpyUnitManager");
 local get_IsOperating_method = OtomoSpyUnitManager_type_def:get_method("get_IsOperating");
 local get_NowStepCount_method = OtomoSpyUnitManager_type_def:get_method("get_NowStepCount");
-
+--
 local GuiOtomoSpyUnitMainControll_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitMainControll");
 local setBoostItem_method = GuiOtomoSpyUnitMainControll_type_def:get_method("setBoostItem");
 local updateRewardList_method = GuiOtomoSpyUnitMainControll_type_def:get_method("updateRewardList");
@@ -39,11 +39,16 @@ local PageCursor_type_def = get__PageCursor_method:get_return_type();
 local get_pageNo_method = PageCursor_type_def:get_method("get_pageNo");
 local set_pageNo_method = PageCursor_type_def:get_method("set_pageNo(System.Int32)");
 local getPageMax_method = PageCursor_type_def:get_method("getPageMax");
-
+--
 local GuiOtomoSpyUnitReturn_type_def = find_type_definition("snow.gui.fsm.otomospy.GuiOtomoSpyUnitReturn");
+--
+local GuiRoomServiceFsmManager_type_def = find_type_definition("snow.gui.fsm.roomservice.GuiRoomServiceFsmManager");
+local get__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("get__MenuState");
+local set__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("set__MenuState(snow.gui.fsm.roomservice.GuiRoomService.RoomServiceTopMenu)");
 --
 local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 --
+local isMaxStepCount = false;
 local isReturnAnimation = false;
 local isReceiveReady = false;
 
@@ -58,13 +63,38 @@ end
 local function get_currentStepCount()
 	local OtomoSpyUnitManager = Constants:get_OtomoSpyUnitManager();
 	local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
-	this.currentStep = isOperating == true and string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
-		or isOperating == false and "활동 없음"
-		or nil;
+	if isOperating == true then
+		local NowStepCount = get_NowStepCount_method:call(OtomoSpyUnitManager);
+		isMaxStepCount = NowStepCount == 5;
+		this.currentStep = string_format("조사 단계: %d / 5", NowStepCount);
+
+	elseif isOperating == false then
+		this.currentStep = "활동 없음";
+
+	else
+		this.currentStep = nil;
+	end
+end
+
+local GuiRoomServiceFsmManager = nil;
+local function PreHook_openRoomService(args)
+	if isMaxStepCount == true then
+		GuiRoomServiceFsmManager = to_managed_object(args[2]);
+	end
+end
+local function PostHook_openRoomService()
+	if GuiRoomServiceFsmManager ~= nil then
+		if get__MenuState_method:call(GuiRoomServiceFsmManager) == 13 then
+			set__MenuState_method:call(GuiRoomServiceFsmManager, 1);
+		end
+
+		GuiRoomServiceFsmManager = nil;
+	end
 end
 
 local function skipReturnAnimation()
 	isReturnAnimation = true;
+	isMaxStepCount = false;
 end
 
 local function PostHook_getDecideButtonTrg(retval)
@@ -134,6 +164,7 @@ local function init()
 
 	hook(GuiOtomoSpyUnitMainControll_type_def:get_method("doOpen"), setBoostItem);
 	hook(OtomoSpyUnitManager_type_def:get_method("dispatch"), nil, get_currentStepCount);
+	hook(GuiRoomServiceFsmManager_type_def:get_method("openRoomService"), PreHook_openRoomService, PostHook_openRoomService);
 	hook(GuiOtomoSpyUnitReturn_type_def:get_method("doOpen"), nil, skipReturnAnimation);
 	hook(StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, PostHook_getDecideButtonTrg);
 	hook(GuiOtomoSpyUnitReturn_type_def:get_method("endOtomoSpyUnitReturn"), PreHook_endOtomoSpyUnitReturn);

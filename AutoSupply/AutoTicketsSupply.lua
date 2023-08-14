@@ -48,8 +48,11 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_SupplyMysteryResearchRequestReward(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 --
-local Reward_Ids_field = find_type_definition("snow.gui.GuiRewardDialog"):get_field("Reward_Ids");
-local get_Item_method = Reward_Ids_field:get_type():get_method("get_Item(System.Int32)");
+local RewardDataList_get_Item_method = find_type_definition("System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>"):get_method("get_Item(System.Int32)");
+local RewardItemId_field = RewardDataList_get_Item_method:get_return_type():get_field("Item1");
+
+local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
+local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
 --
 local MysteryResearchRequestEnd = nil;
 local CommercialStuff = nil;
@@ -77,7 +80,6 @@ end
 --
 local CommercialNpcTalkMessageCtrl = nil;
 local MysteryLaboNpcTalkMessageCtrl = nil;
-local isOpenMysteryResearchReward = false;
 
 local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
@@ -104,7 +106,6 @@ local function talkHandler()
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
 		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);
 		MysteryLaboNpcTalkMessageCtrl = nil;
-		isOpenMysteryResearchReward = true;
 	end
 end
 --
@@ -207,7 +208,6 @@ local function PostHook_checkMysteryResearchRequestEnd(retval)
 	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, 78, 0, 0) == true then
 		MysteryResearchRequestEnd = false;
 		MysteryLaboNpcTalkMessageCtrl = nil;
-		isOpenMysteryResearchReward = true;
 		return FALSE_POINTER;
 	end
 
@@ -220,13 +220,16 @@ local function PostHook_checkCommercialStuff(retval)
 	return retval;
 end
 
-local function closeRewardDialog(retval)
-	if isOpenMysteryResearchReward == true then
-		isOpenMysteryResearchReward = false;
-		return TRUE_POINTER;
+local RewardItemDataList = nil;
+local function PreHook_openRewardDialog(args)
+	RewardItemDataList = to_managed_object(args[3]);
+end
+local function PostHook_openRewardDialog()
+	if RewardItemId_field:get_data(RewardDataList_get_Item_method:call(RewardItemDataList, 0)) == 68160340 then
+		closeRewardDialog_method:call(Constants:get_GuiManager());
 	end
 
-	return retval;
+	RewardItemDataList = nil;
 end
 
 local function init()
@@ -246,7 +249,7 @@ local function init()
 	--hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
-	hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, closeRewardDialog);
+	hook(GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
 end
 --
 local this = {

@@ -18,12 +18,14 @@ local update_method = LongSwordShell010_type_def:get_method("update");
 local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
 local CircleType_field = LongSwordShell010_type_def:get_field("_CircleType");
+local IsWarning_field = LongSwordShell010_type_def:get_field("_IsWarning");
 
 local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId");
 --
 local this = {
 	init = true,
-	CircleTimer = nil
+	CircleTimer = nil,
+	IsWarning = false
 };
 --
 local LongSwordShell010 = nil;
@@ -34,6 +36,7 @@ end
 
 local function UpdateHarvestMoonTimer(longSwordShell010)
 	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
+	this.IsWarning = IsWarning_field:get_data(longSwordShell010);
 end
 
 local function PreHook_update(args)

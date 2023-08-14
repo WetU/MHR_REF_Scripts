@@ -196,7 +196,7 @@ function this.to_bool(value)
 end
 --
 function this:get_CameraManager()
-	if self.Objects.CameraManager == nil or self.Objects.CameraManager:get_reference_count() == 0 then
+	if self.Objects.CameraManager == nil or self.Objects.CameraManager:get_reference_count() <= 1 then
 		self.Objects.CameraManager = get_managed_singleton("snow.CameraManager");
 	end
 
@@ -204,7 +204,7 @@ function this:get_CameraManager()
 end
 
 function this:get_FadeManager()
-	if self.Objects.FadeManager == nil or self.Objects.FadeManager:get_reference_count() == 0 then
+	if self.Objects.FadeManager == nil or self.Objects.FadeManager:get_reference_count() <= 1 then
 		self.Objects.FadeManager = get_managed_singleton("snow.FadeManager");
 	end
 
@@ -212,7 +212,7 @@ function this:get_FadeManager()
 end
 
 function this:get_QuestManager()
-	if self.Objects.QuestManager == nil or self.Objects.QuestManager:get_reference_count() == 0 then
+	if self.Objects.QuestManager == nil or self.Objects.QuestManager:get_reference_count() <= 1 then
 		self.Objects.QuestManager = get_managed_singleton("snow.QuestManager");
 	end
 
@@ -220,7 +220,7 @@ function this:get_QuestManager()
 end
 
 function this:get_SnowGameManager()
-	if self.Objects.SnowGameManager == nil or self.Objects.SnowGameManager:get_reference_count() == 0 then
+	if self.Objects.SnowGameManager == nil or self.Objects.SnowGameManager:get_reference_count() <= 1 then
 		self.Objects.SnowGameManager = get_managed_singleton("snow.SnowGameManager");
 	end
 
@@ -228,7 +228,7 @@ function this:get_SnowGameManager()
 end
 
 function this:get_VillageAreaManager()
-	if self.Objects.VillageAreaManager == nil or self.Objects.VillageAreaManager:get_reference_count() == 0 then
+	if self.Objects.VillageAreaManager == nil or self.Objects.VillageAreaManager:get_reference_count() <= 1 then
 		self.Objects.VillageAreaManager = get_managed_singleton("snow.VillageAreaManager");
 	end
 
@@ -236,7 +236,7 @@ function this:get_VillageAreaManager()
 end
 
 function this:get_DemoCamera()
-	if self.Objects.DemoCamera == nil or self.Objects.DemoCamera:get_reference_count() == 0 then
+	if self.Objects.DemoCamera == nil or self.Objects.DemoCamera:get_reference_count() <= 1 then
 		self.Objects.DemoCamera = get_managed_singleton("snow.camera.DemoCamera");
 	end
 
@@ -244,7 +244,7 @@ function this:get_DemoCamera()
 end
 
 function this:get_DataManager()
-	if self.Objects.DataManager == nil or self.Objects.DataManager:get_reference_count() == 0 then
+	if self.Objects.DataManager == nil or self.Objects.DataManager:get_reference_count() <= 1 then
 		self.Objects.DataManager = get_managed_singleton("snow.data.DataManager");
 	end
 
@@ -252,7 +252,7 @@ function this:get_DataManager()
 end
 
 function this:get_EquipDataManager()
-	if self.Objects.EquipDataManager == nil or self.Objects.EquipDataManager:get_reference_count() == 0 then
+	if self.Objects.EquipDataManager == nil or self.Objects.EquipDataManager:get_reference_count() <= 1 then
 		self.Objects.EquipDataManager = get_managed_singleton("snow.data.EquipDataManager");
 	end
 
@@ -260,7 +260,7 @@ function this:get_EquipDataManager()
 end
 
 function this:get_FacilityDataManager()
-	if self.Objects.FacilityDataManager == nil or self.Objects.FacilityDataManager:get_reference_count() == 0 then
+	if self.Objects.FacilityDataManager == nil or self.Objects.FacilityDataManager:get_reference_count() <= 1 then
 		self.Objects.FacilityDataManager = get_managed_singleton("snow.data.FacilityDataManager");
 	end
 
@@ -268,7 +268,7 @@ function this:get_FacilityDataManager()
 end
 
 function this:get_OtomoSpyUnitManager()
-	if self.Objects.OtomoSpyUnitManager == nil or self.Objects.OtomoSpyUnitManager:get_reference_count() == 0 then
+	if self.Objects.OtomoSpyUnitManager == nil or self.Objects.OtomoSpyUnitManager:get_reference_count() <= 1 then
 		self.Objects.OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
 	end
 
@@ -276,7 +276,7 @@ function this:get_OtomoSpyUnitManager()
 end
 
 function this:get_SkillDataManager()
-	if self.Objects.SkillDataManager == nil or self.Objects.SkillDataManager:get_reference_count() == 0 then
+	if self.Objects.SkillDataManager == nil or self.Objects.SkillDataManager:get_reference_count() <= 1 then
 		self.Objects.SkillDataManager = get_managed_singleton("snow.data.SkillDataManager");
 	end
 
@@ -284,7 +284,7 @@ function this:get_SkillDataManager()
 end
 
 function this:get_TradeCenterFacility()
-	if self.Objects.TradeCenterFacility == nil or self.Objects.TradeCenterFacility:get_reference_count() == 0 then
+	if self.Objects.TradeCenterFacility == nil or self.Objects.TradeCenterFacility:get_reference_count() <= 1 then
 		self.Objects.TradeCenterFacility = get_managed_singleton("snow.facility.TradeCenterFacility");
 	end
 
@@ -292,7 +292,7 @@ function this:get_TradeCenterFacility()
 end
 
 function this:get_ChatManager()
-	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() == 0 then
+	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() <= 1 then
 		self.Objects.ChatManager = get_managed_singleton("snow.gui.ChatManager");
 	end
 
@@ -300,7 +300,7 @@ function this:get_ChatManager()
 end
 
 function this:get_GuiManager()
-	if self.Objects.GuiManager == nil or self.Objects.GuiManager:get_reference_count() == 0 then
+	if self.Objects.GuiManager == nil or self.Objects.GuiManager:get_reference_count() <= 1 then
 		self.Objects.GuiManager = get_managed_singleton("snow.gui.GuiManager");
 	end
 
@@ -308,7 +308,7 @@ function this:get_GuiManager()
 end
 
 function this:get_OtomoManager()
-	if self.Objects.OtomoManager == nil or self.Objects.OtomoManager:get_reference_count() == 0 then
+	if self.Objects.OtomoManager == nil or self.Objects.OtomoManager:get_reference_count() <= 1 then
 		self.Objects.OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
 	end
 
@@ -316,7 +316,7 @@ function this:get_OtomoManager()
 end
 
 function this:get_PlayerManager()
-	if self.Objects.PlayerManager == nil or self.Objects.PlayerManager:get_reference_count() == 0 then
+	if self.Objects.PlayerManager == nil or self.Objects.PlayerManager:get_reference_count() <= 1 then
 		self.Objects.PlayerManager = get_managed_singleton("snow.player.PlayerManager");
 	end
 
@@ -324,7 +324,7 @@ function this:get_PlayerManager()
 end
 
 --[[function this:get_ProgressEc019UnlockItemManager()
-	if self.Objects.ProgressEc019UnlockItemManager == nil or self.Objects.ProgressEc019UnlockItemManager:get_reference_count() == 0 then
+	if self.Objects.ProgressEc019UnlockItemManager == nil or self.Objects.ProgressEc019UnlockItemManager:get_reference_count() <= 1 then
 		self.Objects.ProgressEc019UnlockItemManager = get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager");
 	end
 
@@ -332,7 +332,7 @@ end
 end]]
 
 function this:get_ProgressGoodRewardManager()
-	if self.Objects.ProgressGoodRewardManager == nil or self.Objects.ProgressGoodRewardManager:get_reference_count() == 0 then
+	if self.Objects.ProgressGoodRewardManager == nil or self.Objects.ProgressGoodRewardManager:get_reference_count() <= 1 then
 		self.Objects.ProgressGoodRewardManager = get_managed_singleton("snow.progress.ProgressGoodRewardManager");
 	end
 
@@ -340,7 +340,7 @@ function this:get_ProgressGoodRewardManager()
 end
 
 --[[function this:get_ProgressNoteRewardManager()
-	if self.Objects.ProgressNoteRewardManager == nil or self.Objects.ProgressNoteRewardManager:get_reference_count() == 0 then
+	if self.Objects.ProgressNoteRewardManager == nil or self.Objects.ProgressNoteRewardManager:get_reference_count() <= 1 then
 		self.Objects.ProgressNoteRewardManager = get_managed_singleton("snow.progress.ProgressNoteRewardManager");
 	end
 
@@ -348,7 +348,7 @@ end
 end]]
 
 function this:get_ProgressOtomoTicketManager()
-	if self.Objects.ProgressOtomoTicketManager == nil or self.Objects.ProgressOtomoTicketManager:get_reference_count() == 0 then
+	if self.Objects.ProgressOtomoTicketManager == nil or self.Objects.ProgressOtomoTicketManager:get_reference_count() <= 1 then
 		self.Objects.ProgressOtomoTicketManager = get_managed_singleton("snow.progress.ProgressOtomoTicketManager");
 	end
 
@@ -356,7 +356,7 @@ function this:get_ProgressOtomoTicketManager()
 end
 
 function this:get_ProgressOwlNestManager()
-	if self.Objects.ProgressOwlNestManager == nil or self.Objects.ProgressOwlNestManager:get_reference_count() == 0 then
+	if self.Objects.ProgressOwlNestManager == nil or self.Objects.ProgressOwlNestManager:get_reference_count() <= 1 then
 		self.Objects.ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
 	end
 
@@ -364,7 +364,7 @@ function this:get_ProgressOwlNestManager()
 end
 
 --[[function this:get_ProgressSwitchActionSupplyManager()
-	if self.Objects.ProgressSwitchActionSupplyManager == nil or self.Objects.ProgressSwitchActionSupplyManager:get_reference_count() == 0 then
+	if self.Objects.ProgressSwitchActionSupplyManager == nil or self.Objects.ProgressSwitchActionSupplyManager:get_reference_count() <= 1 then
 		self.Objects.ProgressSwitchActionSupplyManager = get_managed_singleton("snow.progress.ProgressSwitchActionSupplyManager");
 	end
 
@@ -372,7 +372,7 @@ end
 end]]
 
 function this:get_ProgressTicketSupplyManager()
-	if self.Objects.ProgressTicketSupplyManager == nil or self.Objects.ProgressTicketSupplyManager:get_reference_count() == 0 then
+	if self.Objects.ProgressTicketSupplyManager == nil or self.Objects.ProgressTicketSupplyManager:get_reference_count() <= 1 then
 		self.Objects.ProgressTicketSupplyManager = get_managed_singleton("snow.progress.ProgressTicketSupplyManager");
 	end
 
@@ -380,7 +380,7 @@ function this:get_ProgressTicketSupplyManager()
 end
 
 function this:get_StagePointManager()
-	if self.Objects.StagePointManager == nil or self.Objects.StagePointManager:get_reference_count() == 0 then
+	if self.Objects.StagePointManager == nil or self.Objects.StagePointManager:get_reference_count() <= 1 then
 		self.Objects.StagePointManager = get_managed_singleton("snow.stage.StagePointManager");
 	end
 

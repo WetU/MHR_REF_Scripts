@@ -42,7 +42,11 @@ local function drawHarvestMoonTimer()
 
 	if CircleTimer ~= nil then
 		if begin_window("원월", nil, WINDOW_FLAG) == true then
-			text(CircleTimer);
+			if HarvestMoonTimer.IsWarning == true then
+				text_colored(CircleTimer, 4278190335);
+			else
+				text(CircleTimer);
+			end
 			end_window();
 		end
 	end
