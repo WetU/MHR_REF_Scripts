@@ -161,13 +161,6 @@ end
 
 local addBuffType = nil;
 local function PreHook_addLvBuffCnt(args)
-	if Constants.Objects.PlayerManager == nil then
-		local PlayerManager = to_managed_object(args[2]);
-		if PlayerManager ~= nil then
-			Constants.Objects.PlayerManager = PlayerManager;
-		end
-	end
-
 	if this.SpiribirdsHudDataCreated == true then
 		local buffType = to_int64(args[4]);
 

@@ -4,9 +4,7 @@ local find_type_definition = Constants.sdk.find_type_definition;
 local hook = Constants.sdk.hook;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-
 local ClearFade = Constants.ClearFade;
-
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 --
 local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");

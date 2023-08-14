@@ -1,6 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local to_int64 = Constants.sdk.to_int64;
 local to_float = Constants.sdk.to_float;
@@ -87,31 +88,17 @@ local function PreHook_startToPlayPlayerDieMusic()
 end
 
 local function PreHook_setPlWarpInfo_Nekotaku(args)
-	if Constants.Objects.StageManager == nil then
-		local StageManager = to_managed_object(args[2]);
-		if StageManager ~= nil then
-			Constants.Objects.StageManager = StageManager;
-		end
-	end
-
 	if reviveCampPos ~= nil then
-		setPlWarpInfo_method:call(Constants:get_StageManager(), reviveCampPos, 0.0, 20);
+		setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, 20);
 		return SKIP_ORIGINAL;
 	end
 end
 
 local function PreHook_CreateNekotaku(args)
-	if Constants.Objects.NekotakuManager == nil then
-		local NekotakuManager = to_managed_object(args[2]);
-		if NekotakuManager ~= nil then
-			Constants.Objects.NekotakuManager = NekotakuManager;
-		end
-	end
-
 	if reviveCampPos ~= nil then
 		local campPos = reviveCampPos;
 		reviveCampPos = nil;
-		CreateNekotaku_method:call(Constants:get_NekotakuManager(), to_int64(args[3]), campPos, to_float(args[5]));
+		CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_int64(args[3]), campPos, to_float(args[5]));
 		return SKIP_ORIGINAL;
 	end
 end

@@ -21,10 +21,6 @@ local cohootSupply = CohootSupply.Supply;
 local autoArgosy = AutoArgosy.autoArgosy;
 --
 local function PreHook_applyEquipMySet(args)
-	if Constants.Objects.EquipDataManager == nil then
-		Constants.Objects.EquipDataManager = to_managed_object(args[2]);
-	end
-
 	Constants:SendMessage(Restock(to_int64(args[3])));
 end
 hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet);

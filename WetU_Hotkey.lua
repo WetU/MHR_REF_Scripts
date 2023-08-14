@@ -172,15 +172,6 @@ local function orderDango(kitchenType)
 	end
 end
 
-local function PreHook_villageUpdate(args)
-	if Constants.Objects.VillageAreaManager == nil then
-		local VillageAreaManager = to_managed_object(args[2]);
-		Constants.Objects.VillageAreaManager = VillageAreaManager;
-		hook_vtable(VillageAreaManager, Constants.Village_onDestroy_method, nil, function()
-			Constants.Objects.VillageAreaManager = nil;
-		end);
-	end
-end
 local function PostHook_villageUpdate()
 	if checkKeyTrg(116) == true then
 		fastTravel_method:call(Constants:get_VillageAreaManager(), 8);
@@ -192,7 +183,7 @@ local function PostHook_villageUpdate()
 		orderDango(1);
 	end
 end
-hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate, PostHook_villageUpdate);
+hook(VillageAreaManager_type_def:get_method("update"), nil, PostHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
 	return isOrdering == true and TRUE_POINTER or retval;
