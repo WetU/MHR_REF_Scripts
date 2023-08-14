@@ -4,16 +4,11 @@ local tostring = Constants.lua.tostring;
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
 
 local checkGameStatus = Constants.checkGameStatus;
-local getQuestLife = Constants.getQuestLife;
-local getDeathNum = Constants.getDeathNum;
 --
 local this = {
-	QuestManager = nil,
-
 	init = true,
 	onQuestStart = true,
 
@@ -33,23 +28,15 @@ local isTourQuest_method = QuestManager_type_def:get_method("isTourQuest");
 local curQuestLife = nil;
 local curQuestMaxTimeMin = nil;
 
-function this:getQuestManager()
-	if self.QuestManager == nil then
-		self.QuestManager = get_managed_singleton("snow.QuestManager");
-	end
-
-	return self.QuestManager;
-end
-
 local function onQuestStart()
-	local QuestManager = this:getQuestManager();
+	local QuestManager = Constants:get_QuestManager();
 	local isTourQuest = isTourQuest_method:call(QuestManager);
 
 	if curQuestLife == nil then
-		curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife(QuestManager);
+		curQuestLife = isTourQuest == true and "제한 없음" or Constants:getQuestLife();
 	end
 
-	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(QuestManager), curQuestLife);
+	this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
 
 	curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
 	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(QuestManager)), curQuestMaxTimeMin);
@@ -57,11 +44,11 @@ local function onQuestStart()
 end
 
 local function updateDeathCount()
-	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(this:getQuestManager()), curQuestLife);
+	this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
 end
 
 local function updateQuestTimer()
-	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(this:getQuestManager())), curQuestMaxTimeMin);
+	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(Constants:get_QuestManager())), curQuestMaxTimeMin);
 end
 
 local function Terminate()

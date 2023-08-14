@@ -1,8 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
-local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
 local checkKeyTrg = Constants.checkKeyTrg;
@@ -23,13 +21,13 @@ local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
 
 -- Skip Demo Camera
 local function skipDemo()
-	DemoEnd_method:call(get_managed_singleton("snow.camera.DemoCamera"));
+	DemoEnd_method:call(Constants:get_DemoCamera());
 end
 hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
 
 -- Skip End Flow
 local function PostHook_updateQuestEndFlow()
-	local QuestManager = get_managed_singleton("snow.QuestManager");
+	local QuestManager = Constants:get_QuestManager();
 	local endFlow = EndFlow_field:get_data(QuestManager);
 
 	if endFlow == 1 then

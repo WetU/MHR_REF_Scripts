@@ -8,21 +8,15 @@ local math_max = Constants.lua.math_max;
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 local to_int64 = Constants.sdk.to_int64;
 
-local getMasterPlayerBase = Constants.getMasterPlayerBase;
-local getQuestMapNo = Constants.getQuestMapNo;
 local QuestMapList = Constants.QuestMapList;
 local to_bool = Constants.to_bool;
 --
 local this = {
-	PlayerManager = nil,
-	EquipDataManager = nil,
-
 	init = true,
 	onQuestStart = true,
 
@@ -46,7 +40,7 @@ local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_t
 local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
-local PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
+local PlayerQuestBase_type_def = Constants.type_definitions.PlayerQuestBase_type_def;
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 
 local PlayerBase_type_def = Constants.type_definitions.PlayerBase_type_def;
@@ -71,22 +65,6 @@ local BuffTypes = {
 --
 local hasRainbow = false;
 
-function this:getPlayerManager()
-	if self.PlayerManager == nil then
-		self.PlayerManager = get_managed_singleton("snow.player.PlayerManager");
-	end
-
-	return self.PlayerManager;
-end
-
-function this:getEquipDataManager()
-	if self.EquipDataManager == nil then
-		self.EquipDataManager = get_managed_singleton("snow.data.EquipDataManager");
-	end
-
-	return self.EquipDataManager;
-end
-
 local function Terminate()
 	this.SpiribirdsHudDataCreated = false;
 	this.SpiribirdsCall_Timer = nil;
@@ -109,8 +87,8 @@ local function mkTable()
 end
 
 local function CreateData()
-	local PlayerManager = this:getPlayerManager();
-	local EquipDataManager = this:getEquipDataManager();
+	local PlayerManager = Constants:get_PlayerManager();
+	local EquipDataManager = Constants:get_EquipDataManager();
 
 	hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
 	local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
@@ -134,13 +112,9 @@ local function CreateData()
 	this.SpiribirdsHudDataCreated = true;
 end
 
-function this:getBuffParameters(equipDataManager, playerManager, buffType)
-	if equipDataManager == nil then
-		equipDataManager = self:getEquipDataManager();
-	end
-	if playerManager == nil then
-		playerManager = self:getPlayerManager();
-	end
+function this:getBuffParameters(buffType)
+	local EquipDataManager = Constants:get_EquipDataManager();
+	local PlayerManager = Constants:get_PlayerManager();
 
 	for i = 1, 4, 1 do
 		local LvBuffType = LvBuff[i];
@@ -175,7 +149,7 @@ local function PostHook_subLvBuffFromEnemy(retval)
 					this.AcquiredValues[i] = 0;
 				end
 			else
-				this:getBuffParameters(nil, nil, subBuffType);
+				this:getBuffParameters(subBuffType);
 			end
 		end
 
@@ -187,6 +161,13 @@ end
 
 local addBuffType = nil;
 local function PreHook_addLvBuffCnt(args)
+	if Constants.Objects.PlayerManager == nil then
+		local PlayerManager = to_managed_object(args[2]);
+		if PlayerManager ~= nil then
+			Constants.Objects.PlayerManager = PlayerManager;
+		end
+	end
+
 	if this.SpiribirdsHudDataCreated == true then
 		local buffType = to_int64(args[4]);
 
@@ -194,7 +175,6 @@ local function PreHook_addLvBuffCnt(args)
 			hasRainbow = true;
 		else
 			addBuffType = buffType;
-			this.PlayerManager = to_managed_object(args[2]) or get_managed_singleton("snow.player.PlayerManager");
 		end
 	end
 end
@@ -206,14 +186,14 @@ local function PostHook_addLvBuffCnt()
 		end
 
 	elseif addBuffType ~= nil then
-		this:getBuffParameters(nil, this.PlayerManager, addBuffType);
+		this:getBuffParameters(addBuffType);
 		addBuffType = nil;
 	end
 end
 
 local function updateEquipSkill211()
 	if this.SpiribirdsHudDataCreated == true then
-		this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(getMasterPlayerBase())) / 60.0));
+		this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(Constants:get_MasterPlayerBase())) / 60.0));
 	end
 end
 
@@ -224,11 +204,11 @@ local function init()
 end
 
 local function onQuestStart()
-	local QuestMapNo = getQuestMapNo(nil);
+	local QuestMapNo = Constants:getQuestMapNo();
 
 	for _, v in pairs(QuestMapList) do
 		if v == QuestMapNo then
-			local EquipDataManager = this:getEquipDataManager();
+			local EquipDataManager = Constants:get_EquipDataManager();
 
 			for i = 1, 4, 1 do
 				addLvBuffCount_method:call(nil, BuffTypes[i], calcLvBuffNumToMax_method:call(EquipDataManager, LvBuff[i]));

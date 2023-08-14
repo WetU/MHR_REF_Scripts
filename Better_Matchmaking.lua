@@ -2,14 +2,12 @@ local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
 local to_valuetype = Constants.sdk.to_valuetype;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
 local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
 
-local SendMessage = Constants.SendMessage;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 local to_bool = Constants.to_bool;
 
@@ -50,7 +48,14 @@ local skip_next_hook = nil;
 
 local function prehook_on_timeout(args)
 	if quest_vars ~= nil and to_int64(args[3]) == 2 then
-		local session_manager = to_managed_object(args[2]) or get_managed_singleton("snow.SnowSessionManager");
+		if Constants.Objects.SnowSessionManager == nil then
+			local SnowSessionManager = to_managed_object(args[2]);
+			if SnowSessionManager ~= nil then
+				Constants.Objects.SnowSessionManager = SnowSessionManager;
+			end
+		end
+
+		local session_manager = Constants:get_SnowSessionManager();
 
 		local questType = quest_vars.quest_type;
 		skip_next_hook = questType;
@@ -232,7 +237,7 @@ hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(sno
 hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 
 local function onKicked()
-	SendMessage(nil, "세션에서 추방당했습니다");
+	Constants:SendMessage("세션에서 추방당했습니다");
 end
 hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
 hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func);

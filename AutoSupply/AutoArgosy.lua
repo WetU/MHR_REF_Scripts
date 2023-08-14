@@ -1,7 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
 local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
@@ -74,8 +73,8 @@ end
 
 local this = {
 	autoArgosy = function()
-		local DataManager = get_managed_singleton("snow.data.DataManager");
-		local TradeFunc = get_TradeFunc_method:call(get_managed_singleton("snow.facility.TradeCenterFacility"));
+		local DataManager = Constants:get_DataManager();
+		local TradeFunc = get_TradeFunc_method:call(Constants:get_TradeCenterFacility());
 		local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
 		buildCache(TradeFunc);
 

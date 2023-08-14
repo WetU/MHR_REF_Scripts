@@ -4,7 +4,6 @@ local string_format = Constants.lua.string_format;
 
 local to_int64 = Constants.sdk.to_int64;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
@@ -14,7 +13,6 @@ local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkGameStatus = Constants.checkGameStatus;
 --
 local this = {
-	OtomoSpyUnitManager = nil,
 	init = true,
 	get_currentStepCount = true,
 	currentStep = nil
@@ -49,14 +47,6 @@ local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
 local isReturnAnimation = false;
 local isReceiveReady = false;
 
-function this:getOtomoSpyUnitManager()
-	if self.OtomoSpyUnitManager == nil then
-		self.OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
-	end
-
-	return self.OtomoSpyUnitManager;
-end
-
 function this:Terminate()
 	self.currentStep = nil;
 end
@@ -66,7 +56,7 @@ local function setBoostItem(args)
 end
 
 local function get_currentStepCount()
-	local OtomoSpyUnitManager = this:getOtomoSpyUnitManager();
+	local OtomoSpyUnitManager = Constants:get_OtomoSpyUnitManager();
 	local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
 	this.currentStep = isOperating == true and string_format("조사 단계: %d / 5", get_NowStepCount_method:call(OtomoSpyUnitManager))
 		or isOperating == false and "활동 없음"

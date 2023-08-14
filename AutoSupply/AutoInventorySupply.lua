@@ -5,9 +5,6 @@ local string_format = Constants.lua.string_format;
 
 local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
-
-local getMasterPlayerBase = Constants.getMasterPlayerBase;
 --
 local DefaultSet = 0;
 --
@@ -90,7 +87,7 @@ local LocalizedStrings = {
 local lastHitLoadoutIndex = nil;
 
 local function GetCurrentWeaponType()
-	return playerWeaponType_field:get_data(getMasterPlayerBase());
+	return playerWeaponType_field:get_data(Constants:get_MasterPlayerBase());
 end
 
 local function GetEquipmentLoadout(equipDataManager, loadoutIndex)
@@ -151,7 +148,7 @@ local this = {
 	init = function()
 		hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 	end,
-	Restock = function(equipDataManager, loadoutIndex)
+	Restock = function(loadoutIndex)
 		local ItemMySet = get_ItemMySet_method:call(nil);
 		local loadout = getData_method:call(ItemMySet, DefaultSet);
 
@@ -160,7 +157,7 @@ local this = {
 			local msg = string_format(LocalizedStrings.OutOfStock, itemLoadoutName);
 
 			if isEnoughItem_method:call(loadout) == true then
-				local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(equipDataManager, loadoutIndex);
+				local matchedType, matchedName, loadoutMismatch = AutoChooseItemLoadout(Constants:get_EquipDataManager(), loadoutIndex);
 				applyItemMySet_method:call(ItemMySet, DefaultSet);
 				msg = matchedType == 1 and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
 					or matchedType == 2 and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch)

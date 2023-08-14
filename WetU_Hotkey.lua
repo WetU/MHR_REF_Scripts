@@ -2,7 +2,6 @@ local Constants = _G.require("Constants.Constants");
 
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -10,10 +9,6 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-local Keys = Constants.Keys;
-
-local SendMessage = Constants.SendMessage;
-local getKitchenFacility = Constants.getKitchenFacility;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -44,7 +39,11 @@ local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(
 --
 local PlayerLobbyBase_type_def = find_type_definition("snow.player.PlayerLobbyBase");
 local onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");
-local Player_setKitchenData_method = PlayerLobbyBase_type_def:get_method("setKitchenData");
+local Lobby_setKitchenData_method = PlayerLobbyBase_type_def:get_method("setKitchenData");
+--
+local getMasterPlayerQuestBase_method = find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayer"); -- static
+
+local Quest_setKitchenData_method = Constants.type_definitions.PlayerQuestBase_type_def:get_method("setKitchenData");
 --
 local OtomoManager_type_def = find_type_definition("snow.otomo.OtomoManager");
 local getMasterFirstOtomo_method = OtomoManager_type_def:get_method("getMasterFirstOtomo");
@@ -71,7 +70,6 @@ local DailyDango = {
 };
 --
 local PlayerLobbyBase = nil;
-
 local function destroyPlayerLobbyBase()
 	PlayerLobbyBase = nil;
 end
@@ -89,12 +87,17 @@ local function getPlayerLobbyBaseFromUpdate(args)
 end
 hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
 
-local function applyKitchenBuff()
-	if PlayerLobbyBase ~= nil then
-		Player_setKitchenData_method:call(PlayerLobbyBase);
+local function applyKitchenBuff(kitchenType)
+	if kitchenType == 1 and PlayerLobbyBase ~= nil then
+		Lobby_setKitchenData_method:call(PlayerLobbyBase);
+	else
+		local MasterPlayerQuestBase = getMasterPlayerQuestBase_method:call(nil);
+		if MasterPlayerQuestBase ~= nil then
+			Quest_setKitchenData_method:call(MasterPlayerQuestBase);
+		end
 	end
 
-	local OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
+	local OtomoManager = Constants:get_OtomoManager();
 
 	local MasterFirstOtomo = getMasterFirstOtomo_method:call(OtomoManager);
 	if MasterFirstOtomo ~= nil then
@@ -110,7 +113,7 @@ end
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 
-	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
+	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager());
 	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
 	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 
@@ -127,50 +130,69 @@ local function makeDangoLogParam(vitalBuff, staminaBuff)
 end
 
 local isOrdering = false;
-local function PostHook_villageUpdate()
-	if checkKeyTrg(116) == true then
-		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), 8);
+local function orderDango(kitchenType)
+	local MealFunc = get_MealFunc_method:call(Constants:get_KitchenFacility());
 
-	elseif checkKeyTrg(117) == true then
-		fastTravel_method:call(get_managed_singleton("snow.VillageAreaManager"), 9);
+	if checkAvailableMealSystem_method:call(MealFunc) == true then
+		local paymentType = nil;
+		if checkHandMoney_method:call(MealFunc) == true then
+			paymentType = 0;
+		elseif checkVillagePoint_method:call(MealFunc) == true then
+			paymentType = 1;
+			Constants:SendMessage("소지금이 부족합니다!");
+		else
+			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+		end
 
-	elseif checkKeyTrg(119) == true then
-		local MealFunc = get_MealFunc_method:call(getKitchenFacility());
-
-		if checkAvailableMealSystem_method:call(MealFunc) == true then
-			local paymentType = nil;
-			if checkHandMoney_method:call(MealFunc) == true then
-				paymentType = 0;
-			elseif checkVillagePoint_method:call(MealFunc) == true then
-				paymentType = 1;
-				SendMessage(nil, "소지금이 부족합니다!");
+		if paymentType ~= nil then
+			local MealTicketNum = getMealTicketNum_method:call(MealFunc);
+			if MealTicketNum == nil or MealTicketNum <= 0 then
+				Constants:SendMessage("식사권이 없습니다!");
 			else
-				SendMessage(nil, "소지금과 포인트가 부족합니다!");
-			end
+				local mySetOrderIndex = 1;
 
-			if paymentType ~= nil then
-				local MealTicketNum = getMealTicketNum_method:call(MealFunc);
-				if MealTicketNum == nil or MealTicketNum <= 0 then
-					SendMessage(nil, "식사권이 없습니다!");
-				else
-					local FacilityLv = get_FacilityLv_method:call(MealFunc);
-					-- order
+				if kitchenType == 1 then
 					resetDailyDango_method:call(MealFunc);
-					isOrdering = true;
-					setMealTicketFlag_method:call(MealFunc, true);
-					order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(DailyDango[get_DailyDango_method:call(MealFunc)] == true and 0 or 1), paymentType, FacilityLv);
-					isOrdering = false;
-					-- buffs & skills
-					addBuff_method:call(MealFunc, FacilityLv);
-					applyKitchenBuff();
-					setWaitTimer_method:call(MealFunc);
-					reqDangoLogStart_method:call(get_managed_singleton("snow.gui.GuiManager"), makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)), 5.0);
+					if DailyDango[get_DailyDango_method:call(MealFunc)] == true then
+						mySetOrderIndex = 0;
+					end
 				end
+
+				local FacilityLv = get_FacilityLv_method:call(MealFunc);
+				isOrdering = true;
+				setMealTicketFlag_method:call(MealFunc, true);
+				order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(mySetOrderIndex), paymentType, FacilityLv);
+				isOrdering = false;
+				addBuff_method:call(MealFunc, FacilityLv);
+				applyKitchenBuff(kitchenType);
+				setWaitTimer_method:call(MealFunc);
+				reqDangoLogStart_method:call(Constants:get_GuiManager(), makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)), 5.0);
 			end
 		end
 	end
 end
-hook(VillageAreaManager_type_def:get_method("update"), nil, PostHook_villageUpdate);
+
+local function PreHook_villageUpdate(args)
+	if Constants.Objects.VillageAreaManager == nil then
+		local VillageAreaManager = to_managed_object(args[2]);
+		Constants.Objects.VillageAreaManager = VillageAreaManager;
+		hook_vtable(VillageAreaManager, Constants.Village_onDestroy_method, nil, function()
+			Constants.Objects.VillageAreaManager = nil;
+		end);
+	end
+end
+local function PostHook_villageUpdate()
+	if checkKeyTrg(116) == true then
+		fastTravel_method:call(Constants:get_VillageAreaManager(), 8);
+
+	elseif checkKeyTrg(117) == true then
+		fastTravel_method:call(Constants:get_VillageAreaManager(), 9);
+
+	elseif checkKeyTrg(119) == true then
+		orderDango(1);
+	end
+end
+hook(VillageAreaManager_type_def:get_method("update"), PreHook_villageUpdate, PostHook_villageUpdate);
 
 local function PostHook_canOrder(retval)
 	return isOrdering == true and TRUE_POINTER or retval;
@@ -183,7 +205,10 @@ local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
 local function PostHook_updateNormalQuest()
 	if checkKeyTrg(116) == true then
-		notifyReset_method:call(get_managed_singleton("snow.QuestManager"));
+		notifyReset_method:call(Constants:get_QuestManager());
+
+	elseif checkKeyTrg(119) == true then
+		orderDango(2);
 	end
 end
 hook(QuestManager_type_def:get_method("updateNormalQuest"), nil, PostHook_updateNormalQuest);

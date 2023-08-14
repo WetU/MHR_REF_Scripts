@@ -1,7 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
 local ProgressOwlNestManager_type_def = find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");
@@ -17,7 +16,7 @@ local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__C
 --
 local this = {
 	Supply = function()
-		local ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
+		local ProgressOwlNestManager = Constants:get_ProgressOwlNestManager();
 		local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
 
 		local fullFlag = 0;
@@ -30,22 +29,23 @@ local this = {
 		end
 
 		if fullFlag > 0 then
-			local VillageAreaManager = get_managed_singleton("snow.VillageAreaManager");
+			local VillageAreaManager = Constants:get_VillageAreaManager()
 			local savedAreaNo = get__CurrentAreaNo_method:call(VillageAreaManager);
 
 			if fullFlag == 3 then
-				if savedAreaNo == 2 or savedAreaNo == 6 then
+				if savedAreaNo == 2 then
 					supply_method:call(ProgressOwlNestManager);
-					set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo == 2 and 6 or 2);
+					set__CurrentAreaNo_method:call(VillageAreaManager, 6);
+				elseif savedAreaNo == 6 then
 					supply_method:call(ProgressOwlNestManager);
-					set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
+					set__CurrentAreaNo_method:call(VillageAreaManager, 2);
 				else
 					set__CurrentAreaNo_method:call(VillageAreaManager, 2);
 					supply_method:call(ProgressOwlNestManager);
 					set__CurrentAreaNo_method:call(VillageAreaManager, 6);
-					supply_method:call(ProgressOwlNestManager);
-					set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
 				end
+				supply_method:call(ProgressOwlNestManager);
+				set__CurrentAreaNo_method:call(VillageAreaManager, savedAreaNo);
 
 			elseif fullFlag == 2 then
 				if savedAreaNo == 6 then
