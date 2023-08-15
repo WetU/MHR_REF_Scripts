@@ -15,28 +15,26 @@ local math = _G.math;
 local string = _G.string;
 
 this.lua.pairs = _G.pairs;
+this.lua.ipairs = _G.ipairs;
 this.lua.tostring = _G.tostring;
 this.lua.math_min = math.min;
 this.lua.math_max = math.max;
 this.lua.string_format = string.format;
 --
 local sdk = _G.sdk;
-local hook = sdk.hook;
-local hook_vtable = sdk.hook_vtable;
 local find_type_definition = sdk.find_type_definition;
 local get_managed_singleton = sdk.get_managed_singleton;
-local to_managed_object = sdk.to_managed_object;
 local to_ptr = sdk.to_ptr;
 local to_int64 = sdk.to_int64;
 local PreHookResult = sdk.PreHookResult;
 local SKIP_ORIGINAL = PreHookResult.SKIP_ORIGINAL;
 
 this.sdk.create_managed_array = sdk.create_managed_array;
-this.sdk.hook = hook;
-this.sdk.hook_vtable = hook_vtable;
+this.sdk.hook = sdk.hook;
+this.sdk.hook_vtable = sdk.hook_vtable;
 this.sdk.find_type_definition = find_type_definition;
 this.sdk.get_managed_singleton = get_managed_singleton;
-this.sdk.to_managed_object = to_managed_object;
+this.sdk.to_managed_object = sdk.to_managed_object;
 this.sdk.to_ptr = to_ptr;
 this.sdk.to_int64 = to_int64;
 this.sdk.to_float = sdk.to_float;
@@ -45,7 +43,6 @@ this.sdk.SKIP_ORIGINAL = SKIP_ORIGINAL;
 this.sdk.CALL_ORIGINAL = PreHookResult.CALL_ORIGINAL;
 --
 local imgui = _G.imgui;
-local load_font = imgui.load_font;
 
 this.imgui.push_font = imgui.push_font;
 this.imgui.begin_window = imgui.begin_window;
@@ -85,6 +82,7 @@ this.type_definitions.CameraManager_type_def = find_type_definition("snow.Camera
 this.type_definitions.QuestManager_type_def = QuestManager_type_def;
 this.type_definitions.VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
 this.type_definitions.DataManager_type_def = find_type_definition("snow.data.DataManager");
+this.type_definitions.DataShortcut_type_def = find_type_definition("snow.data.DataShortcut");
 this.type_definitions.EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.FacilityDataManager_type_def = FacilityDataManager_type_def;
 this.type_definitions.EnemyUtility_type_def = find_type_definition("snow.enemy.EnemyUtility");
@@ -93,7 +91,7 @@ this.type_definitions.StmGuiInput_type_def = find_type_definition("snow.gui.StmG
 this.type_definitions.PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
 this.type_definitions.WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
-this.Font = load_font("NotoSansKR-Bold.otf", 24, {
+this.Font = imgui.load_font("NotoSansKR-Bold.otf", 24, {
 	0x0020, 0x00FF, -- Basic Latin + Latin Supplement
 	0x2000, 0x206F, -- General Punctuation
 	0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
@@ -132,7 +130,7 @@ local getMasterPlayerBase_method = find_type_definition("snow.npc.NpcUtility"):g
 this.type_definitions.PlayerBase_type_def = getMasterPlayerBase_method:get_return_type();
 
 function this:get_MasterPlayerBase()
-	if self.Objects.MasterPlayerBase == nil then
+	if self.Objects.MasterPlayerBase == nil or self.Objects.MasterPlayerBase:get_reference_count() <= 1 then
 		self.Objects.MasterPlayerBase = getMasterPlayerBase_method:call(nil);
 	end
 
@@ -140,14 +138,33 @@ function this:get_MasterPlayerBase()
 end
 --
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
-this.type_definitions.KitchenFacility_type_def = get_Kitchen_method:get_return_type();
+local KitchenFacility_type_def = get_Kitchen_method:get_return_type();
+this.type_definitions.KitchenFacility_type_def = KitchenFacility_type_def;
 
 function this:get_KitchenFacility()
-	if self.Objects.KitchenFacility == nil then
+	if self.Objects.KitchenFacility == nil or self.Objects.KitchenFacility:get_reference_count() <= 1 then
 		self.Objects.KitchenFacility = get_Kitchen_method:call(this:get_FacilityDataManager());
 	end
 
 	return self.Objects.KitchenFacility;
+end
+--
+local get_BbqFunc_method = KitchenFacility_type_def:get_method("get_BbqFunc");
+local BbqFunc_type_def = get_BbqFunc_method:get_return_type();
+this.type_definitions.BbqFunc_type_def = BbqFunc_type_def;
+
+local outputTicket_method = BbqFunc_type_def:get_method("outputTicket");
+
+function this:get_BbqFunc()
+	if self.Objects.BbqFunc == nil or self.Objects.BbqFunc:get_reference_count() <= 1 then
+		self.Objects.BbqFunc = get_BbqFunc_method:call(self:get_KitchenFacility());
+	end
+
+	return self.Objects.BbqFunc;
+end
+
+function this:outputMealTicket()
+	outputTicket_method:call(self:get_BbqFunc());
 end
 --
 local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
@@ -181,6 +198,18 @@ local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager")
 
 function this:SendMessage(text)
 	reqAddChatInfomation_method:call(self:get_ChatManager(), text, 0); -- sound on : 2289944406
+end
+--
+local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
+local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
+
+function this.getVillagePoint()
+	return get_Point_method:call(nil);
+end
+
+function this.subVillagePoint(count)
+	subPoint_method:call(nil, count);
 end
 --
 function this.SKIP_ORIGINAL_func()

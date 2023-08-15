@@ -4,7 +4,6 @@ local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 
-local TRUE_POINTER = Constants.TRUE_POINTER;
 local FALSE_POINTER = Constants.FALSE_POINTER;
 
 local to_bool = Constants.to_bool;
@@ -22,10 +21,6 @@ local Ec019_supplyMR_method = ProgressEc019UnlockItemManager_type_def:get_method
 local SwitchAction_supply_method = find_type_definition("snow.progress.ProgressSwitchActionSupplyManager"):get_method("supply");
 --
 local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");]]
---
-local get_BbqFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_BbqFunc");
-
-local outputTicket_method = get_BbqFunc_method:get_return_type():get_method("outputTicket");
 --
 local FacilityDataManager_type_def = Constants.type_definitions.FacilityDataManager_type_def;
 local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
@@ -55,12 +50,12 @@ local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
 local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
 --
 local MysteryResearchRequestEnd = nil;
-local CommercialStuff = nil;
+local CommercialStuffObtainable = nil;
 
 local function get_CanObtainCommercialStuff()
-	if CommercialStuff ~= nil then
-		local result = CommercialStuff;
-		CommercialStuff = nil;
+	if CommercialStuffObtainable ~= nil then
+		local result = CommercialStuffObtainable;
+		CommercialStuffObtainable = nil;
 		return result;
 	end
 
@@ -99,6 +94,7 @@ end
 local function talkHandler()
 	if CommercialNpcTalkMessageCtrl ~= nil and talkAction2_CommercialStuffItem_method:call(CommercialNpcTalkMessageCtrl, 106, 0, 0) == true then
 		CommercialNpcTalkMessageCtrl = nil;
+		CommercialStuffObtainable = false;
 	end
 
 	if MysteryLaboNpcTalkMessageCtrl ~= nil and talkAction2_SupplyMysteryResearchRequestReward_method:call(MysteryLaboNpcTalkMessageCtrl, 78, 0, 0) == true then
@@ -106,6 +102,7 @@ local function talkHandler()
 		set_DetermineSpeechBalloonMessage_method:call(MysteryLaboNpcTalkMessageCtrl, nil);
 		set_SpeechBalloonAttr_method:call(MysteryLaboNpcTalkMessageCtrl, 0);
 		MysteryLaboNpcTalkMessageCtrl = nil;
+		MysteryResearchRequestEnd = false;
 	end
 end
 --
@@ -188,7 +185,7 @@ end
 
 local function PostHook_checkSupplyItem_BBQReward(retval)
 	if to_bool(retval) == true then
-		outputTicket_method:call(get_BbqFunc_method:call(Constants:get_KitchenFacility()));
+		Constants:outputMealTicket();
 		return FALSE_POINTER;
 	end
 
@@ -216,7 +213,7 @@ local function PostHook_checkMysteryResearchRequestEnd(retval)
 end
 
 local function PostHook_checkCommercialStuff(retval)
-	CommercialStuff = to_bool(retval);
+	CommercialStuffObtainable = to_bool(retval);
 	return retval;
 end
 

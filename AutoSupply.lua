@@ -5,8 +5,6 @@ local CohootSupply = require("AutoSupply.AutoCohootSupply");
 local InventorySupply = require("AutoSupply.AutoInventorySupply");
 local AutoTicketsSupply = require("AutoSupply.AutoTicketsSupply");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
 
@@ -28,7 +26,7 @@ hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquip
 local function campStart()
 	Constants:SendMessage(Restock(nil));
 end
-hook(find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
+hook(Constants.sdk.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local isOnVillageStarted = false;
 
@@ -51,5 +49,4 @@ local function onVillageEnd()
 end
 hook(WwiseChangeSpaceWatcher_type_def:get_method("onVillageEnd"), nil, onVillageEnd);
 --
-InventorySupply.init();
 AutoTicketsSupply.init();

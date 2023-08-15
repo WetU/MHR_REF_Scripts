@@ -5,9 +5,8 @@ local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
 local QuestInfo = require("WetU_Overlay.QuestInfo");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
+local pairs = Constants.lua.pairs;
 local tostring = Constants.lua.tostring;
-
-local hook = Constants.sdk.hook;
 
 local on_frame = Constants.re.on_frame;
 
@@ -26,14 +25,26 @@ local text = Constants.imgui.text;
 local text_colored = Constants.imgui.text_colored;
 local spacing = Constants.imgui.spacing;
 --
+local addItemToPouch_method = Constants.type_definitions.DataShortcut_type_def:get_method("addItemToPouch(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
+--
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
+--
+local AutoAddItemIds = {
+	[68157942] = 10, -- 그레이트 응급약
+	[68157940] = 10, -- 지급전용 휴대 식량
+	[68157954] = 1  -- 지급전용 귀환옥
+};
 
 local function onQuestStart()
 	QuestInfo_onQuestStart();
 	SpiribirdsStatus_onQuestStart();
+
+	for k, v in pairs(AutoAddItemIds) do
+		addItemToPouch_method:call(nil, k, v);
+	end
 end
-hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
+Constants.sdk.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
 --
 local WINDOW_FLAG = 4096 + 64 + 512;
 
@@ -132,6 +143,7 @@ local function drawMain()
 	drawQuestInfo();
 	drawSpiribirdsStatus();
 end
+
 on_frame(drawMain);
 --
 HarvestMoonTimer.init();

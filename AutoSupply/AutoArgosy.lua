@@ -1,10 +1,10 @@
 local Constants = _G.require("Constants.Constants");
 
+local ipairs = Constants.lua.ipairs;
 local find_type_definition = Constants.sdk.find_type_definition;
---
-local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
-local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
-local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
+
+local getVillagePoint = Constants.getVillagePoint;
+local subVillagePoint = Constants.subVillagePoint;
 --
 local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
 
@@ -23,17 +23,13 @@ local get_NegotiationCount_method = TradeOrderData_type_def:get_method("get_Nego
 local setNegotiationCount_method = TradeOrderData_type_def:get_method("setNegotiationCount(System.UInt32)");
 local get_NegotiationType_method = TradeOrderData_type_def:get_method("get_NegotiationType");
 
-local ItemInventoryData_type_def = find_type_definition("snow.data.ItemInventoryData");
-local Inventory_get_Count_method = ItemInventoryData_type_def:get_method("get_Count");
+local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
+local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
+local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- staic
+
+local ItemInventoryData_type_def = findInventoryData_method:get_return_type();
 local isEmpty_method = ItemInventoryData_type_def:get_method("isEmpty");
 local sub_method = ItemInventoryData_type_def:get_method("sub(System.UInt32, System.Boolean)");
-local sendInventory_method = ItemInventoryData_type_def:get_method("sendInventory(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType)"); -- static
-
-local DataManager_type_def = Constants.type_definitions.DataManager_type_def;
-local trySellGameItem_method = DataManager_type_def:get_method("trySellGameItem(snow.data.ItemInventoryData, System.UInt32)");
-local getItemBox_method = DataManager_type_def:get_method("getItemBox");
-
-local findInventoryData_method = getItemBox_method:get_return_type():get_method("findInventoryData(snow.data.ContentsIdSystem.ItemId)");
 --
 local cacheNegotiationData = nil;
 --
@@ -65,34 +61,26 @@ local function buildCache(tradeFunc)
 	end
 end
 
-local function isAcornEnough(dataManager)
-	local acornInventoryData = findInventoryData_method:call(getItemBox_method:call(dataManager), 68158481);
-	local isAvailable = not isEmpty_method:call(acornInventoryData);
-	return acornInventoryData, isAvailable;
-end
-
 local this = {
 	autoArgosy = function()
-		local DataManager = Constants:get_DataManager();
 		local TradeFunc = get_TradeFunc_method:call(Constants:get_TradeCenterFacility());
-		local TradeOrderList = get_TradeOrderList_method:call(TradeFunc);
 		buildCache(TradeFunc);
 
 		local countUpdated = false;
+		local inventoryReceived = false;
 		local isReceived = false;
-		local acornInventoryData, acornAvailable = isAcornEnough(DataManager);
-		local addCount = acornAvailable == true and (1 + 3) or 1;
+		local acornInventoryData = findInventoryData_method:call(nil, 1, 68158481);
+		local addCount = isEmpty_method:call(acornInventoryData) == true and 1 or 4;
 
-		for i = 0, TradeOrderList:get_size() - 1, 1 do
-			local TradeOrder = TradeOrderList:get_element(i);
+		for _, TradeOrder in ipairs(get_TradeOrderList_method:call(TradeFunc):get_elements()) do
 			if get_NegotiationCount_method:call(TradeOrder) == 1 then
 				local addNegoCount = addCount;
 				local NegotiationType = get_NegotiationType_method:call(TradeOrder);
 				local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
 
-				if get_Point_method:call(nil) >= NegotiationCostData then
+				if getVillagePoint() >= NegotiationCostData then
 					addNegoCount = addNegoCount + cacheNegotiationData.Count[NegotiationType];
-					subPoint_method:call(nil, NegotiationCostData);
+					subVillagePoint(NegotiationCostData);
 				end
 
 				if addNegoCount > 1 then
@@ -101,21 +89,12 @@ local this = {
 				end
 			end
 
-			local InventoryList = get_InventoryList_method:call(TradeOrder);
-			local inventoryReceived = false;
-
-			for j = 0, InventoryList:get_size() - 1, 1 do
-				local Inventory = InventoryList:get_element(j);
+			for _, Inventory in ipairs(get_InventoryList_method:call(TradeOrder):get_elements()) do
 				if Inventory == nil or isEmpty_method:call(Inventory) == true then
 					break;
 				else
-					local sendResult = sendInventory_method:call(nil, Inventory, 65536);
-					if sendResult ~= nil and sendResult ~= 4 then
-						inventoryReceived = true;
-						if sendResult ~= 0 then
-							trySellGameItem_method:call(DataManager, Inventory, Inventory_get_Count_method:call(Inventory));
-						end
-					end
+					sendItemToBox_method:call(nil, Inventory, true);
+					inventoryReceived = true;
 				end
 			end
 

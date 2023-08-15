@@ -7,7 +7,6 @@ local math_max = Constants.lua.math_max;
 
 local string_format = Constants.lua.string_format;
 
-local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -21,12 +20,13 @@ local this = {
 	onQuestStart = true,
 
 	SpiribirdsHudDataCreated = false,
-	SpiribirdsCall_Timer = nil,
 
 	StatusBuffLimits = nil,
 	AcquiredValues = nil,
 	BirdsMaxCounts = nil,
-	AcquiredCounts = nil
+	AcquiredCounts = nil,
+
+	SpiribirdsCall_Timer = nil
 };
 --
 local EquipDataManager_type_def = Constants.type_definitions.EquipDataManager_type_def;
@@ -37,7 +37,7 @@ local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("
 
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 --
-local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
+local PlayerManager_type_def = Constants.sdk.find_type_definition("snow.player.PlayerManager");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
 local PlayerQuestBase_type_def = Constants.type_definitions.PlayerQuestBase_type_def;

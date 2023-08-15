@@ -9,6 +9,8 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local checkKeyTrg = Constants.checkKeyTrg;
+local getVillagePoint = Constants.getVillagePoint;
+local subVillagePoint = Constants.subVillagePoint;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -31,6 +33,23 @@ local order_method = MealFunc_type_def:get_method("order(snow.facility.MealOrder
 local get_MySetDataList_method = MealFunc_type_def:get_method("get_MySetDataList");
 local get_DailyDango_method = MealFunc_type_def:get_method("get_DailyDango");
 local resetDailyDango_method = MealFunc_type_def:get_method("resetDailyDango");
+--
+local BbqFunc_type_def = Constants.type_definitions.BbqFunc_type_def;
+local get_CanUseFunc_method = BbqFunc_type_def:get_method("get_CanUseFunc");
+local get_MealConvertDataList_method = BbqFunc_type_def:get_method("get_MealConvertDataList");
+local orderBbq_method = BbqFunc_type_def:get_method("orderBbq(snow.facility.kitchen.BbqConvertData, System.UInt32)");
+local isExistOutputTicket_method = BbqFunc_type_def:get_method("isExistOutputTicket");
+
+local MealConvertDataList_get_Item_method = get_MealConvertDataList_method:get_return_type():get_method("get_Item(System.Int32)");
+
+local BbqConvertData_type_def = MealConvertDataList_get_Item_method:get_return_type();
+local get_MoneyCost_method = BbqConvertData_type_def:get_method("get_MoneyCost");
+local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost");
+--
+local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
+local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
+local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
+local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 --
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
@@ -69,7 +88,41 @@ local DailyDango = {
 	[46] = true   -- 격운술
 };
 --
+local function orderBbq()
+	local BbqFunc = Constants:get_BbqFunc();
+
+	if get_CanUseFunc_method:call(BbqFunc) == true then
+		local BbqConvertData = MealConvertDataList_get_Item_method:call(get_MealConvertDataList_method:call(BbqFunc), 0);
+		local PointCost = get_PointCost_method:call(BbqConvertData) * 99;
+		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * 99;
+		local MoneyVal = getMoneyVal_method:call(nil);
+
+		if getVillagePoint() >= (PointCost) then
+			subVillagePoint(PointCost);
+			orderBbq_method:call(BbqFunc, BbqConvertData, 99);
+			addItemToBox_method:call(nil, 68157448, 99);
+			if isExistOutputTicket_method:call(BbqFunc) == true then
+				Constants:outputMealTicket();
+			end
+
+		elseif MoneyVal >= MoneyCost then
+			local HandMoney = get_HandMoney_method:call(nil);
+			HandMoney:set_field("_Value", MoneyVal - MoneyCost);
+			Constants:SendMessage("포인트가 부족합니다!\n소지금을 사용합니다");
+			orderBbq_method:call(BbqFunc, BbqConvertData, 99);
+			addItemToBox_method:call(nil, 68157448, 99);
+			if isExistOutputTicket_method:call(BbqFunc) == true then
+				Constants:outputMealTicket();
+			end
+
+		else
+			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+		end
+	end
+end
+--
 local PlayerLobbyBase = nil;
+
 local function destroyPlayerLobbyBase()
 	PlayerLobbyBase = nil;
 end
@@ -139,7 +192,7 @@ local function orderDango(kitchenType)
 			paymentType = 0;
 		elseif checkVillagePoint_method:call(MealFunc) == true then
 			paymentType = 1;
-			Constants:SendMessage("소지금이 부족합니다!");
+			Constants:SendMessage("소지금이 부족합니다!\n포인트를 사용합니다");
 		else
 			Constants:SendMessage("소지금과 포인트가 부족합니다!");
 		end
@@ -171,13 +224,16 @@ local function orderDango(kitchenType)
 		end
 	end
 end
-
+--
 local function PostHook_villageUpdate()
 	if checkKeyTrg(116) == true then
 		fastTravel_method:call(Constants:get_VillageAreaManager(), 8);
 
 	elseif checkKeyTrg(117) == true then
 		fastTravel_method:call(Constants:get_VillageAreaManager(), 9);
+
+	elseif checkKeyTrg(118) == true then
+		orderBbq();
 
 	elseif checkKeyTrg(119) == true then
 		orderDango(1);

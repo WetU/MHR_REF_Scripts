@@ -3,7 +3,6 @@ local Constants = _G.require("Constants.Constants");
 local tostring = Constants.lua.tostring;
 local string_format = Constants.lua.string_format;
 
-local find_type_definition = Constants.sdk.find_type_definition;
 local hook = Constants.sdk.hook;
 
 local checkGameStatus = Constants.checkGameStatus;
@@ -17,7 +16,7 @@ local this = {
 	DeathCount = nil
 };
 --
-local getClearTimeFormatText_method = find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
+local getClearTimeFormatText_method = Constants.sdk.find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
 --
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local getQuestMaxTimeMin_method = QuestManager_type_def:get_method("getQuestMaxTimeMin");
@@ -40,6 +39,7 @@ local function onQuestStart()
 
 	curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
 	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(QuestManager)), curQuestMaxTimeMin);
+
 	this.QuestInfoDataCreated = true;
 end
 

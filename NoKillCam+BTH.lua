@@ -24,20 +24,29 @@ end
 hook(find_type_definition("snow.camera.DemoCamera.DemoCameraData_KillCamera"):get_method("Start(via.motion.MotionCamera, via.motion.TreeLayer, via.Transform, snow.camera.DemoCamera_UserData)"), nil, skipDemo);
 
 -- Skip End Flow
+local isQuestSuccess = nil;
+
 local function PostHook_updateQuestEndFlow()
 	local QuestManager = Constants:get_QuestManager();
 	local endFlow = EndFlow_field:get_data(QuestManager);
 
-	if endFlow == 1 then
-		if checkStatus_method:call(QuestManager, 3) == true and (get_DeltaSec_method:call(QuestManager) >= getQuestReturnTimerSec_method:call(QuestManager) or (checkKeyTrg(36) == true and getQuestPlayerCount_method:call(QuestManager) == 1)) then
-			nextEndFlowToCameraDemo_method:call(QuestManager);
+	if endFlow ~= 1 then
+		isQuestSuccess = nil;
+
+		if endFlow == 8 then
+			QuestManager:set_field("_QuestEndFlowTimer", 0.0);
+	
+		elseif endFlow == 3 or endFlow == 10 then
+			ClearFade();
+		end
+	else
+		if isQuestSuccess == nil then
+			isQuestSuccess = checkStatus_method:call(QuestManager, 3);
 		end
 
-	elseif endFlow == 8 then
-		QuestManager:set_field("_QuestEndFlowTimer", 0.0);
-
-	elseif endFlow == 3 or endFlow == 10 then
-		ClearFade();
+		if isQuestSuccess == true and (get_DeltaSec_method:call(QuestManager) >= getQuestReturnTimerSec_method:call(QuestManager) or (checkKeyTrg(36) == true and getQuestPlayerCount_method:call(QuestManager) == 1)) then
+			nextEndFlowToCameraDemo_method:call(QuestManager);
+		end
 	end
 end
 hook(QuestManager_type_def:get_method("updateQuestEndFlow"), nil, PostHook_updateQuestEndFlow);

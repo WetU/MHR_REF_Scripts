@@ -1,5 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
+local ipairs = Constants.lua.ipairs;
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
@@ -32,25 +33,22 @@ local LongSwordShell010 = nil;
 
 local function Terminate()
 	this.CircleTimer = nil;
-end
-
-local function UpdateHarvestMoonTimer(longSwordShell010)
-	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(longSwordShell010));
-	this.IsWarning = IsWarning_field:get_data(longSwordShell010);
-end
-
-local function PreHook_update(args)
-	LongSwordShell010 = to_managed_object(args[2]);
-end
-local function PostHook_update()
-	UpdateHarvestMoonTimer(LongSwordShell010);
 	LongSwordShell010 = nil;
 end
 
-local function HarvestMoon_init(obj)
-	UpdateHarvestMoonTimer(obj);
-	hook_vtable(obj, update_method, PreHook_update, PostHook_update);
-	hook_vtable(obj, onDestroy_method, nil, Terminate);
+local function UpdateHarvestMoonTimer()
+	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(LongSwordShell010));
+	this.IsWarning = IsWarning_field:get_data(LongSwordShell010);
+end
+
+local function PostHook_update()
+	UpdateHarvestMoonTimer();
+end
+
+local function HarvestMoon_init()
+	UpdateHarvestMoonTimer();
+	hook_vtable(LongSwordShell010, update_method, nil, PostHook_update);
+	hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
 end
 
 local function PreHook(args)
@@ -58,10 +56,8 @@ local function PreHook(args)
 end
 local function PostHook()
 	if CircleType_field:get_data(LongSwordShell010) == 1 and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
-		HarvestMoon_init(LongSwordShell010);
+		HarvestMoon_init();
 	end
-
-	LongSwordShell010 = nil;
 end
 
 local function init()
@@ -72,15 +68,12 @@ local function init()
 			local MaseterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
 			if MaseterLongSwordShell010s ~= nil then
 				local MasterShell010List = mItems_field:get_data(MaseterLongSwordShell010s);
-				if MasterShell010List ~= nil then
-					local MasterShell010List_count = MasterShell010List:get_size();
-					if MasterShell010List_count > 0 then
-						for i = 0, MasterShell010List_count - 1, 1 do
-							local MasterShell010 = MasterShell010List:get_element(i);
-							if CircleType_field:get_data(MasterShell010) == 1 then
-								HarvestMoon_init(MasterShell010);
-								break;
-							end
+				if MasterShell010List ~= nil and MasterShell010List:get_size() > 0 then
+					for i, MasterShell010 in ipairs(MasterShell010List:get_elements()) do
+						if CircleType_field:get_data(MasterShell010) == 1 then
+							LongSwordShell010 = MasterShell010;
+							HarvestMoon_init();
+							break;
 						end
 					end
 				end

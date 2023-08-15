@@ -1,12 +1,9 @@
 local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local hook = Constants.sdk.hook;
-local to_ptr = Constants.sdk.to_ptr;
+local ResetState_None_Ptr = Constants.sdk.to_ptr(0);
 -- Main
-local ResetState_None_Ptr = to_ptr(0);
 local function SkipReset()
 	return ResetState_None_Ptr;
 end
 -- Hook
-hook(find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"), nil, SkipReset);
+Constants.sdk.hook(Constants.sdk.find_type_definition("snow.camera.TargetCamera_Marionette"):get_method("UpdateCameraReset(via.GameObject)"), nil, SkipReset);
