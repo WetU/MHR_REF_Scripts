@@ -9,7 +9,7 @@ local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 --
-local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
+local getMasterPlayerIndex_method = find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayerIndex"); -- static
 --
 local getMaseterLongSwordShell010s_method = find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)");
 local mItems_field = getMaseterLongSwordShell010s_method:get_return_type():get_field("mItems");

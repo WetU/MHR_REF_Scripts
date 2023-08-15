@@ -9,7 +9,7 @@ local DefaultSet = 0;
 --
 local playerWeaponType_field = Constants.type_definitions.PlayerBase_type_def:get_field("_playerWeaponType");
 --
-local get_ItemMySet_method = Constants.type_definitions.DataManager_type_def:get_method("get_ItemMySet"); -- static
+local get_ItemMySet_method = find_type_definition("snow.data.DataManager"):get_method("get_ItemMySet"); -- static
 
 local ItemMySet_type_def = get_ItemMySet_method:get_return_type();
 local applyItemMySet_method = ItemMySet_type_def:get_method("applyItemMySet(System.Int32)");
@@ -107,7 +107,7 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 	else
 		if lastHitLoadoutIndex ~= nil then
 			local expectedLoadout = GetEquipmentLoadout(equipDataManager, lastHitLoadoutIndex);
-			if isSamePlEquipPack_method:call(expectedLoadout) then
+			if isSamePlEquipPack_method:call(expectedLoadout) == true then
 				return 1, get_Name_method:call(expectedLoadout), nil;
 			end
 		end

@@ -59,8 +59,8 @@ local function PreHook_startToPlayPlayerDieMusic()
 	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
 
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
-		local currentPos = get_Position_method:call(GetTransform_method:call(Constants:get_CameraManager(), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(Constants:get_StagePointManager()):get_element(0)):get_element(0));
+		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), 1));
+		local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
 		local subCampCount = #subCamps;
 		if subCampCount > 1 then
 			for i = 1, subCampCount, 1 do

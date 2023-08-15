@@ -4,6 +4,7 @@ local math_min = Constants.lua.math_min;
 
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -34,7 +35,6 @@ local addBuff_method = MealFunc_type_def:get_method("addBuff(System.UInt32)");
 local order_method = MealFunc_type_def:get_method("order(snow.facility.MealOrderData, snow.facility.kitchen.MealFunc.PaymentTypes, System.UInt32)");
 local get_MySetDataList_method = MealFunc_type_def:get_method("get_MySetDataList");
 local get_DailyDango_method = MealFunc_type_def:get_method("get_DailyDango");
-local resetDailyDango_method = MealFunc_type_def:get_method("resetDailyDango");
 --
 local BbqFunc_type_def = Constants.type_definitions.BbqFunc_type_def;
 local get_CanUseFunc_method = BbqFunc_type_def:get_method("get_CanUseFunc");
@@ -160,7 +160,7 @@ local function applyKitchenBuff(kitchenType)
 		end
 	end
 
-	local OtomoManager = Constants:get_OtomoManager();
+	local OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
 
 	local MasterFirstOtomo = getMasterFirstOtomo_method:call(OtomoManager);
 	if MasterFirstOtomo ~= nil then
@@ -176,7 +176,7 @@ end
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 
-	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager());
+	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
 	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
 	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 
@@ -198,6 +198,7 @@ local function orderDango(kitchenType)
 
 	if checkAvailableMealSystem_method:call(MealFunc) == true then
 		local paymentType = nil;
+
 		if checkHandMoney_method:call(MealFunc) == true then
 			paymentType = 0;
 		elseif checkVillagePoint_method:call(MealFunc) == true then
@@ -205,33 +206,25 @@ local function orderDango(kitchenType)
 			Constants:SendMessage("소지금이 부족합니다!\n포인트를 사용합니다");
 		else
 			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+			return;
 		end
 
-		if paymentType ~= nil then
-			local MealTicketNum = getMealTicketNum_method:call(MealFunc);
-			if MealTicketNum == nil or MealTicketNum <= 0 then
-				Constants:SendMessage("식사권이 없습니다!");
-			else
-				local mySetOrderIndex = 1;
+		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
 
-				if kitchenType == 1 then
-					resetDailyDango_method:call(MealFunc);
-					if DailyDango[get_DailyDango_method:call(MealFunc)] == true then
-						mySetOrderIndex = 0;
-					end
-				end
-
-				local FacilityLv = get_FacilityLv_method:call(MealFunc);
-				isOrdering = true;
-				setMealTicketFlag_method:call(MealFunc, true);
-				order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element(mySetOrderIndex), paymentType, FacilityLv);
-				isOrdering = false;
-				addBuff_method:call(MealFunc, FacilityLv);
-				applyKitchenBuff(kitchenType);
-				setWaitTimer_method:call(MealFunc);
-				reqDangoLogStart_method:call(Constants:get_GuiManager(), makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)), 5.0);
-			end
+		if MealTicketNum == nil or MealTicketNum <= 0 then
+			Constants:SendMessage("식사권이 없습니다!");
+			return;
 		end
+
+		local FacilityLv = get_FacilityLv_method:call(MealFunc);
+		isOrdering = true;
+		setMealTicketFlag_method:call(MealFunc, true);
+		order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element((kitchenType == 1 and DailyDango[get_DailyDango_method:call(MealFunc)] == true) and 0 or 1), paymentType, FacilityLv);
+		isOrdering = false;
+		addBuff_method:call(MealFunc, FacilityLv);
+		applyKitchenBuff(kitchenType);
+		setWaitTimer_method:call(MealFunc);
+		reqDangoLogStart_method:call(Constants:get_GuiManager(), makeDangoLogParam(getVitalBuff_method:call(MealFunc, FacilityLv), getStaminaBuff_method:call(MealFunc, FacilityLv)), 5.0);
 	end
 end
 --

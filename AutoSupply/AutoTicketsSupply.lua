@@ -2,6 +2,7 @@ local Constants = _G.require("Constants.Constants");
 
 local hook = Constants.sdk.hook;
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 
 local FALSE_POINTER = Constants.FALSE_POINTER;
@@ -59,7 +60,7 @@ local function get_CanObtainCommercialStuff()
 		return result;
 	end
 
-	local CommercialStuffFacility = getCommercialStuffFacility_method:call(Constants:get_FacilityDataManager());
+	local CommercialStuffFacility = getCommercialStuffFacility_method:call(get_managed_singleton("snow.data.FacilityDataManager"));
 	return get_CanObtainlItem_method:call(CommercialStuffFacility) == true and get_CommercialStuffID_method:call(CommercialStuffFacility) ~= 0 or nil;
 end
 
@@ -70,7 +71,7 @@ local function get_IsMysteryResearchRequestClear()
 		return result;
 	end
 
-	return get_IsClear_method:call(get_LaboReward_method:call(getMysteryLaboFacility_method:call(Constants:get_FacilityDataManager())));
+	return get_IsClear_method:call(get_LaboReward_method:call(getMysteryLaboFacility_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
 end
 --
 local CommercialNpcTalkMessageCtrl = nil;
@@ -108,7 +109,7 @@ end
 --
 local function PostHook_checkPickItem_V02Ticket(retval)
 	if to_bool(retval) == true then
-		Ticket_supply_method:call(Constants:get_ProgressTicketSupplyManager(), 2);
+		Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), 2);
 		return FALSE_POINTER;
 	end
 
@@ -116,7 +117,7 @@ local function PostHook_checkPickItem_V02Ticket(retval)
 end
 local function PostHook_checkPickItem_MysteryTicket(retval)
 	if to_bool(retval) == true then
-		Ticket_supply_method:call(Constants:get_ProgressTicketSupplyManager(), 3);
+		Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), 3);
 		return FALSE_POINTER;
 	end
 
@@ -124,7 +125,7 @@ local function PostHook_checkPickItem_MysteryTicket(retval)
 end
 --[[local function PostHook_checkPickItem_VillageTicket(retval)
 	if to_bool(retval) == true then
-		Ticket_supply_method:call(Constants:get_ProgressTicketSupplyManager(), 0);
+		Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), 0);
 		return FALSE_POINTER;
 	end
 
@@ -132,7 +133,7 @@ end
 end
 local function PostHook_checkPickItem_GuildTicket(retval)
 	if to_bool(retval) == true then
-		Ticket_supply_method:call(Constants:get_ProgressTicketSupplyManager(), 1);
+		Ticket_supply_method:call(get_managed_singleton("snow.progress.ProgressTicketSupplyManager"), 1);
 		return FALSE_POINTER;
 	end
 
@@ -141,7 +142,7 @@ end]]
 
 local function PostHook_checkSupplyItem_OtomoTicket(retval)
 	if to_bool(retval) == true then
-		Otomo_supply_method:call(Constants:get_ProgressOtomoTicketManager());
+		Otomo_supply_method:call(get_managed_singleton("snow.progress.ProgressOtomoTicketManager"));
 		return FALSE_POINTER;
 	end
 
@@ -150,7 +151,7 @@ end
 
 --[[local function PostHook_checkSupplyItem_Ec019(retval)
 	if to_bool(retval) == true then
-		Ec019_supply_method:call(Constants:get_ProgressEc019UnlockItemManager());
+		Ec019_supply_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
 		return FALSE_POINTER;
 	end
 
@@ -158,7 +159,7 @@ end
 end
 local function PostHook_checkSupplyItem_Ec019MR(retval)
 	if to_bool(retval) == true then
-		Ec019_supplyMR_method:call(Constants:get_ProgressEc019UnlockItemManager());
+		Ec019_supplyMR_method:call(get_managed_singleton("snow.progress.ProgressEc019UnlockItemManager"));
 		return FALSE_POINTER;
 	end
 
@@ -167,7 +168,7 @@ end]]
 
 --[[local function PostHook_checkSwitchAction_EnableSupply_Smithy(retval)
 	if to_bool(retval) == true then
-		SwitchAction_supply_method:call(Constants:get_ProgressSwitchActionSupplyManager());
+		SwitchAction_supply_method:call(get_managed_singleton("snow.progress.ProgressSwitchActionSupplyManager"));
 		return FALSE_POINTER;
 	end
 
@@ -176,7 +177,7 @@ end]]
 
 local function PostHook_checkSupplyItem_GoodReward(retval)
 	if to_bool(retval) == true then
-		GoodReward_supplyReward_method:call(Constants:get_ProgressGoodRewardManager());
+		GoodReward_supplyReward_method:call(get_managed_singleton("snow.progress.ProgressGoodRewardManager"));
 		return FALSE_POINTER;
 	end
 
@@ -194,7 +195,7 @@ end
 
 --[[local function getNoteReward(retval)
 	if to_bool(retval) == true then
-		Note_supply_method:call(Constants:get_ProgressNoteRewardManager());
+		Note_supply_method:call(get_managed_singleton("snow.progress.ProgressNoteRewardManager"));
 		return FALSE_POINTER;
 	end
 

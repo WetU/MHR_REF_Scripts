@@ -2,6 +2,7 @@ local Constants = _G.require("Constants.Constants");
 
 local ipairs = Constants.lua.ipairs;
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
@@ -63,7 +64,7 @@ end
 
 local this = {
 	autoArgosy = function()
-		local TradeFunc = get_TradeFunc_method:call(Constants:get_TradeCenterFacility());
+		local TradeFunc = get_TradeFunc_method:call(get_managed_singleton("snow.facility.TradeCenterFacility"));
 		buildCache(TradeFunc);
 
 		local countUpdated = false;

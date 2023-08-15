@@ -1,6 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
 local ProgressOwlNestManager_type_def = find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");
@@ -16,7 +17,7 @@ local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__C
 --
 local this = {
 	Supply = function()
-		local ProgressOwlNestManager = Constants:get_ProgressOwlNestManager();
+		local ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
 		local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
 
 		local fullFlag = 0;

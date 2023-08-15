@@ -4,6 +4,7 @@ local string_format = Constants.lua.string_format;
 
 local to_int64 = Constants.sdk.to_int64;
 local find_type_definition = Constants.sdk.find_type_definition;
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
@@ -61,7 +62,7 @@ local function setBoostItem(args)
 end
 
 local function get_currentStepCount()
-	local OtomoSpyUnitManager = Constants:get_OtomoSpyUnitManager();
+	local OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
 	local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
 	if isOperating == true then
 		local NowStepCount = get_NowStepCount_method:call(OtomoSpyUnitManager);
