@@ -1,5 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
+local math_min = Constants.lua.math_min;
+
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
@@ -99,12 +101,11 @@ local function orderBbq()
 	local BbqFunc = Constants:get_BbqFunc();
 
 	if get_CanUseFunc_method:call(BbqFunc) == true then
-		local orderCount = meatCount >= 99 and 99 or meatCount;
+		local orderCount = math_min(meatCount, 99);
 		local BbqConvertData = MealConvertDataList_get_Item_method:call(get_MealConvertDataList_method:call(BbqFunc), 0);
 		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
 		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
 		local MoneyVal = getMoneyVal_method:call(nil);
-
 		local paymentType = getVillagePoint() >= PointCost and 1
 			or MoneyVal >= MoneyCost and 2
 			or nil;
