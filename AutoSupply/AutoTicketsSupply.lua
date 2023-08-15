@@ -60,7 +60,7 @@ local function get_CanObtainCommercialStuff()
 		return result;
 	end
 
-	local CommercialStuffFacility = getCommercialStuffFacility_method:call(get_managed_singleton("snow.data.FacilityDataManager"));
+	local CommercialStuffFacility = getCommercialStuffFacility_method:call(Constants:get_FacilityDataManager());
 	return get_CanObtainlItem_method:call(CommercialStuffFacility) == true and get_CommercialStuffID_method:call(CommercialStuffFacility) ~= 0 or nil;
 end
 
@@ -71,7 +71,7 @@ local function get_IsMysteryResearchRequestClear()
 		return result;
 	end
 
-	return get_IsClear_method:call(get_LaboReward_method:call(getMysteryLaboFacility_method:call(get_managed_singleton("snow.data.FacilityDataManager"))));
+	return get_IsClear_method:call(get_LaboReward_method:call(getMysteryLaboFacility_method:call(Constants:get_FacilityDataManager())));
 end
 --
 local CommercialNpcTalkMessageCtrl = nil;

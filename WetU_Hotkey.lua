@@ -14,6 +14,8 @@ local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
+local getMoneyVal = Constants.getMoneyVal;
+local SendMessage = Constants.SendMessage;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -35,6 +37,7 @@ local addBuff_method = MealFunc_type_def:get_method("addBuff(System.UInt32)");
 local order_method = MealFunc_type_def:get_method("order(snow.facility.MealOrderData, snow.facility.kitchen.MealFunc.PaymentTypes, System.UInt32)");
 local get_MySetDataList_method = MealFunc_type_def:get_method("get_MySetDataList");
 local get_DailyDango_method = MealFunc_type_def:get_method("get_DailyDango");
+local resetDailyDango_method = MealFunc_type_def:get_method("resetDailyDango");
 --
 local BbqFunc_type_def = Constants.type_definitions.BbqFunc_type_def;
 local get_CanUseFunc_method = BbqFunc_type_def:get_method("get_CanUseFunc");
@@ -50,7 +53,6 @@ local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost")
 --
 local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
 local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
-local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 local getCountOfAll_method = DataShortcut_type_def:get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)"); -- static
 --
@@ -94,7 +96,7 @@ local DailyDango = {
 local function orderBbq()
 	local meatCount = getCountOfAll_method:call(nil, 68157562);
 	if meatCount == nil or meatCount <= 0 then
-		Constants:SendMessage("날고기가 없습니다!");
+		SendMessage(nil, "요리: 날고기가 없습니다!");
 		return;
 	end
 
@@ -105,22 +107,21 @@ local function orderBbq()
 		local BbqConvertData = MealConvertDataList_get_Item_method:call(get_MealConvertDataList_method:call(BbqFunc), 0);
 		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
 		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
-		local MoneyVal = getMoneyVal_method:call(nil);
+		local MoneyVal = getMoneyVal();
 		local paymentType = getVillagePoint() >= PointCost and 1
 			or MoneyVal >= MoneyCost and 2
 			or nil;
 
 		if paymentType == nil then
-			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+			SendMessage(nil, "요리: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 
 		if paymentType == 1 then
 			subVillagePoint(PointCost);
 		else
-			local HandMoney = get_HandMoney_method:call(nil);
-			HandMoney:set_field("_Value", MoneyVal - MoneyCost);
-			Constants:SendMessage("포인트가 부족합니다!\n소지금을 사용합니다");
+			get_HandMoney_method:call(nil):set_field("_Value", MoneyVal - MoneyCost);
+			SendMessage(nil, "요리: 포인트가 부족합니다!\n소지금을 사용합니다");
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
@@ -203,21 +204,22 @@ local function orderDango(kitchenType)
 			paymentType = 0;
 		elseif checkVillagePoint_method:call(MealFunc) == true then
 			paymentType = 1;
-			Constants:SendMessage("소지금이 부족합니다!\n포인트를 사용합니다");
+			SendMessage(nil, "식사: 소지금이 부족합니다!\n포인트를 사용합니다");
 		else
-			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+			SendMessage(nil, "식사: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 
 		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
 
 		if MealTicketNum == nil or MealTicketNum <= 0 then
-			Constants:SendMessage("식사권이 없습니다!");
+			SendMessage(nil, "식사: 식사권이 없습니다!");
 			return;
 		end
 
 		local FacilityLv = get_FacilityLv_method:call(MealFunc);
 		isOrdering = true;
+		resetDailyDango_method:call(MealFunc);
 		setMealTicketFlag_method:call(MealFunc, true);
 		order_method:call(MealFunc, get_MySetDataList_method:call(MealFunc):get_element((kitchenType == 1 and DailyDango[get_DailyDango_method:call(MealFunc)] == true) and 0 or 1), paymentType, FacilityLv);
 		isOrdering = false;

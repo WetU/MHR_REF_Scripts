@@ -79,15 +79,17 @@ this.FALSE_POINTER = to_ptr(false);
 --
 local QuestManager_type_def = find_type_definition("snow.QuestManager");
 local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
+local DataShortcut_type_def = find_type_definition("snow.data.DataShortcut");
 local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
 
 this.type_definitions.Application_type_def = find_type_definition("via.Application");
 this.type_definitions.CameraManager_type_def = find_type_definition("snow.CameraManager");
 this.type_definitions.QuestManager_type_def = QuestManager_type_def;
 this.type_definitions.VillageAreaManager_type_def = VillageAreaManager_type_def;
-this.type_definitions.DataShortcut_type_def = find_type_definition("snow.data.DataShortcut");
+this.type_definitions.DataShortcut_type_def = DataShortcut_type_def;
 this.type_definitions.EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.FacilityDataManager_type_def = FacilityDataManager_type_def;
+this.type_definitions.ItemInventoryData_type_def = find_type_definition("snow.data.ItemInventoryData");
 this.type_definitions.GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
 this.type_definitions.StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
 this.type_definitions.PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
@@ -196,10 +198,16 @@ function this:getDeathNum()
 	return getDeathNum_method:call(self:get_QuestManager());
 end
 --
-local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
+local ChatManager_type_def = find_type_definition("snow.gui.ChatManager");
+local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
+local reqAddChatItemInfo_method = ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
 
-function this:SendMessage(text)
-	reqAddChatInfomation_method:call(get_managed_singleton("snow.gui.ChatManager"), text, 0); -- sound on : 2289944406
+function this.SendMessage(nullable_ChatManager, text)
+	reqAddChatInfomation_method:call(nullable_ChatManager or get_managed_singleton("snow.gui.ChatManager"), text, 0); -- sound on : 2289944406
+end
+
+function this.SendItemInfoMessage(nullable_ChatManager, itemId, num, maxType)
+	reqAddChatItemInfo_method:call(nullable_ChatManager or get_managed_singleton("snow.gui.ChatManager"), itemId, num, maxType, false);
 end
 --
 local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
@@ -212,6 +220,17 @@ end
 
 function this.subVillagePoint(count)
 	subPoint_method:call(nil, count);
+end
+--
+local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
+local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
+
+function this.getMoneyVal()
+	return getMoneyVal_method:call(nil);
+end
+
+function this.sendItemToBox(inventoryData, sellRest)
+	sendItemToBox_method:call(nil, inventoryData, sellRest);
 end
 --
 function this.SKIP_ORIGINAL_func()
@@ -244,6 +263,14 @@ function this:get_EquipDataManager()
 	end
 
 	return self.Objects.EquipDataManager;
+end
+
+function this:get_FacilityDataManager()
+	if self.Objects.FacilityDataManager == nil or self.Objects.FacilityDataManager:get_reference_count() <= 1 then
+		self.Objects.FacilityDataManager = get_managed_singleton("snow.data.FacilityDataManager");
+	end
+
+	return self.Objects.FacilityDataManager;
 end
 
 function this:get_GuiManager()

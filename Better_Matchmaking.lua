@@ -13,6 +13,7 @@ local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 local to_bool = Constants.to_bool;
 
 local checkGameStatus = Constants.checkGameStatus;
+local SendMessage = Constants.SendMessage;
 
 -- Region lock fix
 local session_steam_type_def = find_type_definition("via.network.SessionSteam");
@@ -231,7 +232,7 @@ hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(sno
 hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 
 local function onKicked()
-	Constants:SendMessage("세션에서 추방당했습니다");
+	SendMessage(nil, "세션에서 추방당했습니다");
 end
 hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
 hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func);
