@@ -50,6 +50,7 @@ local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
 local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
 local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
+local getCountOfAll_method = DataShortcut_type_def:get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)"); -- static
 --
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
@@ -89,34 +90,42 @@ local DailyDango = {
 };
 --
 local function orderBbq()
+	local meatCount = getCountOfAll_method:call(nil, 68157562);
+	if meatCount == nil or meatCount <= 0 then
+		Constants:SendMessage("날고기가 없습니다!");
+		return;
+	end
+
 	local BbqFunc = Constants:get_BbqFunc();
 
 	if get_CanUseFunc_method:call(BbqFunc) == true then
+		local orderCount = meatCount >= 99 and 99 or meatCount;
 		local BbqConvertData = MealConvertDataList_get_Item_method:call(get_MealConvertDataList_method:call(BbqFunc), 0);
-		local PointCost = get_PointCost_method:call(BbqConvertData) * 99;
-		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * 99;
+		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
+		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
 		local MoneyVal = getMoneyVal_method:call(nil);
 
-		if getVillagePoint() >= (PointCost) then
-			subVillagePoint(PointCost);
-			orderBbq_method:call(BbqFunc, BbqConvertData, 99);
-			addItemToBox_method:call(nil, 68157448, 99);
-			if isExistOutputTicket_method:call(BbqFunc) == true then
-				Constants:outputMealTicket();
-			end
+		local paymentType = getVillagePoint() >= PointCost and 1
+			or MoneyVal >= MoneyCost and 2
+			or nil;
 
-		elseif MoneyVal >= MoneyCost then
+		if paymentType == nil then
+			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+			return;
+		end
+
+		if paymentType == 1 then
+			subVillagePoint(PointCost);
+		else
 			local HandMoney = get_HandMoney_method:call(nil);
 			HandMoney:set_field("_Value", MoneyVal - MoneyCost);
 			Constants:SendMessage("포인트가 부족합니다!\n소지금을 사용합니다");
-			orderBbq_method:call(BbqFunc, BbqConvertData, 99);
-			addItemToBox_method:call(nil, 68157448, 99);
-			if isExistOutputTicket_method:call(BbqFunc) == true then
-				Constants:outputMealTicket();
-			end
+		end
 
-		else
-			Constants:SendMessage("소지금과 포인트가 부족합니다!");
+		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
+		addItemToBox_method:call(nil, 68157448, orderCount);
+		if isExistOutputTicket_method:call(BbqFunc) == true then
+			Constants:outputMealTicket();
 		end
 	end
 end
