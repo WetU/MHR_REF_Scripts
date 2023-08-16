@@ -224,6 +224,7 @@ end
 --
 local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
+local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
 
 function this.getMoneyVal()
 	return getMoneyVal_method:call(nil);
@@ -231,6 +232,10 @@ end
 
 function this.sendItemToBox(inventoryData, sellRest)
 	sendItemToBox_method:call(nil, inventoryData, sellRest);
+end
+
+function this.getCountOfAll(itemID)
+	return getCountOfAll_method:call(this:get_ContentsIdDataManager(), itemID);
 end
 --
 function this.SKIP_ORIGINAL_func()
@@ -255,6 +260,14 @@ end
 
 function this:get_VillageAreaManager()
 	return self.Objects.VillageAreaManager;
+end
+
+function this:get_ContentsIdDataManager()
+	if self.Objects.ContentsIdDataManager == nil or self.Objects.ContentsIdDataManager:get_reference_count() <= 1 then
+		self.Objects.ContentsIdDataManager = get_managed_singleton("snow.data.ContentsIdDataManager");
+	end
+
+	return self.Objects.ContentsIdDataManager;
 end
 
 function this:get_EquipDataManager()

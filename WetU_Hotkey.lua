@@ -16,6 +16,7 @@ local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 local getMoneyVal = Constants.getMoneyVal;
 local SendMessage = Constants.SendMessage;
+local getCountOfAll = Constants.getCountOfAll;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -54,7 +55,6 @@ local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost")
 local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
 local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
 local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
-local getCountOfAll_method = DataShortcut_type_def:get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)"); -- static
 --
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
@@ -94,7 +94,7 @@ local DailyDango = {
 };
 --
 local function orderBbq()
-	local meatCount = getCountOfAll_method:call(nil, 68157562);
+	local meatCount = getCountOfAll(68157562);
 	if meatCount == nil or meatCount <= 0 then
 		SendMessage(nil, "요리: 날고기가 없습니다!");
 		return;
