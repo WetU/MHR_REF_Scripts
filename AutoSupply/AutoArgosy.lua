@@ -10,13 +10,7 @@ local sendItemToBox = Constants.sendItemToBox;
 --
 local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
 
-local TradeFunc_type_def = get_TradeFunc_method:get_return_type();
-local get_TradeOrderList_method = TradeFunc_type_def:get_method("get_TradeOrderList");
-local getNegotiationData_method = TradeFunc_type_def:get_method("getNegotiationData(snow.facility.tradeCenter.NegotiationTypes)");
-
-local NegotiationData_type_def = getNegotiationData_method:get_return_type();
-local NegotiationData_get_Count_method = NegotiationData_type_def:get_method("get_Count");
-local get_Cost_method = NegotiationData_type_def:get_method("get_Cost");
+local get_TradeOrderList_method = get_TradeFunc_method:get_return_type():get_method("get_TradeOrderList");
 
 local TradeOrderData_type_def = find_type_definition("snow.facility.tradeCenter.TradeOrderData");
 local initialize_method = TradeOrderData_type_def:get_method("initialize");
@@ -31,43 +25,30 @@ local ItemInventoryData_type_def = Constants.type_definitions.ItemInventoryData_
 local isEmpty_method = ItemInventoryData_type_def:get_method("isEmpty");
 local sub_method = ItemInventoryData_type_def:get_method("sub(System.UInt32, System.Boolean)");
 --
-local cacheNegotiationData = nil;
+local negotiationData = {
+	Count = {
+		6,
+		3,
+		3,
+		6,
+		3,
+		3
+	},
+	Cost = {
+		100,
+		150,
+		300,
+		250,
+		300,
+		500
+	}
+};
 --
-local function mkTable()
-	local table = {
-		[0] = true,
-		[1] = true,
-		[2] = true,
-		[3] = true,
-		[4] = true,
-		[5] = true
-	};
-
-	return table;
-end
-
-local function buildCache(tradeFunc)
-	if cacheNegotiationData == nil then
-		cacheNegotiationData = {
-			Count = mkTable(),
-			Cost = mkTable()
-		};
-
-		for i = 0, 5, 1 do
-			local NegotiationData = getNegotiationData_method:call(tradeFunc, i);
-			cacheNegotiationData.Count[i] = NegotiationData_get_Count_method:call(NegotiationData);
-			cacheNegotiationData.Cost[i] = get_Cost_method:call(NegotiationData);
-		end
-	end
-end
-
 local this = {
 	autoArgosy = function()
 		local TradeFunc = get_TradeFunc_method:call(get_managed_singleton("snow.facility.TradeCenterFacility"));
-		buildCache(TradeFunc);
 
 		local countUpdated = false;
-		local inventoryReceived = false;
 		local isReceived = false;
 		local acornInventoryData = findInventoryData_method:call(nil, 1, 68158481);
 		local addCount = isEmpty_method:call(acornInventoryData) == true and 1 or 4;
@@ -75,11 +56,11 @@ local this = {
 		for _, TradeOrder in ipairs(get_TradeOrderList_method:call(TradeFunc):get_elements()) do
 			if get_NegotiationCount_method:call(TradeOrder) == 1 then
 				local addNegoCount = addCount;
-				local NegotiationType = get_NegotiationType_method:call(TradeOrder);
-				local NegotiationCostData = cacheNegotiationData.Cost[NegotiationType];
+				local NegotiationType = get_NegotiationType_method:call(TradeOrder) + 1;
+				local NegotiationCostData = negotiationData.Cost[NegotiationType];
 
 				if getVillagePoint() >= NegotiationCostData then
-					addNegoCount = addNegoCount + cacheNegotiationData.Count[NegotiationType];
+					addNegoCount = addNegoCount + negotiationData.Count[NegotiationType];
 					subVillagePoint(NegotiationCostData);
 				end
 
@@ -94,14 +75,11 @@ local this = {
 					break;
 				else
 					sendItemToBox(Inventory, true);
-					inventoryReceived = true;
+					isReceived = true;
 				end
 			end
 
-			if inventoryReceived == true then
-				initialize_method:call(TradeOrder);
-				isReceived = isReceived or inventoryReceived;
-			end
+			initialize_method:call(TradeOrder);
 		end
 
 		if addCount > 1 and countUpdated == true then

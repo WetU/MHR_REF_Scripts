@@ -202,12 +202,12 @@ local ChatManager_type_def = find_type_definition("snow.gui.ChatManager");
 local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
 local reqAddChatItemInfo_method = ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
 
-function this.SendMessage(nullable_ChatManager, text)
-	reqAddChatInfomation_method:call(nullable_ChatManager or get_managed_singleton("snow.gui.ChatManager"), text, 0); -- sound on : 2289944406
+function this.SendMessage(text)
+	reqAddChatInfomation_method:call(this:get_ChatManager(), text, 0); -- sound on : 2289944406
 end
 
-function this.SendItemInfoMessage(nullable_ChatManager, itemId, num, maxType)
-	reqAddChatItemInfo_method:call(nullable_ChatManager or get_managed_singleton("snow.gui.ChatManager"), itemId, num, maxType, false);
+function this.SendItemInfoMessage(itemId, num, maxType)
+	reqAddChatItemInfo_method:call(this:get_ChatManager(), itemId, num, maxType, false);
 end
 --
 local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
@@ -284,6 +284,14 @@ function this:get_FacilityDataManager()
 	end
 
 	return self.Objects.FacilityDataManager;
+end
+
+function this:get_ChatManager()
+	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() <= 1 then
+		self.Objects.ChatManager = get_managed_singleton("snow.gui.ChatManager");
+	end
+
+	return self.Objects.ChatManager;
 end
 
 function this:get_GuiManager()

@@ -232,7 +232,7 @@ hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(sno
 hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 
 local function onKicked()
-	SendMessage(nil, "세션에서 추방당했습니다");
+	SendMessage("세션에서 추방당했습니다");
 end
 hook(session_manager_type_def:get_method("funcOnKicked(snow.network.session.SessionAttr)"), nil, onKicked);
 hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func);

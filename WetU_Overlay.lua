@@ -31,8 +31,8 @@ local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
 --
 local AutoAddItemIds = {
-	[68157942] = 10, -- 그레이트 응급약
 	[68157940] = 10, -- 지급전용 휴대 식량
+	[68157942] = 10, -- 그레이트 응급약
 	[68157954] = 1  -- 지급전용 귀환옥
 };
 

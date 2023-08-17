@@ -96,7 +96,7 @@ local DailyDango = {
 local function orderBbq()
 	local meatCount = getCountOfAll(68157562);
 	if meatCount == nil or meatCount <= 0 then
-		SendMessage(nil, "요리: 날고기가 없습니다!");
+		SendMessage("요리: 날고기가 없습니다!");
 		return;
 	end
 
@@ -113,7 +113,7 @@ local function orderBbq()
 			or nil;
 
 		if paymentType == nil then
-			SendMessage(nil, "요리: 소지금과 포인트가 부족합니다!");
+			SendMessage("요리: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 
@@ -121,7 +121,7 @@ local function orderBbq()
 			subVillagePoint(PointCost);
 		else
 			get_HandMoney_method:call(nil):set_field("_Value", MoneyVal - MoneyCost);
-			SendMessage(nil, "요리: 포인트가 부족합니다!\n소지금을 사용합니다");
+			SendMessage("요리: 포인트가 부족합니다!\n소지금을 사용합니다");
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
@@ -204,16 +204,16 @@ local function orderDango(kitchenType)
 			paymentType = 0;
 		elseif checkVillagePoint_method:call(MealFunc) == true then
 			paymentType = 1;
-			SendMessage(nil, "식사: 소지금이 부족합니다!\n포인트를 사용합니다");
+			SendMessage("식사: 소지금이 부족합니다!\n포인트를 사용합니다");
 		else
-			SendMessage(nil, "식사: 소지금과 포인트가 부족합니다!");
+			SendMessage("식사: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 
 		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
 
 		if MealTicketNum == nil or MealTicketNum <= 0 then
-			SendMessage(nil, "식사: 식사권이 없습니다!");
+			SendMessage("식사: 식사권이 없습니다!");
 			return;
 		end
 
