@@ -15,6 +15,7 @@ local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 local getMoneyVal = Constants.getMoneyVal;
+local addItemToBox = Constants.addItemToBox;
 local SendMessage = Constants.SendMessage;
 local getCountOfAll = Constants.getCountOfAll;
 
@@ -52,9 +53,7 @@ local BbqConvertData_type_def = MealConvertDataList_get_Item_method:get_return_t
 local get_MoneyCost_method = BbqConvertData_type_def:get_method("get_MoneyCost");
 local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost");
 --
-local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
-local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
-local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
+local get_HandMoney_method = Constants.type_definitions.DataShortcut_type_def:get_method("get_HandMoney"); -- static
 --
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
@@ -125,7 +124,7 @@ local function orderBbq()
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
-		addItemToBox_method:call(nil, 68157448, orderCount);
+		addItemToBox(68157448, orderCount);
 		if isExistOutputTicket_method:call(BbqFunc) == true then
 			Constants:outputMealTicket();
 		end

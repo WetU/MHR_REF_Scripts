@@ -224,6 +224,7 @@ end
 --
 local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
+local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
 
 function this.getMoneyVal()
@@ -232,6 +233,10 @@ end
 
 function this.sendItemToBox(inventoryData, sellRest)
 	sendItemToBox_method:call(nil, inventoryData, sellRest);
+end
+
+function this.addItemToBox(itemID, num)
+	addItemToBox_method:call(nil, itemID, num);
 end
 
 function this.getCountOfAll(itemID)
