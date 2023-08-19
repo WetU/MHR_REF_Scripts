@@ -137,7 +137,7 @@ local function drawSpiribirdsStatus()
 end
 
 local function drawMain()
-	push_font(Font);
+	--push_font(Font);
 	drawHarvestMoonTimer();
 	drawOtomoSpyUnit();
 	drawQuestInfo();

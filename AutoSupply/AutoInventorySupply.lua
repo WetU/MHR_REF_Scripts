@@ -20,7 +20,7 @@ local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_m
 local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
 local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
 
-local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type();
+local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type(); -- nullable_int32
 local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
 local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
 --

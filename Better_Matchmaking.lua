@@ -33,7 +33,7 @@ local req_matchmaking_random_master_rank_method = session_manager_type_def:get_m
 local req_matchmaking_random_mystery_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMystery(System.UInt32, System.UInt32, System.UInt32)");
 local req_matchmaking_random_mystery_quest_method = session_manager_type_def:get_method("reqMatchmakingAutoJoinSessionRandomMysteryQuest(System.UInt32, System.UInt32, System.UInt32, System.Nullable`1<System.UInt32>, snow.data.ContentsIdSystem.ItemId, System.Boolean)");
 
-local nullable_uint32_type_def = find_type_definition("System.Nullable`1<System.UInt32>");
+local Nullable_UInt32_type_def = find_type_definition("System.Nullable`1<System.UInt32>");
 --
 local quest_types = {
 	"regular",
@@ -131,8 +131,8 @@ local function prehook_req_matchmaking_hyakuryu(args)
 	quest_vars = {
 		quest_type = rampage,
 		difficulty = to_int64(args[3]),
-		quest_level = to_valuetype(args[4], nullable_uint32_type_def),
-		target_enemy = to_valuetype(args[5], nullable_uint32_type_def)
+		quest_level = to_valuetype(args[4], Nullable_UInt32_type_def),
+		target_enemy = to_valuetype(args[5], Nullable_UInt32_type_def)
 	};
 end
 --snow.SnowSessionManager.reqMatchmakingAutoJoinSessionHyakuryu
@@ -194,7 +194,7 @@ local function prehook_req_matchmaking_random_mystery_quest(args)
 		min_level = to_int64(args[3]),
 		max_level = to_int64(args[4]),
 		party_limit = to_int64(args[5]),
-		enemy_id = to_valuetype(args[6], nullable_uint32_type_def),
+		enemy_id = to_valuetype(args[6], Nullable_UInt32_type_def),
 		reward_item = to_int64(args[7]) or 67108864,
 		is_special_random_mystery = to_bool(args[8])
 	};

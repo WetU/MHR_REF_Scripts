@@ -4,7 +4,6 @@ local AutoArgosy = require("AutoSupply.AutoArgosy");
 local CohootSupply = require("AutoSupply.AutoCohootSupply");
 local InventorySupply = require("AutoSupply.AutoInventorySupply");
 local AutoTicketsSupply = require("AutoSupply.AutoTicketsSupply");
-local AutoLot = require("AutoSupply.AutoLottery");
 
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
@@ -21,8 +20,6 @@ local talkHandler = AutoTicketsSupply.talkHandler;
 local cohootSupply = CohootSupply.Supply;
 --
 local autoArgosy = AutoArgosy.autoArgosy;
---
-local autoLot = AutoLot.autoLot;
 --
 local function PreHook_applyEquipMySet(args)
 	SendMessage(Restock(to_int64(args[3])));
@@ -45,7 +42,6 @@ local function onVillageStart()
 		if autoArgosy() == true then
 			SendMessage("교역 아이템을 받았습니다");
 		end
-		autoLot();
 		SendMessage(Restock(nil));
 	end
 end

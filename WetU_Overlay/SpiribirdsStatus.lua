@@ -63,7 +63,9 @@ local BuffTypes = {
 	1  -- Stamina
 };
 --
-local hasRainbow = false;
+local function hasRainbow()
+	return getLvBuffCnt_method:call(Constants:get_PlayerManager(), LvBuff[5]) > 0;
+end
 
 local function Terminate()
 	this.SpiribirdsHudDataCreated = false;
@@ -72,7 +74,6 @@ local function Terminate()
 	this.AcquiredValues = nil;
 	this.BirdsMaxCounts = nil;
 	this.AcquiredCounts = nil;
-	hasRainbow = false;
 end
 
 local function mkTable()
@@ -89,10 +90,9 @@ end
 local function CreateData()
 	local PlayerManager = Constants:get_PlayerManager();
 	local EquipDataManager = Constants:get_EquipDataManager();
-
-	hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff.Rainbow) > 0;
 	local EquippingLvBuffcageData = getEquippingLvBuffcageData_method:call(EquipDataManager);
 
+	local hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff[5]) > 0;
 	this.StatusBuffLimits = mkTable();
 	this.BirdsMaxCounts = mkTable();
 	this.AcquiredCounts = mkTable();
@@ -112,48 +112,54 @@ local function CreateData()
 	this.SpiribirdsHudDataCreated = true;
 end
 
-function this:getBuffParameters(buffType)
+local function getAllBuffParameters()
+	local EquipDataManager = Constants:get_EquipDataManager();
+	local PlayerManager = Constants:get_PlayerManager();
+	local hasRainbow = getLvBuffCnt_method:call(PlayerManager, LvBuff[5]) > 0;
+
+	for i = 1, 4, 1 do
+		local BuffType = BuffTypes[i];
+		local LvBuffType = LvBuff[i];
+		local StatusBuffLimit = this.StatusBuffLimits[i];
+		local LvBuffNumToMax = this.BirdsMaxCounts[i];
+		this.AcquiredValues[i] = hasRainbow == true and StatusBuffLimit or math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffType), 0), StatusBuffLimit);
+		this.AcquiredCounts[i] = hasRainbow == true and LvBuffNumToMax or math_min(math_max(getLvBuffCnt_method:call(PlayerManager, LvBuffType), 0), LvBuffNumToMax);
+	end
+end
+
+local function getBuffParameters(buffType)
 	local EquipDataManager = Constants:get_EquipDataManager();
 	local PlayerManager = Constants:get_PlayerManager();
 
 	for i = 1, 4, 1 do
 		local LvBuffType = LvBuff[i];
 		if buffType == LvBuffType then
-			self.AcquiredCounts[i] = math_min(math_max(getLvBuffCnt_method:call(playerManager, LvBuffType), 0), self.BirdsMaxCounts[i]);
-			self.AcquiredValues[i] = math_min(math_max(calcLvBuffValue_method:call(equipDataManager, BuffTypes[i]), 0), self.StatusBuffLimits[i]);
+			this.AcquiredCounts[i] = math_min(math_max(getLvBuffCnt_method:call(playerManager, LvBuffType), 0), this.BirdsMaxCounts[i]);
+			this.AcquiredValues[i] = math_min(math_max(calcLvBuffValue_method:call(equipDataManager, BuffTypes[i]), 0), this.StatusBuffLimits[i]);
 			break;
 		end
 	end
 end
 
-local subBuffType = nil;
+local PlayerQuestBase = nil;
 local function PreHook_subLvBuffFromEnemy(args)
-	local PlayerQuestBase = to_managed_object(args[2]);
-	if isMasterPlayer_method:call(PlayerQuestBase) == true then
+	local playerQuestBase = to_managed_object(args[2]);
+	if isMasterPlayer_method:call(playerQuestBase) == true then
+		PlayerQuestBase = playerQuestBase;
+
 		if this.SpiribirdsHudDataCreated ~= true then
 			CreateData();
-			hook_vtable(PlayerQuestBase, onDestroy_method, nil, Terminate);
+			hook_vtable(playerQuestBase, onDestroy_method, nil, Terminate);
 		end
-
-		subBuffType = to_int64(args[3]);
 	end
 end
 local function PostHook_subLvBuffFromEnemy(retval)
-	if subBuffType ~= nil then
+	if PlayerQuestBase ~= nil then
 		if to_bool(retval) == true then
-			if subBuffType == LvBuff[5] then
-				hasRainbow = false;
-
-				for i = 1, 4, 1 do
-					this.AcquiredCounts[i] = 0;
-					this.AcquiredValues[i] = 0;
-				end
-			else
-				this:getBuffParameters(subBuffType);
-			end
+			getAllBuffParameters();
 		end
 
-		subBuffType = nil;
+		PlayerQuestBase = nil;
 	end
 
 	return retval;
@@ -162,24 +168,21 @@ end
 local addBuffType = nil;
 local function PreHook_addLvBuffCnt(args)
 	if this.SpiribirdsHudDataCreated == true then
-		local buffType = to_int64(args[4]);
-
-		if buffType == LvBuff[5] then
-			hasRainbow = true;
-		else
-			addBuffType = buffType;
-		end
+		addBuffType = to_int64(args[4]);
 	end
 end
 local function PostHook_addLvBuffCnt()
-	if hasRainbow == true then
-		for i = 1, 4, 1 do
-			this.AcquiredCounts[i] = this.BirdsMaxCounts[i];
-			this.AcquiredValues[i] = this.StatusBuffLimits[i];
+	if addBuffType ~= nil then
+		if hasRainbow() == true then
+			for i = 1, 4, 1 do
+				this.AcquiredCounts[i] = this.BirdsMaxCounts[i];
+				this.AcquiredValues[i] = this.StatusBuffLimits[i];
+			end
+
+		else
+			getBuffParameters(addBuffType);
 		end
 
-	elseif addBuffType ~= nil then
-		this:getBuffParameters(addBuffType);
 		addBuffType = nil;
 	end
 end
