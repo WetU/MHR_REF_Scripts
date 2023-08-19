@@ -19,35 +19,38 @@ local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_m
 --
 local get_FastTravelPointList_method = find_type_definition("snow.stage.StagePointManager"):get_method("get_FastTravelPointList");
 
-local get_Points_method = find_type_definition("snow.stage.StagePointManager.StagePoint"):get_method("get_Points");
+local FastTravelPointList_get_Item_method = get_FastTravelPointList_method:get_return_type():get_method("get_Item(System.Int32)");
+
+local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points");
+
+local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)");
 --
 local StageManager_type_def = find_type_definition("snow.stage.StageManager");
 local setPlWarpInfo_method = StageManager_type_def:get_method("setPlWarpInfo(via.vec3, System.Single, snow.stage.StageManager.AreaMoveQuest)");
 --
-local QuestMapList = Constants.QuestMapList;
 local SubCampRevivalPos = {
-	[QuestMapList.ShrineRuins] = {
+	[1] = {
 		Vector3f_new(236.707, 174.37, -510.568)
 	},
-	[QuestMapList.SandyPlains] = {
+	[2] = {
 		Vector3f_new(-117.699, -45.653, -233.201),
 		Vector3f_new(116.07, -63.316, -428.018)
 	},
-	[QuestMapList.FloodedForest] = {
+	[3] = {
 		Vector3f_new(207.968, 90.447, 46.081)
 	},
-	[QuestMapList.FrostIslands] = {
+	[4] = {
 		Vector3f_new(-94.171, 2.744, -371.947),
 		Vector3f_new(103.986, 26.0, -496.863)
 	},
-	[QuestMapList.LavaCaverns] = {
+	[5] = {
 		Vector3f_new(244.252, 147.122, -537.940),
 		Vector3f_new(-40.000, 81.136, -429.201)
 	},
-	[QuestMapList.Jungle] = {
+	[12] = {
 		Vector3f_new(3.854, 32.094, -147.152)
 	},
-	[QuestMapList.Citadel] = {
+	[13] = {
 		Vector3f_new(107.230, 94.988, -254.308)
 	}
 };
@@ -57,10 +60,10 @@ local reviveCampPos = nil;
 local function PreHook_startToPlayPlayerDieMusic()
 	reviveCampPos = nil;
 	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
-
+	
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
 		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, get_Points_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")):get_element(0)):get_element(0));
+		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")), 0)), 0));
 		local subCampCount = #subCamps;
 		if subCampCount > 1 then
 			for i = 1, subCampCount, 1 do
