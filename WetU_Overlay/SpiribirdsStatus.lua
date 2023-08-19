@@ -178,7 +178,6 @@ local function PostHook_addLvBuffCnt()
 				this.AcquiredCounts[i] = this.BirdsMaxCounts[i];
 				this.AcquiredValues[i] = this.StatusBuffLimits[i];
 			end
-
 		else
 			getBuffParameters(addBuffType);
 		end

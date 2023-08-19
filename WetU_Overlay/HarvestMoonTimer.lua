@@ -4,7 +4,6 @@ local ipairs = Constants.lua.ipairs;
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -63,7 +62,7 @@ end
 local function init()
 	local MasterPlayerIndex = getMasterPlayerIndex_method:call(nil);
 	if MasterPlayerIndex ~= nil then
-		local LongSwordShellManager = get_managed_singleton("snow.shell.LongSwordShellManager");
+		local LongSwordShellManager = Constants.sdk.get_managed_singleton("snow.shell.LongSwordShellManager");
 		if LongSwordShellManager ~= nil then
 			local MaseterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
 			if MaseterLongSwordShell010s ~= nil then

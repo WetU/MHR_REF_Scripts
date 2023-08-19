@@ -4,7 +4,6 @@ local math_min = Constants.lua.math_min;
 
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -14,10 +13,7 @@ local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
-local getMoneyVal = Constants.getMoneyVal;
-local addItemToBox = Constants.addItemToBox;
 local SendMessage = Constants.SendMessage;
-local getCountOfAll = Constants.getCountOfAll;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -53,7 +49,12 @@ local BbqConvertData_type_def = MealConvertDataList_get_Item_method:get_return_t
 local get_MoneyCost_method = BbqConvertData_type_def:get_method("get_MoneyCost");
 local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost");
 --
-local get_HandMoney_method = Constants.type_definitions.DataShortcut_type_def:get_method("get_HandMoney"); -- static
+local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
+local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
+local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
+local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
+--
+local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
 --
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
@@ -93,7 +94,7 @@ local DailyDango = {
 };
 --
 local function orderBbq()
-	local meatCount = getCountOfAll(68157562);
+	local meatCount = getCountOfAll_method:call(Constants:get_ContentsIdDataManager(), 68157562);
 	if meatCount == nil or meatCount <= 0 then
 		SendMessage("요리: 날고기가 없습니다!");
 		return;
@@ -106,7 +107,7 @@ local function orderBbq()
 		local BbqConvertData = MealConvertDataList_get_Item_method:call(get_MealConvertDataList_method:call(BbqFunc), 0);
 		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
 		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
-		local MoneyVal = getMoneyVal();
+		local MoneyVal = getMoneyVal_method:call(nil);
 		local paymentType = getVillagePoint() >= PointCost and 1
 			or MoneyVal >= MoneyCost and 2
 			or nil;
@@ -124,7 +125,7 @@ local function orderBbq()
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
-		addItemToBox(68157448, orderCount);
+		addItemToBox_method:call(nil, 68157448, orderCount);
 		if isExistOutputTicket_method:call(BbqFunc) == true then
 			Constants:outputMealTicket();
 		end
@@ -160,7 +161,7 @@ local function applyKitchenBuff(kitchenType)
 		end
 	end
 
-	local OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
+	local OtomoManager = Constants:get_OtomoManager();
 
 	local MasterFirstOtomo = getMasterFirstOtomo_method:call(OtomoManager);
 	if MasterFirstOtomo ~= nil then
@@ -176,7 +177,7 @@ end
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 
-	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(get_managed_singleton("snow.data.SkillDataManager"));
+	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager());
 	local AcitvePlKitchenSkill_count = get_Count_method:call(AcitvePlKitchenSkillList);
 	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 

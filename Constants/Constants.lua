@@ -89,7 +89,6 @@ this.type_definitions.VillageAreaManager_type_def = VillageAreaManager_type_def;
 this.type_definitions.DataShortcut_type_def = DataShortcut_type_def;
 this.type_definitions.EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
 this.type_definitions.FacilityDataManager_type_def = FacilityDataManager_type_def;
-this.type_definitions.ItemInventoryData_type_def = find_type_definition("snow.data.ItemInventoryData");
 this.type_definitions.GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
 this.type_definitions.StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
 this.type_definitions.PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
@@ -198,16 +197,10 @@ function this:getDeathNum()
 	return getDeathNum_method:call(self:get_QuestManager());
 end
 --
-local ChatManager_type_def = find_type_definition("snow.gui.ChatManager");
-local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
-local reqAddChatItemInfo_method = ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
+local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 function this.SendMessage(text)
 	reqAddChatInfomation_method:call(this:get_ChatManager(), text, 0); -- sound on : 2289944406
-end
-
-function this.SendItemInfoMessage(itemId, num, maxType)
-	reqAddChatItemInfo_method:call(this:get_ChatManager(), itemId, num, maxType, false);
 end
 --
 local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
@@ -220,27 +213,6 @@ end
 
 function this.subVillagePoint(count)
 	subPoint_method:call(nil, count);
-end
---
-local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
-local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
-local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
-local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
-
-function this.getMoneyVal()
-	return getMoneyVal_method:call(nil);
-end
-
-function this.sendItemToBox(inventoryData, sellRest)
-	sendItemToBox_method:call(nil, inventoryData, sellRest);
-end
-
-function this.addItemToBox(itemID, num)
-	addItemToBox_method:call(nil, itemID, num);
-end
-
-function this.getCountOfAll(itemID)
-	return getCountOfAll_method:call(this:get_ContentsIdDataManager(), itemID);
 end
 --
 function this.SKIP_ORIGINAL_func()
@@ -291,6 +263,22 @@ function this:get_FacilityDataManager()
 	return self.Objects.FacilityDataManager;
 end
 
+function this:get_OtomoSpyUnitManager()
+	if self.Objects.OtomoSpyUnitManager == nil or self.Objects.OtomoSpyUnitManager:get_reference_count() <= 1 then
+		self.Objects.OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
+	end
+
+	return self.Objects.OtomoSpyUnitManager;
+end
+
+function this:get_SkillDataManager()
+	if self.Objects.SkillDataManager == nil or self.Objects.SkillDataManager:get_reference_count() <= 1 then
+		self.Objects.SkillDataManager = get_managed_singleton("snow.data.SkillDataManager");
+	end
+
+	return self.Objects.SkillDataManager;
+end
+
 function this:get_ChatManager()
 	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() <= 1 then
 		self.Objects.ChatManager = get_managed_singleton("snow.gui.ChatManager");
@@ -307,12 +295,28 @@ function this:get_GuiManager()
 	return self.Objects.GuiManager;
 end
 
+function this:get_OtomoManager()
+	if self.Objects.OtomoManager == nil or self.Objects.OtomoManager:get_reference_count() <= 1 then
+		self.Objects.OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
+	end
+
+	return self.Objects.OtomoManager;
+end
+
 function this:get_PlayerManager()
 	if self.Objects.PlayerManager == nil or self.Objects.PlayerManager:get_reference_count() <= 1 then
 		self.Objects.PlayerManager = get_managed_singleton("snow.player.PlayerManager");
 	end
 
 	return self.Objects.PlayerManager;
+end
+
+function this:get_ProgressOwlNestManager()
+	if self.Objects.ProgressOwlNestManager == nil or self.Objects.ProgressOwlNestManager:get_reference_count() <= 1 then
+		self.Objects.ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
+	end
+
+	return self.Objects.ProgressOwlNestManager;
 end
 --
 local VillageAreaManager_onDestroy_method = VillageAreaManager_type_def:get_method("onDestroy");

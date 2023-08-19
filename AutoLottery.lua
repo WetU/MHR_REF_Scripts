@@ -55,10 +55,6 @@ end
 hook(find_type_definition("snow.gui.GuiItemShopLotMenu"):get_method("closeLotResultPanel"), PreHook_closeLotResultPanel);
 
 local function decideFunc(retval)
-    if LotAnimPlaying == true then
-        return TRUE_POINTER;
-    end
-
-    return retval;
+    return LotAnimPlaying == true and TRUE_POINTER or retval;
 end
 hook(type_definitions.StmGuiInput_type_def:get_method("getDecideButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, decideFunc);

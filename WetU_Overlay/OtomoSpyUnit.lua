@@ -8,8 +8,6 @@ local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 
-local Vector2f_new = Constants.Vector2f.new;
-
 local TRUE_POINTER = Constants.TRUE_POINTER;
 local checkGameStatus = Constants.checkGameStatus;
 --
@@ -47,7 +45,7 @@ local GuiRoomServiceFsmManager_type_def = find_type_definition("snow.gui.fsm.roo
 local get__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("get__MenuState");
 local set__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("set__MenuState(snow.gui.fsm.roomservice.GuiRoomService.RoomServiceTopMenu)");
 --
-local ReceiveAllButton_Index = Vector2f_new(0.0, 0.0);
+local ReceiveAllButton_Index = Constants.Vector2f.new(0.0, 0.0);
 --
 local isMaxStepCount = false;
 local isReturnAnimation = false;
@@ -62,7 +60,7 @@ local function setBoostItem(args)
 end
 
 local function get_currentStepCount()
-	local OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
+	local OtomoSpyUnitManager = Constants:get_OtomoSpyUnitManager();
 	local isOperating = get_IsOperating_method:call(OtomoSpyUnitManager);
 	if isOperating == true then
 		local NowStepCount = get_NowStepCount_method:call(OtomoSpyUnitManager);
