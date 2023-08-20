@@ -4,6 +4,7 @@ local ipairs = Constants.lua.ipairs;
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 
+local findInventoryData = Constants.findInventoryData;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 --
@@ -18,11 +19,9 @@ local get_NegotiationCount_method = TradeOrderData_type_def:get_method("get_Nego
 local setNegotiationCount_method = TradeOrderData_type_def:get_method("setNegotiationCount(System.UInt32)");
 local get_NegotiationType_method = TradeOrderData_type_def:get_method("get_NegotiationType");
 
-local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
-local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
-local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
+local sendItemToBox_method = Constants.type_definitions.DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
 
-local ItemInventoryData_type_def = findInventoryData_method:get_return_type();
+local ItemInventoryData_type_def = Constants.type_definitions.ItemInventoryData_type_def;
 local isEmpty_method = ItemInventoryData_type_def:get_method("isEmpty");
 local sub_method = ItemInventoryData_type_def:get_method("sub(System.UInt32, System.Boolean)");
 --
@@ -51,7 +50,7 @@ local this = {
 
 		local countUpdated = false;
 		local isReceived = false;
-		local acornInventoryData = findInventoryData_method:call(nil, 1, 68158481);
+		local acornInventoryData = findInventoryData(1, 68158481);
 		local addCount = isEmpty_method:call(acornInventoryData) == true and 1 or 4;
 
 		for _, TradeOrder in ipairs(get_TradeOrderList_method:call(TradeFunc):get_elements()) do

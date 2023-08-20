@@ -114,6 +114,13 @@ function this.checkKeyTrg(key)
 	return getTrg_method:call(nil, key);
 end
 --
+local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
+this.type_definitions.ItemInventoryData_type_def = findInventoryData_method:get_return_type();
+
+function this.findInventoryData(inventoryGroup, itemId)
+	return findInventoryData_method:call(nil, inventoryGroup, itemId);
+end
+--
 local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
 function this.checkGameStatus(checkType)
@@ -197,7 +204,9 @@ function this:getDeathNum()
 	return getDeathNum_method:call(self:get_QuestManager());
 end
 --
-local reqAddChatInfomation_method = find_type_definition("snow.gui.ChatManager"):get_method("reqAddChatInfomation(System.String, System.UInt32)");
+local ChatManager_type_def = find_type_definition("snow.gui.ChatManager");
+this.type_definitions.ChatManager_type_def = ChatManager_type_def;
+local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 function this.SendMessage(text)
 	reqAddChatInfomation_method:call(this:get_ChatManager(), text, 0); -- sound on : 2289944406
