@@ -1,5 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 --
+local get_managed_singleton = Constants.sdk.get_managed_singleton;
+
 local SendMessage = Constants.SendMessage;
 local getCountOfAll = Constants.getCountOfAll;
 --
@@ -15,7 +17,7 @@ local PLATINUM_EGG_DATA = nil;
 local this = {
     exchange = function()
         if getCountOfAll(68160340) >= 9999 then
-            local MysteryLaboTradePointItemFacility = Constants:get_MysteryLaboTradePointItemFacility();
+            local MysteryLaboTradePointItemFacility = get_managed_singleton("snow.facility.MysteryLaboTradePointItemFacility");
 
             if PLATINUM_EGG_DATA == nil then
                 PLATINUM_EGG_DATA = get_Item_method:call(get__OtherItemDataList_method:call(MysteryLaboTradePointItemFacility), 14);

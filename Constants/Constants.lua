@@ -121,6 +121,17 @@ function this.findInventoryData(inventoryGroup, itemId)
 	return findInventoryData_method:call(nil, inventoryGroup, itemId);
 end
 --
+local getMasterPlayerBase_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
+this.type_definitions.PlayerBase_type_def = getMasterPlayerBase_method:get_return_type();
+
+function this:get_MasterPlayerBase()
+	if self.Objects.MasterPlayerBase == nil or self.Objects.MasterPlayerBase:get_reference_count() <= 1 then
+		self.Objects.MasterPlayerBase = getMasterPlayerBase_method:call(nil);
+	end
+
+	return self.Objects.MasterPlayerBase;
+end
+--
 local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
 function this.checkGameStatus(checkType)
@@ -134,17 +145,6 @@ function this.ClearFade()
 	local FadeManager = get_managed_singleton("snow.FadeManager");
 	set_FadeMode_method:call(FadeManager, 3);
 	FadeManager:set_field("fadeOutInFlag", false);
-end
---
-local getMasterPlayerBase_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
-this.type_definitions.PlayerBase_type_def = getMasterPlayerBase_method:get_return_type();
-
-function this:get_MasterPlayerBase()
-	if self.Objects.MasterPlayerBase == nil or self.Objects.MasterPlayerBase:get_reference_count() <= 1 then
-		self.Objects.MasterPlayerBase = getMasterPlayerBase_method:call(nil);
-	end
-
-	return self.Objects.MasterPlayerBase;
 end
 --
 local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
@@ -292,14 +292,6 @@ function this:get_SkillDataManager()
 	end
 
 	return self.Objects.SkillDataManager;
-end
-
-function this:get_MysteryLaboTradePointItemFacility()
-	if self.Objects.MysteryLaboTradePointItemFacility == nil or self.Objects.MysteryLaboTradePointItemFacility:get_reference_count() <= 1 then
-		self.Objects.MysteryLaboTradePointItemFacility = get_managed_singleton("snow.facility.MysteryLaboTradePointItemFacility");
-	end
-
-	return self.Objects.MysteryLaboTradePointItemFacility;
 end
 
 function this:get_ChatManager()
