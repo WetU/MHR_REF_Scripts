@@ -82,6 +82,7 @@ local function PreHook_TopMenuStart(args)
     if LotState == nil then
         LotState = LotStates.checkLotEvent;
         LotEventStatus = checkLotEventStatus_method:call(nil);
+
         if LotEventStatus >= 0 and LotEventStatus <= 2 then
             GuiItemShopFsmTopMenuAction = to_managed_object(args[2]);
         elseif LotEventStatus == 5 then
@@ -103,6 +104,7 @@ local function PostHook_TopMenuStart()
                 LotState = LotStates.setTopMenu;
             end
         end);
+
         GuiItemShopFsmTopMenuAction = nil;
     end
 end
@@ -124,6 +126,7 @@ local function PostHook_TopSubMenuStart()
                 LotEventStatus = nil;
             end
         end);
+
         GuiItemShopFsmTopSubMenuAction = nil;
     end
 end
@@ -143,6 +146,8 @@ local function PostHook_initBallState()
 end
 hook(GuiItemShopLotMenu_type_def:get_method("initBallState"), nil, PostHook_initBallState);
 
+local PrizesData = nil;
+local FukudamaPrizeData = nil;
 local GuiItemShopFsmLotMenuResultSelectAction = nil;
 local function PreHook_LotResultStart(args)
     if LotState == LotStates.LotAnim then
@@ -155,33 +160,43 @@ local function PostHook_LotResultStart()
         hook_vtable(GuiItemShopFsmLotMenuResultSelectAction, LotResult_update_method, nil, function()
             if LotState == LotStates.onLotResult then
                 local GuiItemShopLotMenu = get_refGuiItemShopLotMenu_method:call(Constants:get_GuiManager());
+                local LotResultDataList = get_LotResultData_method:call(GuiItemShopLotMenu):get_elements();
                 local ListFukudamaPrize = get_ListFukudamaPrize_method:call(GuiItemShopLotMenu);
-                local ChatManager = Constants:get_ChatManager();
 
-                for _, data in ipairs(get_LotResultData_method:call(GuiItemShopLotMenu):get_elements()) do
-                    local count = get_Count_method:call(data);
-                    reqAddChatItemInfo_method:call(
-                        ChatManager,
-                        get_ItemId_method:call(data),
-                        count,
-                        checkSendInventoryStatus_method:call(nil, data, 65536, count) == 0 and 0 or 1,
-                        false
-                    );
+                if LotResultDataList ~= nil then
+                    PrizesData = {
+                        ItemId = {},
+                        Count = {},
+                        SendInventoryStatus = {},
+                        Length = #LotResultDataList
+                    };
+
+                    for i, data in ipairs(LotResultDataList) do
+                        local count = get_Count_method:call(data);
+                        PrizesData.ItemId[i] = get_ItemId_method:call(data);
+                        PrizesData.Count[i] = count;
+                        PrizesData.SendInventoryStatus[i] = checkSendInventoryStatus_method:call(nil, data, 65536, count) == 0 and 0 or 1;
+                    end
                 end
 
                 if ListFukudamaPrize ~= nil then
-                    for i = 0, Prize_get_Count_method:call(ListFukudamaPrize) - 1, 1 do
-                        local FukudamaPrize = Prize_get_Item_method:call(ListFukudamaPrize, i);
-                        local itemId = PrizeItemId_field:get_data(FukudamaPrize);
-                        local count = PrizeItemCount_field:get_data(FukudamaPrize);
+                    local ListSize = Prize_get_Count_method:call(ListFukudamaPrize);
+
+                    FukudamaPrizeData = {
+                        ItemId = {},
+                        Count = {},
+                        SendInventoryStatus = {},
+                        Length = ListSize
+                    };
+
+                    for i = 0, ListSize - 1, 1 do
+                        local PrizeData = Prize_get_Item_method:call(ListFukudamaPrize, i);
+                        local itemId = PrizeItemId_field:get_data(PrizeData);
+                        local count = PrizeItemCount_field:get_data(PrizeData);
                         local InventoryData = findInventoryData(1, itemId);
-                        reqAddChatItemInfo_method:call(
-                            ChatManager,
-                            itemId,
-                            count,
-                            (InventoryData == nil or checkSendInventoryStatus_method:call(nil, InventoryData, 65536, count) == 0) and 0 or 1,
-                            false
-                        );
+                        FukudamaPrizeData.ItemId[i + 1] = itemId;
+                        FukudamaPrizeData.Count[i + 1] = count;
+                        FukudamaPrizeData.SendInventoryStatus[i + 1] = (InventoryData == nil or checkSendInventoryStatus_method:call(nil, InventoryData, 65536, count) == 0) and 0 or 1;
                     end
                 end
 
@@ -189,6 +204,7 @@ local function PostHook_LotResultStart()
                 LotState = LotStates.setResultCursor;
             end
         end);
+
         GuiItemShopFsmLotMenuResultSelectAction = nil;
     end
 end
@@ -204,7 +220,38 @@ hook(GuiItemShopLotMenu_type_def:get_method("closeLotResultPanel"), PreHook_clos
 local function PreHook_closeItemShop(args)
     LotState = nil;
 end
-hook(GuiItemShopFsmManager_type_def:get_method("closeItemShop"), PreHook_closeItemShop);
+local function PostHook_closeItemShop()
+    if PrizesData ~= nil then
+        local ChatManager = Constants:get_ChatManager();
+
+        for i = 1, PrizesData.Length, 1 do
+            reqAddChatItemInfo_method:call(
+                ChatManager,
+                PrizesData.ItemId[i],
+                PrizesData.Count[i],
+                PrizesData.SendInventoryStatus[i],
+                false
+            );
+        end
+
+        if FukudamaPrizeData ~= nil then
+            for i = 1, FukudamaPrizeData.Length, 1 do
+                reqAddChatItemInfo_method:call(
+                    ChatManager,
+                    FukudamaPrizeData.ItemId[i],
+                    FukudamaPrizeData.Count[i],
+                    FukudamaPrizeData.SendInventoryStatus[i],
+                    false
+                );
+            end
+
+            FukudamaPrizeData = nil;
+        end
+
+        PrizesData = nil;
+    end
+end
+hook(GuiItemShopFsmManager_type_def:get_method("closeItemShop"), PreHook_closeItemShop, PostHook_closeItemShop);
 
 local function decideFunc(retval)
     if LotState == LotStates.confirmYN then
