@@ -224,6 +224,12 @@ function this.subVillagePoint(count)
 	subPoint_method:call(nil, count);
 end
 --
+local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
+
+function this.getCountOfAll(itemId)
+	return getCountOfAll_method:call(this:get_ContentsIdDataManager(), itemId);
+end
+--
 function this.SKIP_ORIGINAL_func()
 	return SKIP_ORIGINAL;
 end
@@ -286,6 +292,14 @@ function this:get_SkillDataManager()
 	end
 
 	return self.Objects.SkillDataManager;
+end
+
+function this:get_MysteryLaboTradePointItemFacility()
+	if self.Objects.MysteryLaboTradePointItemFacility == nil or self.Objects.MysteryLaboTradePointItemFacility:get_reference_count() <= 1 then
+		self.Objects.MysteryLaboTradePointItemFacility = get_managed_singleton("snow.facility.MysteryLaboTradePointItemFacility");
+	end
+
+	return self.Objects.MysteryLaboTradePointItemFacility;
 end
 
 function this:get_ChatManager()

@@ -14,6 +14,7 @@ local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 local SendMessage = Constants.SendMessage;
+local getCountOfAll = Constants.getCountOfAll;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -54,8 +55,6 @@ local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); 
 local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 --
-local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
---
 local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
 local DangoLogParam_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam");
@@ -94,7 +93,7 @@ local DailyDango = {
 };
 --
 local function orderBbq()
-	local meatCount = getCountOfAll_method:call(Constants:get_ContentsIdDataManager(), 68157562);
+	local meatCount = getCountOfAll(68157562);
 	if meatCount == nil or meatCount <= 0 then
 		SendMessage("요리: 날고기가 없습니다!");
 		return;

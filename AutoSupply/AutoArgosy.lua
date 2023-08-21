@@ -51,7 +51,7 @@ local this = {
 		local countUpdated = false;
 		local isReceived = false;
 		local acornInventoryData = findInventoryData(1, 68158481);
-		local addCount = isEmpty_method:call(acornInventoryData) == true and 1 or 4;
+		local addCount = (acornInventoryData == nil or isEmpty_method:call(acornInventoryData) == true) and 1 or 4;
 
 		for _, TradeOrder in ipairs(get_TradeOrderList_method:call(TradeFunc):get_elements()) do
 			if get_NegotiationCount_method:call(TradeOrder) == 1 then
