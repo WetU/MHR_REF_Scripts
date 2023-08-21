@@ -1,7 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
@@ -50,7 +49,7 @@ local skip_next_hook = nil;
 
 local function prehook_on_timeout(args)
 	if quest_vars ~= nil and to_int64(args[3]) == 2 then
-		local session_manager = to_managed_object(args[2]) or get_managed_singleton("snow.SnowSessionManager");
+		local session_manager = to_managed_object(args[2]);
 
 		local questType = quest_vars.quest_type;
 		skip_next_hook = questType;

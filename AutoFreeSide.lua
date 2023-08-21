@@ -6,8 +6,6 @@ local hook = Constants.sdk.hook;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 --
-local isOpenRewardWindow = false;
-
 local function PreHook_doOpen(args)
 	local GuiSideQuestOrder = to_managed_object(args[2]);
 	GuiSideQuestOrder:set_field("StampDelayTime", 0.0);
@@ -15,6 +13,7 @@ local function PreHook_doOpen(args)
 end
 hook(find_type_definition("snow.gui.GuiSideQuestOrder"):get_method("doOpen"), PreHook_doOpen);
 
+local isOpenRewardWindow = false;
 local function PostHook_getReaward()
 	isOpenRewardWindow = true;
 end

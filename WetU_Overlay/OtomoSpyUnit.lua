@@ -4,7 +4,6 @@ local string_format = Constants.lua.string_format;
 
 local to_int64 = Constants.sdk.to_int64;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 

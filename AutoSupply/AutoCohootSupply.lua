@@ -1,6 +1,4 @@
 local Constants = _G.require("Constants.Constants");
-
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 --
 local ProgressOwlNestManager_type_def = Constants.sdk.find_type_definition("snow.progress.ProgressOwlNestManager");
 local supply_method = ProgressOwlNestManager_type_def:get_method("supply");

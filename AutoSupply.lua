@@ -11,8 +11,7 @@ local to_int64 = Constants.sdk.to_int64;
 
 local SendMessage = Constants.SendMessage;
 
-local type_definitions = Constants.type_definitions;
-local WwiseChangeSpaceWatcher_type_def = type_definitions.WwiseChangeSpaceWatcher_type_def;
+local WwiseChangeSpaceWatcher_type_def = Constants.type_definitions.WwiseChangeSpaceWatcher_type_def;
 --
 local Restock = InventorySupply.Restock;
 --
@@ -27,7 +26,7 @@ local autoExchange = AutoMysteryPoint.exchange;
 local function PreHook_applyEquipMySet(args)
 	SendMessage(Restock(to_int64(args[3])));
 end
-hook(type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet);
+hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquipMySet(System.Int32)"), PreHook_applyEquipMySet);
 --
 local function campStart()
 	SendMessage(Restock(nil));

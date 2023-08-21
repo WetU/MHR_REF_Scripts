@@ -1,7 +1,6 @@
 local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
 local to_int64 = Constants.sdk.to_int64;
 local to_float = Constants.sdk.to_float;
@@ -58,12 +57,11 @@ local SubCampRevivalPos = {
 local reviveCampPos = nil;
 
 local function PreHook_startToPlayPlayerDieMusic()
-	reviveCampPos = nil;
 	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
 
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
-		local currentPos = get_Position_method:call(GetTransform_method:call(get_managed_singleton("snow.CameraManager"), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(get_managed_singleton("snow.stage.StagePointManager")), 0)), 0));
+		local currentPos = get_Position_method:call(GetTransform_method:call(Constants:get_CameraManager(), 1));
+		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(Constants:get_StagePointManager()), 0)), 0));
 		local subCampCount = #subCamps;
 		if subCampCount > 1 then
 			for i = 1, subCampCount, 1 do
@@ -92,7 +90,7 @@ end
 
 local function PreHook_setPlWarpInfo_Nekotaku(args)
 	if reviveCampPos ~= nil then
-		setPlWarpInfo_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.stage.StageManager"), reviveCampPos, 0.0, 20);
+		setPlWarpInfo_method:call(to_managed_object(args[2]), reviveCampPos, 0.0, 20);
 		return SKIP_ORIGINAL;
 	end
 end
@@ -101,7 +99,7 @@ local function PreHook_CreateNekotaku(args)
 	if reviveCampPos ~= nil then
 		local campPos = reviveCampPos;
 		reviveCampPos = nil;
-		CreateNekotaku_method:call(to_managed_object(args[2]) or get_managed_singleton("snow.NekotakuManager"), to_int64(args[3]), campPos, to_float(args[5]));
+		CreateNekotaku_method:call(to_managed_object(args[2]), to_int64(args[3]), campPos, to_float(args[5]));
 		return SKIP_ORIGINAL;
 	end
 end

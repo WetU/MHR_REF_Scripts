@@ -2,7 +2,6 @@ local Constants = _G.require("Constants.Constants");
 
 local ipairs = Constants.lua.ipairs;
 local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
 
 local findInventoryData = Constants.findInventoryData;
 local getVillagePoint = Constants.getVillagePoint;
@@ -46,8 +45,7 @@ local negotiationData = {
 --
 local this = {
 	autoArgosy = function()
-		local TradeFunc = get_TradeFunc_method:call(get_managed_singleton("snow.facility.TradeCenterFacility"));
-
+		local TradeFunc = get_TradeFunc_method:call(Constants:get_TradeCenterFacility());
 		local countUpdated = false;
 		local isReceived = false;
 		local acornInventoryData = findInventoryData(1, 68158481);

@@ -4,7 +4,6 @@ local math_min = Constants.lua.math_min;
 
 local create_managed_array = Constants.sdk.create_managed_array;
 local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 
@@ -60,11 +59,9 @@ local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:g
 local DangoLogParam_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam");
 local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType, System.UInt32)");
 --
-local PlayerLobbyBase_type_def = find_type_definition("snow.player.PlayerLobbyBase");
-local onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");
-local Lobby_setKitchenData_method = PlayerLobbyBase_type_def:get_method("setKitchenData");
+local Lobby_setKitchenData_method = Constants.type_definitions.PlayerLobbyBase_type_def:get_method("setKitchenData");
 --
-local getMasterPlayerQuestBase_method = find_type_definition("snow.enemy.EnemyUtility"):get_method("getMasterPlayer"); -- static
+local getMasterPlayerQuestBase_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayer"); -- static
 
 local Quest_setKitchenData_method = Constants.type_definitions.PlayerQuestBase_type_def:get_method("setKitchenData");
 --
@@ -107,20 +104,18 @@ local function orderBbq()
 		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
 		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
 		local MoneyVal = getMoneyVal_method:call(nil);
-		local paymentType = getVillagePoint() >= PointCost and 1
-			or MoneyVal >= MoneyCost and 2
-			or nil;
+		local paymentType = nil;
 
-		if paymentType == nil then
-			SendMessage("요리: 소지금과 포인트가 부족합니다!");
-			return;
-		end
-
-		if paymentType == 1 then
+		if getVillagePoint() >= PointCost then
+			paymentType = 1;
 			subVillagePoint(PointCost);
-		else
+		elseif MoneyVal >= MoneyCost then
+			paymentType = 2;
 			get_HandMoney_method:call(nil):set_field("_Value", MoneyVal - MoneyCost);
 			SendMessage("요리: 포인트가 부족합니다!\n소지금을 사용합니다");
+		else
+			SendMessage("요리: 소지금과 포인트가 부족합니다!");
+			return;
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
@@ -131,28 +126,12 @@ local function orderBbq()
 	end
 end
 --
-local PlayerLobbyBase = nil;
-
-local function destroyPlayerLobbyBase()
-	PlayerLobbyBase = nil;
-end
-
-local function getPlayerLobbyBase(args)
-	PlayerLobbyBase = to_managed_object(args[2]);
-	hook_vtable(PlayerLobbyBase, onDestroy_method, nil, destroyPlayerLobbyBase);
-end
-hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
-
-local function getPlayerLobbyBaseFromUpdate(args)
-	if PlayerLobbyBase == nil then
-		getPlayerLobbyBase(args);
-	end
-end
-hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
-
 local function applyKitchenBuff(kitchenType)
-	if kitchenType == 1 and PlayerLobbyBase ~= nil then
-		Lobby_setKitchenData_method:call(PlayerLobbyBase);
+	if kitchenType == 1 then
+		local MasterPlayerLobbyBase = Constants:get_MasterPlayerLobbyBase();
+		if MasterPlayerLobbyBase ~= nil then
+			Lobby_setKitchenData_method:call(MasterPlayerLobbyBase);
+		end
 	else
 		local MasterPlayerQuestBase = getMasterPlayerQuestBase_method:call(nil);
 		if MasterPlayerQuestBase ~= nil then
@@ -197,6 +176,13 @@ local function orderDango(kitchenType)
 	local MealFunc = get_MealFunc_method:call(Constants:get_KitchenFacility());
 
 	if checkAvailableMealSystem_method:call(MealFunc) == true then
+		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
+
+		if MealTicketNum == nil or MealTicketNum <= 0 then
+			SendMessage("식사: 식사권이 없습니다!");
+			return;
+		end
+
 		local paymentType = nil;
 
 		if checkHandMoney_method:call(MealFunc) == true then
@@ -206,13 +192,6 @@ local function orderDango(kitchenType)
 			SendMessage("식사: 소지금이 부족합니다!\n포인트를 사용합니다");
 		else
 			SendMessage("식사: 소지금과 포인트가 부족합니다!");
-			return;
-		end
-
-		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
-
-		if MealTicketNum == nil or MealTicketNum <= 0 then
-			SendMessage("식사: 식사권이 없습니다!");
 			return;
 		end
 

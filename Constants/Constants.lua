@@ -81,6 +81,7 @@ local QuestManager_type_def = find_type_definition("snow.QuestManager");
 local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
 local DataShortcut_type_def = find_type_definition("snow.data.DataShortcut");
 local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
+local PlayerLobbyBase_type_def = find_type_definition("snow.player.PlayerLobbyBase");
 
 this.type_definitions.Application_type_def = find_type_definition("via.Application");
 this.type_definitions.CameraManager_type_def = find_type_definition("snow.CameraManager");
@@ -88,9 +89,11 @@ this.type_definitions.QuestManager_type_def = QuestManager_type_def;
 this.type_definitions.VillageAreaManager_type_def = VillageAreaManager_type_def;
 this.type_definitions.DataShortcut_type_def = DataShortcut_type_def;
 this.type_definitions.EquipDataManager_type_def = find_type_definition("snow.data.EquipDataManager");
+this.type_definitions.EnemyUtility_type_def = find_type_definition("snow.enemy.EnemyUtility");
 this.type_definitions.FacilityDataManager_type_def = FacilityDataManager_type_def;
 this.type_definitions.GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
 this.type_definitions.StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
+this.type_definitions.PlayerLobbyBase_type_def = PlayerLobbyBase_type_def;
 this.type_definitions.PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
 this.type_definitions.WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
@@ -242,6 +245,14 @@ function this.to_bool(value)
 	return (to_int64(value) & 1) == 1;
 end
 --
+function this:get_CameraManager()
+	if self.Objects.CameraManager == nil or self.Objects.CameraManager:get_reference_count() <= 1 then
+		self.Objects.CameraManager = get_managed_singleton("snow.QuestManager");
+	end
+
+	return self.Objects.CameraManager;
+end
+
 function this:get_QuestManager()
 	if self.Objects.QuestManager == nil or self.Objects.QuestManager:get_reference_count() <= 1 then
 		self.Objects.QuestManager = get_managed_singleton("snow.QuestManager");
@@ -252,6 +263,14 @@ end
 
 function this:get_VillageAreaManager()
 	return self.Objects.VillageAreaManager;
+end
+
+function this:get_DemoCamera()
+	if self.Objects.DemoCamera == nil or self.Objects.DemoCamera:get_reference_count() <= 1 then
+		self.Objects.DemoCamera = get_managed_singleton("snow.camera.DemoCamera");
+	end
+
+	return self.Objects.DemoCamera;
 end
 
 function this:get_ContentsIdDataManager()
@@ -294,6 +313,14 @@ function this:get_SkillDataManager()
 	return self.Objects.SkillDataManager;
 end
 
+function this:get_TradeCenterFacility()
+	if self.Objects.TradeCenterFacility == nil or self.Objects.TradeCenterFacility:get_reference_count() <= 1 then
+		self.Objects.TradeCenterFacility = get_managed_singleton("snow.facility.TradeCenterFacility");
+	end
+
+	return self.Objects.TradeCenterFacility;
+end
+
 function this:get_ChatManager()
 	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() <= 1 then
 		self.Objects.ChatManager = get_managed_singleton("snow.gui.ChatManager");
@@ -318,6 +345,10 @@ function this:get_OtomoManager()
 	return self.Objects.OtomoManager;
 end
 
+function this:get_MasterPlayerLobbyBase()
+	return self.Objects.MasterPlayerLobbyBase;
+end
+
 function this:get_PlayerManager()
 	if self.Objects.PlayerManager == nil or self.Objects.PlayerManager:get_reference_count() <= 1 then
 		self.Objects.PlayerManager = get_managed_singleton("snow.player.PlayerManager");
@@ -333,6 +364,33 @@ function this:get_ProgressOwlNestManager()
 
 	return self.Objects.ProgressOwlNestManager;
 end
+
+function this:get_StagePointManager()
+	if self.Objects.StagePointManager == nil or self.Objects.StagePointManager:get_reference_count() <= 1 then
+		self.Objects.StagePointManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
+	end
+
+	return self.Objects.StagePointManager;
+end
+--
+local PlayerLobbyBase_onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");
+
+local function destroyPlayerLobbyBase()
+	this.Objects.MasterPlayerLobbyBase = nil;
+end
+
+local function getPlayerLobbyBase(args)
+	this.Objects.MasterPlayerLobbyBase = to_managed_object(args[2]);
+	hook_vtable(this.Objects.MasterPlayerLobbyBase, PlayerLobbyBase_onDestroy_method, nil, destroyPlayerLobbyBase);
+end
+hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
+
+local function getPlayerLobbyBaseFromUpdate(args)
+	if this.Objects.MasterPlayerLobbyBase == nil then
+		getPlayerLobbyBase(args);
+	end
+end
+hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
 --
 local VillageAreaManager_onDestroy_method = VillageAreaManager_type_def:get_method("onDestroy");
 
