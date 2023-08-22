@@ -25,22 +25,8 @@ local isEmpty_method = ItemInventoryData_type_def:get_method("isEmpty");
 local sub_method = ItemInventoryData_type_def:get_method("sub(System.UInt32, System.Boolean)");
 --
 local negotiationData = {
-	Count = {
-		6,
-		3,
-		3,
-		6,
-		3,
-		3
-	},
-	Cost = {
-		100,
-		150,
-		300,
-		250,
-		300,
-		500
-	}
+	Count = {6, 3, 3, 6, 3, 3},
+	Cost = {100, 150, 300, 250, 300, 500}
 };
 --
 local this = {

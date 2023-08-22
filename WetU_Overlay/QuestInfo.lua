@@ -44,11 +44,15 @@ local function onQuestStart()
 end
 
 local function updateDeathCount()
-	this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
+	if this.QuestInfoDataCreated == true then
+		this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
+	end
 end
 
 local function updateQuestTimer()
-	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(Constants:get_QuestManager())), curQuestMaxTimeMin);
+	if this.QuestInfoDataCreated == true then
+		this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(Constants:get_QuestManager())), curQuestMaxTimeMin);
+	end
 end
 
 local function Terminate()

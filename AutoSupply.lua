@@ -9,9 +9,11 @@ local AutoMysteryPoint = require("AutoSupply.AutoMysteryPoint");
 local hook = Constants.sdk.hook;
 local to_int64 = Constants.sdk.to_int64;
 
+local find_type_definition = Constants.sdk.find_type_definition;
+
 local SendMessage = Constants.SendMessage;
 
-local WwiseChangeSpaceWatcher_type_def = Constants.type_definitions.WwiseChangeSpaceWatcher_type_def;
+local WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
 local Restock = InventorySupply.Restock;
 --
@@ -31,7 +33,7 @@ hook(Constants.type_definitions.EquipDataManager_type_def:get_method("applyEquip
 local function campStart()
 	SendMessage(Restock(nil));
 end
-hook(Constants.sdk.find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
+hook(find_type_definition("snow.gui.fsm.camp.GuiCampFsmManager"):get_method("start"), nil, campStart);
 --
 local isOnVillageStarted = false;
 

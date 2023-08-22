@@ -8,6 +8,9 @@ local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local pairs = Constants.lua.pairs;
 local tostring = Constants.lua.tostring;
 
+local find_type_definition = Constants.sdk.find_type_definition;
+local to_managed_object = Constants.sdk.to_managed_object;
+
 local on_frame = Constants.re.on_frame;
 
 local Font = Constants.Font;
@@ -30,21 +33,31 @@ local addItemToPouch_method = Constants.type_definitions.DataShortcut_type_def:g
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
 --
+local GuiQuestStart_type_def = find_type_definition("snow.gui.GuiQuestStart");
+local NowState_field = GuiQuestStart_type_def:get_field("_NowState");
+--
 local AutoAddItemIds = {
 	[68157940] = 10, -- 지급전용 휴대 식량
 	[68157942] = 10, -- 그레이트 응급약
 	[68157954] = 1  -- 지급전용 귀환옥
 };
 
-local function onQuestStart()
+local GuiQuestStart = nil;
+local function Prehook_QuestStart(args)
+	GuiQuestStart = to_managed_object(args[2]);
 	QuestInfo_onQuestStart();
 	SpiribirdsStatus_onQuestStart();
-
-	for k, v in pairs(AutoAddItemIds) do
-		addItemToPouch_method:call(nil, k, v);
-	end
 end
-Constants.sdk.hook(Constants.type_definitions.WwiseChangeSpaceWatcher_type_def:get_method("onQuestStart"), nil, onQuestStart);
+local function PostHook_QuestStart()
+	if NowState_field:get_data(GuiQuestStart) == 3 then
+		for k, v in pairs(AutoAddItemIds) do
+			addItemToPouch_method:call(nil, k, v);
+		end
+	end
+
+	GuiQuestStart = nil;
+end
+Constants.sdk.hook(GuiQuestStart_type_def:get_method("lateUpdate"), Prehook_QuestStart, PostHook_QuestStart);
 --
 local WINDOW_FLAG = 4096 + 64 + 512;
 

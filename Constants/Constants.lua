@@ -95,7 +95,6 @@ this.type_definitions.GuiManager_type_def = find_type_definition("snow.gui.GuiMa
 this.type_definitions.StmGuiInput_type_def = find_type_definition("snow.gui.StmGuiInput");
 this.type_definitions.PlayerLobbyBase_type_def = PlayerLobbyBase_type_def;
 this.type_definitions.PlayerQuestBase_type_def = find_type_definition("snow.player.PlayerQuestBase");
-this.type_definitions.WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --
 this.Font = imgui.load_font("NotoSansKR-Bold.otf", 24, {
 	0x0020, 0x00FF, -- Basic Latin + Latin Supplement
