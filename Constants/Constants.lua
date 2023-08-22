@@ -6,7 +6,8 @@ local this = {
 	Vector2f = {},
 	Vector3f = {},
 	type_definitions = {},
-	Objects = {}
+	Objects = {},
+	Array = {}
 };
 --
 local _G = _G;
@@ -109,6 +110,17 @@ this.Font = imgui.load_font("NotoSansKR-Bold.otf", 24, {
 	0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
 	0
 });
+--
+local Array_get_Count_method = find_type_definition("System.Collections.ArrayList"):get_method("get_Count"); -- 140056FA0
+local Array_get_Item_method = find_type_definition("System.Collections.Generic.List`1<System.UInt64>"):get_method("get_Item(System.Int32)"); -- 140054920
+
+function this.getArrayCount(array)
+	return Array_get_Count_method:call(array);
+end
+
+function this.getArrayItem(array, index)
+	return Array_get_Item_method:call(array, index);
+end
 --
 local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 

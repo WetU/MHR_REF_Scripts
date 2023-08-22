@@ -1,19 +1,16 @@
 local Constants = _G.require("Constants.Constants");
 
-local ipairs = Constants.lua.ipairs;
 local string_format = Constants.lua.string_format;
 
-local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
+
+local getArrayCount = Constants.getArrayCount;
+local getArrayItem = Constants.getArrayItem;
 --
 local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
 --
-local getMaseterLongSwordShell010s_method = find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)");
-local mItems_field = getMaseterLongSwordShell010s_method:get_return_type():get_field("mItems");
-
-local LongSwordShell010_type_def = find_type_definition("snow.shell.LongSwordShell010");
+local LongSwordShell010_type_def = Constants.sdk.find_type_definition("snow.shell.LongSwordShell010");
 local update_method = LongSwordShell010_type_def:get_method("update");
 local onDestroy_method = LongSwordShell010_type_def:get_method("onDestroy");
 local lifeTimer_field = LongSwordShell010_type_def:get_field("_lifeTimer");
@@ -64,11 +61,12 @@ local function init()
 	if MasterPlayerIndex ~= nil then
 		local LongSwordShellManager = Constants.sdk.get_managed_singleton("snow.shell.LongSwordShellManager");
 		if LongSwordShellManager ~= nil then
-			local MaseterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
+			local MaseterLongSwordShell010s = LongSwordShellManager:get_type_definition():get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)"):call(LongSwordShellManager, MasterPlayerIndex);
 			if MaseterLongSwordShell010s ~= nil then
-				local MasterShell010List = mItems_field:get_data(MaseterLongSwordShell010s);
-				if MasterShell010List ~= nil and MasterShell010List:get_size() > 0 then
-					for i, MasterShell010 in ipairs(MasterShell010List:get_elements()) do
+				local count = getArrayCount(MaseterLongSwordShell010s);
+				if count > 0 then
+					for i = 0, count - 1, 1 do
+						local MasterShell010 = getArrayItem(MaseterLongSwordShell010s, i);
 						if CircleType_field:get_data(MasterShell010) == 1 then
 							LongSwordShell010 = MasterShell010;
 							HarvestMoon_init();
@@ -80,7 +78,7 @@ local function init()
 		end
 	end
 
-	hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
+	Constants.sdk.hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
 end
 
 this.init = init;

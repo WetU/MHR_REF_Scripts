@@ -8,6 +8,8 @@ local hook = Constants.sdk.hook;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
 
 local Vector3f_new = Constants.Vector3f.new;
+
+local getArrayItem = Constants.getArrayItem;
 --
 local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):get_method("calcDistance(via.vec3, via.vec3)"); -- static
 --
@@ -18,9 +20,7 @@ local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_m
 --
 local get_FastTravelPointList_method = find_type_definition("snow.stage.StagePointManager"):get_method("get_FastTravelPointList");
 
-local FastTravelPointList_get_Item_method = get_FastTravelPointList_method:get_return_type():get_method("get_Item(System.Int32)");
-
-local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points");
+local get_Points_method = find_type_definition("snow.stage.StagePointManager.StagePoint"):get_method("get_Points");
 
 local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)");
 --
@@ -61,7 +61,7 @@ local function PreHook_startToPlayPlayerDieMusic()
 
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
 		local currentPos = get_Position_method:call(GetTransform_method:call(Constants:get_CameraManager(), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(Constants:get_StagePointManager()), 0)), 0));
+		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(getArrayItem(get_FastTravelPointList_method:call(Constants:get_StagePointManager()), 0)), 0));
 		local subCampCount = #subCamps;
 		if subCampCount > 1 then
 			for i = 1, subCampCount, 1 do

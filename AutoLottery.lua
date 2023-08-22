@@ -10,6 +10,7 @@ local hook_vtable = Constants.sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
+local getArrayCount = Constants.getArrayCount;
 local findInventoryData = Constants.findInventoryData;
 local SendMessage = Constants.SendMessage;
 --
@@ -42,15 +43,13 @@ local get__LotResultCursor_method = GuiItemShopLotMenu_type_def:get_method("get_
 local get_LotResultData_method = GuiItemShopLotMenu_type_def:get_method("get_LotResultData");
 local get_ListFukudamaPrize_method = GuiItemShopLotMenu_type_def:get_method("get_ListFukudamaPrize");
 
-local ListFukudamaPrize_type_def = get_ListFukudamaPrize_method:get_return_type();
-local Prize_get_Count_method = ListFukudamaPrize_type_def:get_method("get_Count");
-local Prize_get_Item_method = ListFukudamaPrize_type_def:get_method("get_Item(System.Int32)");
+local LotResultCursor_set_index_method = get__LotResultCursor_method:get_return_type():get_method("set_index(via.vec2)");
+
+local Prize_get_Item_method = get_ListFukudamaPrize_method:get_return_type():get_method("get_Item(System.Int32)");
 
 local FukudamaPrize_type_def = Prize_get_Item_method:get_return_type();
 local PrizeItemId_field = FukudamaPrize_type_def:get_field("Item1");
 local PrizeItemCount_field = FukudamaPrize_type_def:get_field("Item2");
-
-local LotResultCursor_set_index_method = get__LotResultCursor_method:get_return_type():get_method("set_index(via.vec2)");
 --
 local ItemInventoryData_type_def = Constants.type_definitions.ItemInventoryData_type_def;
 local get_ItemId_method = ItemInventoryData_type_def:get_method("get_ItemId");
@@ -179,7 +178,7 @@ local function PostHook_LotResultStart()
                 end
 
                 if ListFukudamaPrize ~= nil then
-                    local ListSize = Prize_get_Count_method:call(ListFukudamaPrize);
+                    local ListSize = getArrayCount(ListFukudamaPrize);
 
                     FukudamaPrizeData = {
                         ItemId = {},
