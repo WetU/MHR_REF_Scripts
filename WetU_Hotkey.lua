@@ -10,12 +10,12 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local getArrayCount = Constants.getArrayCount;
+local getArrayItem = Constants.getArrayItem;
 local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 local SendMessage = Constants.SendMessage;
 local getCountOfAll = Constants.getCountOfAll;
-local getArrayItem = Constants.getArrayItem;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;

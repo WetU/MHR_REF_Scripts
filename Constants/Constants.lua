@@ -6,8 +6,7 @@ local this = {
 	Vector2f = {},
 	Vector3f = {},
 	type_definitions = {},
-	Objects = {},
-	Array = {}
+	Objects = {}
 };
 --
 local _G = _G;

@@ -44,7 +44,7 @@ local set_SpeechBalloonAttr_method = NpcTalkMessageCtrl_type_def:get_method("set
 local talkAction2_CommercialStuffItem_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_CommercialStuffItem(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl_type_def:get_method("talkAction2_SupplyMysteryResearchRequestReward(snow.NpcDefine.NpcID, snow.npc.TalkAction2Param, System.UInt32)");
 --
-local RewardDataList_get_Item_method = find_type_definition("System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>"):get_method("get_Item(System.Int32)");  -- Addr: 140200750
+local RewardDataList_get_Item_method = find_type_definition("System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>"):get_method("get_Item(System.Int32)");
 local RewardItemId_field = RewardDataList_get_Item_method:get_return_type():get_field("Item1");
 
 local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
