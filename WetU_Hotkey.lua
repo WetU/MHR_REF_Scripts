@@ -9,8 +9,6 @@ local hook_vtable = Constants.sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
-local getArrayCount = Constants.getArrayCount;
-local getArrayItem = Constants.getArrayItem;
 local checkKeyTrg = Constants.checkKeyTrg;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
@@ -45,6 +43,8 @@ local get_MealConvertDataList_method = BbqFunc_type_def:get_method("get_MealConv
 local orderBbq_method = BbqFunc_type_def:get_method("orderBbq(snow.facility.kitchen.BbqConvertData, System.UInt32)");
 local isExistOutputTicket_method = BbqFunc_type_def:get_method("isExistOutputTicket");
 
+local MealConvertDataList_mItems_field = get_MealConvertDataList_method:get_return_type():get_field("mItems");
+
 local BbqConvertData_type_def = find_type_definition("snow.facility.kitchen.BbqConvertData");
 local get_MoneyCost_method = BbqConvertData_type_def:get_method("get_MoneyCost");
 local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost");
@@ -72,6 +72,7 @@ local getMasterSecondOtomo_method = OtomoManager_type_def:get_method("getMasterS
 local Otomo_setKitchenData_method = getMasterFirstOtomo_method:get_return_type():get_method("setKitchenData");
 --
 local get_AcitvePlKitchenSkillList_method = find_type_definition("snow.data.SkillDataManager"):get_method("get_AcitvePlKitchenSkillList");
+local AcitvePlKitchenSkillList_mItems_field = get_AcitvePlKitchenSkillList_method:get_return_type():get_field("mItems");
 
 local PlayerKitchenSkillData_type_def = find_type_definition("snow.player.PlayerKitchenSkillData");
 --
@@ -96,7 +97,7 @@ local function orderBbq()
 
 	if get_CanUseFunc_method:call(BbqFunc) == true then
 		local orderCount = math_min(meatCount, 99);
-		local BbqConvertData = getArrayItem(get_MealConvertDataList_method:call(BbqFunc), 0);
+		local BbqConvertData = MealConvertDataList_mItems_field:get_data(get_MealConvertDataList_method:call(BbqFunc)):get_element(0);
 		local PointCost = get_PointCost_method:call(BbqConvertData) * orderCount;
 		local MoneyCost = get_MoneyCost_method:call(BbqConvertData) * orderCount;
 		local MoneyVal = getMoneyVal_method:call(nil);
@@ -151,15 +152,15 @@ end
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 
-	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager());
-	local AcitvePlKitchenSkill_count = getArrayCount(AcitvePlKitchenSkillList);
+	local AcitvePlKitchenSkillList = AcitvePlKitchenSkillList_mItems_field:get_data(get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager()));
+	local AcitvePlKitchenSkill_count = AcitvePlKitchenSkillList:get_size();
 	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
 
 	setStatusParam_method:call(DangoLogParam, 0, vitalBuff);
 	setStatusParam_method:call(DangoLogParam, 1, staminaBuff);
 
 	for i = 0, AcitvePlKitchenSkill_count - 1, 1 do
-		AcitvePlKitchenSkillArray[i] = getArrayItem(AcitvePlKitchenSkillList, i);
+		AcitvePlKitchenSkillArray[i] = AcitvePlKitchenSkillList:get_element(i);
 	end
 
 	DangoLogParam:set_field("_SkillDataList", AcitvePlKitchenSkillArray);

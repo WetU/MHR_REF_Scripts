@@ -10,7 +10,6 @@ local hook_vtable = Constants.sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
-local getArrayCount = Constants.getArrayCount;
 local findInventoryData = Constants.findInventoryData;
 local SendMessage = Constants.SendMessage;
 --
@@ -45,9 +44,9 @@ local get_ListFukudamaPrize_method = GuiItemShopLotMenu_type_def:get_method("get
 
 local LotResultCursor_set_index_method = get__LotResultCursor_method:get_return_type():get_method("set_index(via.vec2)");
 
-local Prize_get_Item_method = get_ListFukudamaPrize_method:get_return_type():get_method("get_Item(System.Int32)");
+local mItems_field = get_ListFukudamaPrize_method:get_return_type():get_field("mItems");
 
-local FukudamaPrize_type_def = Prize_get_Item_method:get_return_type();
+local FukudamaPrize_type_def = find_type_definition("System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>");
 local PrizeItemId_field = FukudamaPrize_type_def:get_field("Item1");
 local PrizeItemCount_field = FukudamaPrize_type_def:get_field("Item2");
 --
@@ -158,29 +157,13 @@ local function PostHook_LotResultStart()
         hook_vtable(GuiItemShopFsmLotMenuResultSelectAction, LotResult_update_method, nil, function()
             if LotState == LotStates.onLotResult then
                 local GuiItemShopLotMenu = get_refGuiItemShopLotMenu_method:call(Constants:get_GuiManager());
-                local LotResultDataList = get_LotResultData_method:call(GuiItemShopLotMenu):get_elements();
-                local ListFukudamaPrize = get_ListFukudamaPrize_method:call(GuiItemShopLotMenu);
+                local LotResultDataList = get_LotResultData_method:call(GuiItemShopLotMenu);
+                local ListFukudamaPrize = mItems_field:get_data(get_ListFukudamaPrize_method:call(GuiItemShopLotMenu));
 
                 if LotResultDataList ~= nil then
+                    local ListSize = LotResultDataList:get_size();
+
                     PrizesData = {
-                        ItemId = {},
-                        Count = {},
-                        SendInventoryStatus = {},
-                        Length = #LotResultDataList
-                    };
-
-                    for i, data in ipairs(LotResultDataList) do
-                        local count = get_Count_method:call(data);
-                        PrizesData.ItemId[i] = get_ItemId_method:call(data);
-                        PrizesData.Count[i] = count;
-                        PrizesData.SendInventoryStatus[i] = checkSendInventoryStatus_method:call(nil, data, 65536, count) == 0 and 0 or 1;
-                    end
-                end
-
-                if ListFukudamaPrize ~= nil then
-                    local ListSize = getArrayCount(ListFukudamaPrize);
-
-                    FukudamaPrizeData = {
                         ItemId = {},
                         Count = {},
                         SendInventoryStatus = {},
@@ -188,13 +171,34 @@ local function PostHook_LotResultStart()
                     };
 
                     for i = 0, ListSize - 1, 1 do
-                        local PrizeData = Prize_get_Item_method:call(ListFukudamaPrize, i);
-                        local itemId = PrizeItemId_field:get_data(PrizeData);
-                        local count = PrizeItemCount_field:get_data(PrizeData);
-                        local InventoryData = findInventoryData(1, itemId);
-                        FukudamaPrizeData.ItemId[i + 1] = itemId;
-                        FukudamaPrizeData.Count[i + 1] = count;
-                        FukudamaPrizeData.SendInventoryStatus[i + 1] = (InventoryData == nil or checkSendInventoryStatus_method:call(nil, InventoryData, 65536, count) == 0) and 0 or 1;
+                        local data = LotResultDataList:get_element(i);
+                        local count = get_Count_method:call(data);
+                        PrizesData.ItemId[i + 1] = get_ItemId_method:call(data);
+                        PrizesData.Count[i + 1] = count;
+                        PrizesData.SendInventoryStatus[i + 1] = checkSendInventoryStatus_method:call(nil, data, 65536, count) == 0 and 0 or 1;
+                    end
+                end
+
+                if ListFukudamaPrize ~= nil then
+                    local ListSize = ListFukudamaPrize:get_size();
+
+                    if ListSize > 0 then
+                        FukudamaPrizeData = {
+                            ItemId = {},
+                            Count = {},
+                            SendInventoryStatus = {},
+                            Length = ListSize
+                        };
+
+                        for i = 0, ListSize - 1, 1 do
+                            local PrizeData = ListFukudamaPrize:get_element(i);
+                            local itemId = PrizeItemId_field:get_data(PrizeData);
+                            local count = PrizeItemCount_field:get_data(PrizeData);
+                            local InventoryData = findInventoryData(1, itemId);
+                            FukudamaPrizeData.ItemId[i + 1] = itemId;
+                            FukudamaPrizeData.Count[i + 1] = count;
+                            FukudamaPrizeData.SendInventoryStatus[i + 1] = (InventoryData == nil or checkSendInventoryStatus_method:call(nil, InventoryData, 65536, count) == 0) and 0 or 1;
+                        end
                     end
                 end
 

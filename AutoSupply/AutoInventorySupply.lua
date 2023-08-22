@@ -1,11 +1,8 @@
 local Constants = _G.require("Constants.Constants");
-
-local ipairs = Constants.lua.ipairs;
+--
 local string_format = Constants.lua.string_format;
 
 local find_type_definition = Constants.sdk.find_type_definition;
-
-local getArrayItem = Constants.getArrayItem;
 --
 local DefaultSet = 0;
 --
@@ -20,25 +17,12 @@ local getData_method = ItemMySet_type_def:get_method("getData(System.Int32)");
 local PlItemPouchMySetData_type_def = getData_method:get_return_type();
 local PlItemPouchMySetData_get_Name_method = PlItemPouchMySetData_type_def:get_method("get_Name");
 local isEnoughItem_method = PlItemPouchMySetData_type_def:get_method("isEnoughItem");
-local get_PaletteSetIndex_method = PlItemPouchMySetData_type_def:get_method("get_PaletteSetIndex");
-
-local PalleteSetIndex_type_def = get_PaletteSetIndex_method:get_return_type(); -- nullable_int32
-local get_HasValue_method = PalleteSetIndex_type_def:get_method("get_HasValue");
-local get_Value_method = PalleteSetIndex_type_def:get_method("get_Value");
 --
-local PlEquipMySetList_field = Constants.type_definitions.EquipDataManager_type_def:get_field("_PlEquipMySetList");
+local get_PlEquipMySetList_method = Constants.type_definitions.EquipDataManager_type_def:get_method("get_PlEquipMySetList");
 
 local PlEquipMySetData_type_def = find_type_definition("snow.equip.PlEquipMySetData");
 local PlEquipMySetData_get_Name_method = PlEquipMySetData_type_def:get_method("get_Name");
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
---
-local getCustomShortcutSystem_method = find_type_definition("snow.data.SystemDataManager"):get_method("getCustomShortcutSystem"); -- static
-
-local CustomShortcutSystem_type_def = getCustomShortcutSystem_method:get_return_type();
-local setUsingPaletteIndex_method = CustomShortcutSystem_type_def:get_method("setUsingPaletteIndex(snow.data.CustomShortcutSystem.SycleTypes, System.Int32)");
-local getPaletteSetList_method = CustomShortcutSystem_type_def:get_method("getPaletteSetList(snow.data.CustomShortcutSystem.SycleTypes)"); 
-
-local PaletteSetData_get_Name_method = find_type_definition("snow.data.customShortcut.PaletteSetData"):get_method("get_Name");
 --
 local LocalizedStrings = {
 	WeaponNames = {
@@ -63,10 +47,6 @@ local LocalizedStrings = {
 	FromWeaponType = "무기 유형 [<COL YEL>%s</COL>]의 아이템 프리셋 [<COL YEL>%s</COL>] 적용",
 	OutOfStock = "아이템 프리셋 [<COL YEL>%s</COL>]의 <COL RED>물품이 부족</COL>하여 적용이 취소되었습니다.",
 
-	PaletteNilError = "<COL RED>오류</COL>：팔레트 미설정",
-	PaletteApplied = "팔레트 [<COL YEL>%s</COL>] 적용",
-	PaletteListEmpty = "팔레트 설정이 비어있습니다",
-
 	WeaponTypeNilError = "<COL RED>오류</COL>：무기 유형 오류"
 };
 --
@@ -83,7 +63,7 @@ local function FromWeaponType(equipName, itemName, mismatch)
 end
 
 local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
-	local PlEquipMySetList = PlEquipMySetList_field:get_data(equipDataManager);
+	local PlEquipMySetList = get_PlEquipMySetList_method:call(equipDataManager);
 
 	if expectedLoadoutIndex ~= nil then
 		lastHitLoadoutIndex = expectedLoadoutIndex;
@@ -97,9 +77,10 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 		end
 	end
 
-	for i, PlEquipMySet in ipairs(PlEquipMySetList:get_elements()) do
+	for i = 0, 223, 1 do
+		local PlEquipMySet = PlEquipMySetList:get_element(i);
 		if isSamePlEquipPack_method:call(PlEquipMySet) == true then
-			lastHitLoadoutIndex = i - 1;
+			lastHitLoadoutIndex = i;
 			return 1, PlEquipMySetData_get_Name_method:call(PlEquipMySet), nil;
 		end
 	end
@@ -119,19 +100,6 @@ local this = {
 			applyItemMySet_method:call(ItemMySet, DefaultSet);
 			msg = matchedType == 1 and string_format(LocalizedStrings.FromLoadout, matchedName, itemLoadoutName)
 				or matchedType == 2 and FromWeaponType(matchedName, itemLoadoutName, loadoutMismatch);
-
-			local paletteIndex = get_PaletteSetIndex_method:call(loadout);
-
-			if get_HasValue_method:call(paletteIndex) == true then
-				local radialSetIndex = get_Value_method:call(paletteIndex);
-				local ShortcutManager = getCustomShortcutSystem_method:call(nil);
-				local paletteList = getPaletteSetList_method:call(ShortcutManager, DefaultSet);
-				msg = paletteList == nil and msg .. "\n" .. LocalizedStrings.PaletteListEmpty
-					or msg .. "\n" .. string_format(LocalizedStrings.PaletteApplied, PaletteSetData_get_Name_method:call(getArrayItem(paletteList, radialSetIndex)));
-				setUsingPaletteIndex_method:call(ShortcutManager, DefaultSet, radialSetIndex);
-			else
-				msg = msg .. "\n" .. LocalizedStrings.PaletteNilError;
-			end
 		end
 
 		return msg;
