@@ -1,7 +1,5 @@
 local Constants = _G.require("Constants.Constants");
 --
-local ipairs = Constants.lua.ipairs;
-
 local find_type_definition = Constants.sdk.find_type_definition;
 local get_managed_singleton = Constants.sdk.get_managed_singleton;
 local to_managed_object = Constants.sdk.to_managed_object;
@@ -44,7 +42,9 @@ local get_ListFukudamaPrize_method = GuiItemShopLotMenu_type_def:get_method("get
 
 local LotResultCursor_set_index_method = get__LotResultCursor_method:get_return_type():get_method("set_index(via.vec2)");
 
-local mItems_field = get_ListFukudamaPrize_method:get_return_type():get_field("mItems");
+local ListFukudamaPrize_type_def = get_ListFukudamaPrize_method:get_return_type();
+local ListFukudamaPrize_mItems_field = ListFukudamaPrize_type_def:get_field("mItems");
+local ListFukudamaPrize_mSize_field = ListFukudamaPrize_type_def:get_field("mSize");
 
 local FukudamaPrize_type_def = find_type_definition("System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>");
 local PrizeItemId_field = FukudamaPrize_type_def:get_field("Item1");
@@ -158,7 +158,7 @@ local function PostHook_LotResultStart()
             if LotState == LotStates.onLotResult then
                 local GuiItemShopLotMenu = get_refGuiItemShopLotMenu_method:call(Constants:get_GuiManager());
                 local LotResultDataList = get_LotResultData_method:call(GuiItemShopLotMenu);
-                local ListFukudamaPrize = mItems_field:get_data(get_ListFukudamaPrize_method:call(GuiItemShopLotMenu));
+                local ListFukudamaPrize = get_ListFukudamaPrize_method:call(GuiItemShopLotMenu);
 
                 if LotResultDataList ~= nil then
                     local ListSize = LotResultDataList:get_size();
@@ -180,7 +180,7 @@ local function PostHook_LotResultStart()
                 end
 
                 if ListFukudamaPrize ~= nil then
-                    local ListSize = ListFukudamaPrize:get_size();
+                    local ListSize = ListFukudamaPrize_mSize_field:get_data(ListFukudamaPrize);
 
                     if ListSize > 0 then
                         FukudamaPrizeData = {
@@ -189,9 +189,10 @@ local function PostHook_LotResultStart()
                             SendInventoryStatus = {},
                             Length = ListSize
                         };
+                        local arrayItems = ListFukudamaPrize_mItems_field:get_data(ListFukudamaPrize);
 
                         for i = 0, ListSize - 1, 1 do
-                            local PrizeData = ListFukudamaPrize:get_element(i);
+                            local PrizeData = arrayItems:get_element(i);
                             local itemId = PrizeItemId_field:get_data(PrizeData);
                             local count = PrizeItemCount_field:get_data(PrizeData);
                             local InventoryData = findInventoryData(1, itemId);

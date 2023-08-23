@@ -10,7 +10,10 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
 --
 local getMaseterLongSwordShell010s_method = find_type_definition("snow.shell.LongSwordShellManager"):get_method("getMaseterLongSwordShell010s(snow.player.PlayerIndex)");
-local mItems_field = getMaseterLongSwordShell010s_method:get_return_type():get_field("mItems");
+
+local MaseterLongSwordShell010s_type_def = getMaseterLongSwordShell010s_method:get_return_type();
+local mItems_field = MaseterLongSwordShell010s_type_def:get_field("mItems");
+local mSize_field = MaseterLongSwordShell010s_type_def:get_field("mSize");
 
 local LongSwordShell010_type_def = find_type_definition("snow.shell.LongSwordShell010");
 local update_method = LongSwordShell010_type_def:get_method("update");
@@ -64,7 +67,7 @@ local function init()
 			if MaseterLongSwordShell010s ~= nil then
 				local MasterShell010List = mItems_field:get_data(MaseterLongSwordShell010s);
 				if MasterShell010List ~= nil then
-					local ListSize = MasterShell010List:get_size();
+					local ListSize = mSize_field:get_data(MasterShell010List);
 					if ListSize > 0 then
 						for i = 0, ListSize - 1, 1 do
 							local MasterShell010 = MasterShell010List:get_element(i);

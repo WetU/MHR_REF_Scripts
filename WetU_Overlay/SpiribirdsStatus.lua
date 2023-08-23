@@ -63,10 +63,6 @@ local BuffTypes = {
 	1  -- Stamina
 };
 --
-local function hasRainbow()
-	return getLvBuffCnt_method:call(Constants:get_PlayerManager(), LvBuff[5]) > 0;
-end
-
 local function Terminate()
 	this.SpiribirdsHudDataCreated = false;
 	this.SpiribirdsCall_Timer = nil;
@@ -173,7 +169,7 @@ local function PreHook_addLvBuffCnt(args)
 end
 local function PostHook_addLvBuffCnt()
 	if addBuffType ~= nil then
-		if hasRainbow() == true then
+		if getLvBuffCnt_method:call(Constants:get_PlayerManager(), LvBuff[5]) > 0 then
 			for i = 1, 4, 1 do
 				this.AcquiredCounts[i] = this.BirdsMaxCounts[i];
 				this.AcquiredValues[i] = this.StatusBuffLimits[i];

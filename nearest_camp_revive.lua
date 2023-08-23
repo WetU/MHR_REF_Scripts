@@ -18,9 +18,11 @@ local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_m
 --
 local get_FastTravelPointList_method = find_type_definition("snow.stage.StagePointManager"):get_method("get_FastTravelPointList");
 
-local FastTravelPointList_get_Item_method = get_FastTravelPointList_method:get_return_type():get_method("get_Item(System.Int32)");
+local FastTravelPointList_type_def = get_FastTravelPointList_method:get_return_type();
+local FastTravelPointList_mItems_field = FastTravelPointList_type_def:get_field("mItems");
+local FastTravelPointList_mSize_field = FastTravelPointList_type_def:get_field("mSize");
 
-local get_Points_method = FastTravelPointList_get_Item_method:get_return_type():get_method("get_Points");
+local get_Points_method = find_type_definition("snow.stage.StagePointManager.StagePoint"):get_method("get_Points");
 
 local Points_get_Item_method = get_Points_method:get_return_type():get_method("get_Item(System.Int32)");
 --
@@ -60,9 +62,16 @@ local function PreHook_startToPlayPlayerDieMusic()
 	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
 
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
+		local StagePointManager = Constants:get_StagePointManager();
+		local FastTravelPointList = get_FastTravelPointList_method:call(StagePointManager);
+		local FastTravelPoint_array = FastTravelPointList_mItems_field:get_data(FastTravelPointList);
+		local FastTravelPoint_array_size = FastTravelPointList_mSize_field:get_data(FastTravelPointList);
+		local FastTravelPoint = FastTravelPoint_array:get_element(0);
+		local Points = get_Points_method:call(FastTravelPoint);
+		local Point = Points_get_Item_method:call(Points, 0);
 		local currentPos = get_Position_method:call(GetTransform_method:call(Constants:get_CameraManager(), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_get_Item_method:call(get_FastTravelPointList_method:call(Constants:get_StagePointManager()), 0)), 0));
-		local subCampCount = #subCamps;
+		local nearestDistance = calcDistance_method:call(nil, currentPos, Point);
+		local subCampCount = FastTravelPoint_array_size - 1;
 
 		for i = 1, subCampCount, 1 do
 			local subCampPos = subCamps[i];

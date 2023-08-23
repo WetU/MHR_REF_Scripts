@@ -72,7 +72,10 @@ local getMasterSecondOtomo_method = OtomoManager_type_def:get_method("getMasterS
 local Otomo_setKitchenData_method = getMasterFirstOtomo_method:get_return_type():get_method("setKitchenData");
 --
 local get_AcitvePlKitchenSkillList_method = find_type_definition("snow.data.SkillDataManager"):get_method("get_AcitvePlKitchenSkillList");
-local AcitvePlKitchenSkillList_mItems_field = get_AcitvePlKitchenSkillList_method:get_return_type():get_field("mItems");
+
+local ActivePlKitchenSkillList_type_def = get_AcitvePlKitchenSkillList_method:get_return_type();
+local AcitvePlKitchenSkillList_mItems_field = ActivePlKitchenSkillList_type_def:get_field("mItems");
+local AcitvePlKitchenSkillList_mSize_field = ActivePlKitchenSkillList_type_def:get_field("mSize");
 
 local PlayerKitchenSkillData_type_def = find_type_definition("snow.player.PlayerKitchenSkillData");
 --
@@ -152,15 +155,16 @@ end
 local function makeDangoLogParam(vitalBuff, staminaBuff)
 	local DangoLogParam = DangoLogParam_type_def:create_instance();
 
-	local AcitvePlKitchenSkillList = AcitvePlKitchenSkillList_mItems_field:get_data(get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager()));
-	local AcitvePlKitchenSkill_count = AcitvePlKitchenSkillList:get_size();
-	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_count);
+	local AcitvePlKitchenSkillList = get_AcitvePlKitchenSkillList_method:call(Constants:get_SkillDataManager());
+	local ActivePlKitchenSkillList_Array = AcitvePlKitchenSkillList_mItems_field:get_data(AcitvePlKitchenSkillList);
+	local AcitvePlKitchenSkill_Array_size = AcitvePlKitchenSkillList_mSize_field:get_data(AcitvePlKitchenSkillList);
+	local AcitvePlKitchenSkillArray = create_managed_array(PlayerKitchenSkillData_type_def, AcitvePlKitchenSkill_Array_size);
 
 	setStatusParam_method:call(DangoLogParam, 0, vitalBuff);
 	setStatusParam_method:call(DangoLogParam, 1, staminaBuff);
 
-	for i = 0, AcitvePlKitchenSkill_count - 1, 1 do
-		AcitvePlKitchenSkillArray[i] = AcitvePlKitchenSkillList:get_element(i);
+	for i = 0, AcitvePlKitchenSkill_Array_size - 1, 1 do
+		AcitvePlKitchenSkillArray[i] = ActivePlKitchenSkillList_Array:get_element(i);
 	end
 
 	DangoLogParam:set_field("_SkillDataList", AcitvePlKitchenSkillArray);

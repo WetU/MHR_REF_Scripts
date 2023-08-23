@@ -12,14 +12,13 @@ local this = {
 local _G = _G;
 
 local math = _G.math;
-local string = _G.string;
 
 this.lua.pairs = _G.pairs;
 this.lua.ipairs = _G.ipairs;
 this.lua.tostring = _G.tostring;
 this.lua.math_min = math.min;
 this.lua.math_max = math.max;
-this.lua.string_format = string.format;
+this.lua.string_format = _G.string.format;
 --
 local sdk = _G.sdk;
 local find_type_definition = sdk.find_type_definition;

@@ -45,11 +45,11 @@ local AutoAddItemIds = {
 local GuiQuestStart = nil;
 local function Prehook_QuestStart(args)
 	GuiQuestStart = to_managed_object(args[2]);
-	QuestInfo_onQuestStart();
-	SpiribirdsStatus_onQuestStart();
 end
 local function PostHook_QuestStart()
 	if NowState_field:get_data(GuiQuestStart) == 3 then
+		QuestInfo_onQuestStart();
+		SpiribirdsStatus_onQuestStart();
 		for k, v in pairs(AutoAddItemIds) do
 			addItemToPouch_method:call(nil, k, v);
 		end
