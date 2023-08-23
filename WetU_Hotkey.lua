@@ -10,6 +10,7 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local checkKeyTrg = Constants.checkKeyTrg;
+local outputMealTicket = Constants.outputMealTicket;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 local SendMessage = Constants.SendMessage;
@@ -121,7 +122,7 @@ local function orderBbq()
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
 		addItemToBox_method:call(nil, 68157448, orderCount);
 		if isExistOutputTicket_method:call(BbqFunc) == true then
-			Constants:outputMealTicket();
+			outputMealTicket();
 		end
 	end
 end

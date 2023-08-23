@@ -13,6 +13,7 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local to_int64 = Constants.sdk.to_int64;
 
 local QuestMapList = Constants.QuestMapList;
+local getQuestMapNo = Constants.getQuestMapNo;
 local to_bool = Constants.to_bool;
 --
 local this = {
@@ -195,7 +196,7 @@ local function init()
 end
 
 local function onQuestStart()
-	local QuestMapNo = Constants:getQuestMapNo();
+	local QuestMapNo = getQuestMapNo();
 
 	for _, v in pairs(QuestMapList) do
 		if v == QuestMapNo then

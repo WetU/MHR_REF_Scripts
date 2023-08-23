@@ -7,11 +7,15 @@ local to_float = Constants.sdk.to_float;
 local hook = Constants.sdk.hook;
 local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
 
-local Vector3f_new = Constants.Vector3f.new;
+local Vector3f_new = Constants.Vector3f_new;
+
+local getQuestMapNo = Constants.getQuestMapNo;
+local getDeathNum = Constants.getDeathNum;
+local getQuestLife = Constants.getQuestLife;
 --
 local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):get_method("calcDistance(via.vec3, via.vec3)"); -- static
 --
-local GetTransform_method = Constants.type_definitions.CameraManager_type_def:get_method("GetTransform(snow.CameraManager.GameObjectType)");
+local GetTransform_method = find_type_definition("snow.CameraManager"):get_method("GetTransform(snow.CameraManager.GameObjectType)");
 local get_Position_method = GetTransform_method:get_return_type():get_method("get_Position");
 --
 local CreateNekotaku_method = find_type_definition("snow.NekotakuManager"):get_method("CreateNekotaku(snow.player.PlayerIndex, via.vec3, System.Single)");
@@ -59,9 +63,9 @@ local SubCampRevivalPos = {
 local reviveCampPos = nil;
 
 local function PreHook_startToPlayPlayerDieMusic()
-	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
+	local subCamps = SubCampRevivalPos[getQuestMapNo()];
 
-	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
+	if subCamps ~= nil and getDeathNum() < getQuestLife() then
 		local StagePointManager = Constants:get_StagePointManager();
 		local FastTravelPointList = get_FastTravelPointList_method:call(StagePointManager);
 		local FastTravelPoint_array = FastTravelPointList_mItems_field:get_data(FastTravelPointList);

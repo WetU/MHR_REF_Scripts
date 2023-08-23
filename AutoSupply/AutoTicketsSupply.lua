@@ -7,6 +7,7 @@ local to_managed_object = Constants.sdk.to_managed_object;
 
 local FALSE_POINTER = Constants.FALSE_POINTER;
 
+local outputMealTicket = Constants.outputMealTicket;
 local to_bool = Constants.to_bool;
 --
 local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
@@ -186,7 +187,7 @@ end
 
 local function PostHook_checkSupplyItem_BBQReward(retval)
 	if to_bool(retval) == true then
-		Constants:outputMealTicket();
+		outputMealTicket();
 		return FALSE_POINTER;
 	end
 

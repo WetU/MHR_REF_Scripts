@@ -44,7 +44,7 @@ local GuiRoomServiceFsmManager_type_def = find_type_definition("snow.gui.fsm.roo
 local get__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("get__MenuState");
 local set__MenuState_method = GuiRoomServiceFsmManager_type_def:get_method("set__MenuState(snow.gui.fsm.roomservice.GuiRoomService.RoomServiceTopMenu)");
 --
-local ReceiveAllButton_Index = Constants.Vector2f.new(0.0, 0.0);
+local ReceiveAllButton_Index = Constants.Vector2f_new(0.0, 0.0);
 --
 local isMaxStepCount = false;
 local isReturnAnimation = false;

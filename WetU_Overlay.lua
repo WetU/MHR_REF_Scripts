@@ -11,7 +11,7 @@ local tostring = Constants.lua.tostring;
 local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 
-local on_frame = Constants.re.on_frame;
+local on_frame = Constants.on_frame;
 
 local Font = Constants.Font;
 

@@ -69,7 +69,7 @@ local LotStates = {
     unAvail = 101
 };
 
-local All_Receive_Button_Index = Constants.Vector2f.new(0.0, 1.0);
+local All_Receive_Button_Index = Constants.Vector2f_new(0.0, 1.0);
 --
 local LotState = nil;
 local LotEventStatus = nil;
