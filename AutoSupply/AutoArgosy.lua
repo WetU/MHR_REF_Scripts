@@ -2,11 +2,12 @@ local Constants = _G.require("Constants.Constants");
 
 local find_type_definition = Constants.sdk.find_type_definition;
 
-local findInventoryData = Constants.findInventoryData;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 --
-local sendItemToBox_method = Constants.type_definitions.DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
+local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
+local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
+local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
 
 local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
 local get_TradeOrderList_method = get_TradeFunc_method:get_return_type():get_method("get_TradeOrderList");
@@ -31,7 +32,7 @@ local this = {
 	autoArgosy = function()
 		local countUpdated = false;
 		local isReceived = false;
-		local acornInventoryData = findInventoryData(1, 68158481);
+		local acornInventoryData = findInventoryData_method:call(nil, 1, 68158481);
 		local addCount = (acornInventoryData == nil or isEmpty_method:call(acornInventoryData) == true) and 1 or 4;
 
 		local TradeOrderList = get_TradeOrderList_method:call(get_TradeFunc_method:call(Constants:get_TradeCenterFacility()));

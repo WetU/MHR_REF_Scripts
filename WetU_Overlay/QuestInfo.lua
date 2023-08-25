@@ -6,8 +6,6 @@ local string_format = Constants.lua.string_format;
 local hook = Constants.sdk.hook;
 
 local checkGameStatus = Constants.checkGameStatus;
-local getQuestLife = Constants.getQuestLife;
-local getDeathNum = Constants.getDeathNum;
 --
 local this = {
 	init = true,
@@ -34,10 +32,10 @@ local function onQuestStart()
 	local isTourQuest = isTourQuest_method:call(QuestManager);
 
 	if curQuestLife == nil then
-		curQuestLife = isTourQuest == true and "제한 없음" or getQuestLife();
+		curQuestLife = isTourQuest == true and "제한 없음" or Constants:getQuestLife();
 	end
 
-	this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(), curQuestLife);
+	this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
 
 	curQuestMaxTimeMin = (isTourQuest == true or isQuestMaxTimeUnlimited_method:call(QuestManager) == true) and "제한 없음" or tostring(getQuestMaxTimeMin_method:call(QuestManager)) .. "분";
 	this.QuestTimer = string_format("%s / %s", getClearTimeFormatText_method:call(nil, getQuestElapsedTimeSec_method:call(QuestManager)), curQuestMaxTimeMin);
@@ -47,7 +45,7 @@ end
 
 local function updateDeathCount()
 	if this.QuestInfoDataCreated == true then
-		this.DeathCount = string_format("다운 횟수: %d / %s", getDeathNum(), curQuestLife);
+		this.DeathCount = string_format("다운 횟수: %d / %s", Constants:getDeathNum(), curQuestLife);
 	end
 end
 

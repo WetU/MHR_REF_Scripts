@@ -1,177 +1,153 @@
 local _G = _G;
 --
+local math = _G.math;
+local sdk = _G.sdk;
+local imgui = _G.imgui;
+--
+local hook = sdk.hook;
+local hook_vtable = sdk.hook_vtable;
+local find_type_definition = sdk.find_type_definition;
+local get_managed_singleton = sdk.get_managed_singleton;
+local to_managed_object = sdk.to_managed_object;
+local to_ptr = sdk.to_ptr;
+local to_int64 = sdk.to_int64;
+local SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
+--
+local QuestManager_type_def = find_type_definition("snow.QuestManager");
+local VillageAreaManager_type_def = find_type_definition("snow.VillageAreaManager");
+local DataShortcut_type_def = find_type_definition("snow.data.DataShortcut");
+local FacilityDataManager_type_def = find_type_definition("snow.data.FacilityDataManager");
+local ChatManager_type_def = find_type_definition("snow.gui.ChatManager");
+local GuiManager_type_def = find_type_definition("snow.gui.GuiManager");
+local PlayerLobbyBase_type_def = find_type_definition("snow.player.PlayerLobbyBase");
+--
+local TRUE_POINTER = to_ptr(true);
+--
+local get_Kitchen_method = FacilityDataManager_type_def:get_method("get_Kitchen");
+local KitchenFacility_type_def = get_Kitchen_method:get_return_type();
+local get_BbqFunc_method = KitchenFacility_type_def:get_method("get_BbqFunc");
+local BbqFunc_type_def = get_BbqFunc_method:get_return_type();
+local outputTicket_method = BbqFunc_type_def:get_method("outputTicket");
+--
 local this = {
-	["lua"] = {},
-	["sdk"] = {},
-	["imgui"] = {},
-	type_definitions = {},
-	Objects = {}
+	["lua"] = {
+		["pairs"] = _G.pairs,
+		["tostring"] = _G.tostring,
+		["math_min"] = math.min,
+		["math_max"] = math.max,
+		["string_format"] = _G.string.format
+	},
+	["sdk"] = {
+		["create_managed_array"] = sdk.create_managed_array,
+		["hook"] = hook,
+		["hook_vtable"] = hook_vtable,
+		["find_type_definition"] = find_type_definition,
+		["get_managed_singleton"] = get_managed_singleton,
+		["to_managed_object"] = to_managed_object,
+		["to_ptr"] = to_ptr,
+		["to_int64"] = to_int64,
+		["to_float"] = sdk.to_float,
+		["to_valuetype"] = sdk.to_valuetype,
+		["SKIP_ORIGINAL"] = SKIP_ORIGINAL,
+		["CALL_ORIGINAL"] = sdk.PreHookResult.CALL_ORIGINAL
+	},
+	["imgui"] = {
+		["push_font"] = imgui.push_font,
+		["begin_window"] = imgui.begin_window,
+		["end_window"] = imgui.end_window,
+		["begin_table"] = imgui.begin_table,
+		["table_setup_column"] = imgui.table_setup_column,
+		["table_next_column"] = imgui.table_next_column,
+		["table_headers_row"] = imgui.table_headers_row,
+		["table_next_row"] = imgui.table_next_row,
+		["end_table"] = imgui.end_table,
+		["text"] = imgui.text,
+		["text_colored"] = imgui.text_colored,
+		["spacing"] = imgui.spacing
+	},
+	["type_definitions"] = {
+		["Application_type_def"] = find_type_definition("via.Application"),
+		["QuestManager_type_def"] = QuestManager_type_def,
+		["VillageAreaManager_type_def"] = VillageAreaManager_type_def,
+		["DataShortcut_type_def"] = DataShortcut_type_def,
+		["EquipDataManager_type_def"] = find_type_definition("snow.data.EquipDataManager"),
+		["ItemInventoryData_type_def"] = find_type_definition("snow.data.ItemInventoryData"),
+		["EnemyUtility_type_def"] = find_type_definition("snow.enemy.EnemyUtility"),
+		["FacilityDataManager_type_def"] = FacilityDataManager_type_def,
+		["KitchenFacility_type_def"] = KitchenFacility_type_def,
+		["BbqFunc_type_def"] = BbqFunc_type_def,
+		["ChatManager_type_def"] = ChatManager_type_def,
+		["GuiManager_type_def"] = GuiManager_type_def,
+		["StmGuiInput_type_def"] = find_type_definition("snow.gui.StmGuiInput"),
+		["PlayerLobbyBase_type_def"] = PlayerLobbyBase_type_def,
+		["PlayerQuestBase_type_def"] = find_type_definition("snow.player.PlayerQuestBase")
+	},
+	["Objects"] = {},
+	["on_frame"] = _G.re.on_frame,
+	["Vector2f_new"] = _G.Vector2f.new,
+	["Vector3f_new"] = _G.Vector3f.new,
+	["TRUE_POINTER"] = TRUE_POINTER,
+	["FALSE_POINTER"] = to_ptr(false),
+	["Font"] = imgui.load_font("NotoSansKR-Bold.otf", 24, {
+		0x0020, 0x00FF, -- Basic Latin + Latin Supplement
+		0x2000, 0x206F, -- General Punctuation
+		0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
+		0x3130, 0x318F, -- Hangul Compatibility Jamo
+		0x31F0, 0x31FF, -- Katakana Phonetic Extensions
+		0xFF00, 0xFFEF, -- Half-width characters
+		0x4e00, 0x9FAF, -- CJK Ideograms
+		0xA960, 0xA97F, -- Hangul Jamo Extended-A
+		0xAC00, 0xD7A3, -- Hangul Syllables
+		0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
+		0
+	})
 };
 --
-local math = _G.math;
-
-this["lua"]["pairs"] = _G.pairs;
-this["lua"]["tostring"] = _G.tostring;
-this["lua"].math_min = math.min;
-this["lua"].math_max = math.max;
-this["lua"].string_format = _G.string.format;
---
-local sdk = _G.sdk;
-
-this["sdk"].create_managed_array = sdk.create_managed_array;
-this["sdk"].hook = sdk.hook;
-this["sdk"].hook_vtable = sdk.hook_vtable;
-this["sdk"].find_type_definition = sdk.find_type_definition;
-this["sdk"].get_managed_singleton = sdk.get_managed_singleton;
-this["sdk"].to_managed_object = sdk.to_managed_object;
-this["sdk"].to_ptr = sdk.to_ptr;
-this["sdk"].to_int64 = sdk.to_int64;
-this["sdk"].to_float = sdk.to_float;
-this["sdk"].to_valuetype = sdk.to_valuetype;
-this["sdk"].SKIP_ORIGINAL = sdk.PreHookResult.SKIP_ORIGINAL;
-this["sdk"].CALL_ORIGINAL = sdk.PreHookResult.CALL_ORIGINAL;
---
-local imgui = _G.imgui;
-
-this["imgui"].push_font = imgui.push_font;
-this["imgui"].begin_window = imgui.begin_window;
-this["imgui"].end_window = imgui.end_window;
-this["imgui"].begin_table = imgui.begin_table;
-this["imgui"].table_setup_column = imgui.table_setup_column;
-this["imgui"].table_next_column = imgui.table_next_column;
-this["imgui"].table_headers_row = imgui.table_headers_row;
-this["imgui"].table_next_row = imgui.table_next_row;
-this["imgui"].end_table = imgui.end_table;
-this["imgui"].text = imgui.text;
-this["imgui"].text_colored = imgui.text_colored;
-this["imgui"].spacing = imgui.spacing;
---
-this.on_frame = _G.re.on_frame;
---
-this.Vector2f_new = _G.Vector2f.new;
---
-this.Vector3f_new = _G.Vector3f.new;
---
-this.TRUE_POINTER = this.sdk.to_ptr(true);
-this.FALSE_POINTER = this.sdk.to_ptr(false);
---
-this.type_definitions.Application_type_def = this.sdk.find_type_definition("via.Application");
-this.type_definitions.QuestManager_type_def = this.sdk.find_type_definition("snow.QuestManager");
-this.type_definitions.VillageAreaManager_type_def = this.sdk.find_type_definition("snow.VillageAreaManager");
-this.type_definitions.DataShortcut_type_def = this.sdk.find_type_definition("snow.data.DataShortcut");
-this.type_definitions.EquipDataManager_type_def = this.sdk.find_type_definition("snow.data.EquipDataManager");
-this.type_definitions.EnemyUtility_type_def = this.sdk.find_type_definition("snow.enemy.EnemyUtility");
-this.type_definitions.FacilityDataManager_type_def = this.sdk.find_type_definition("snow.data.FacilityDataManager");
-this.type_definitions.ChatManager_type_def = this.sdk.find_type_definition("snow.gui.ChatManager");
-this.type_definitions.GuiManager_type_def = this.sdk.find_type_definition("snow.gui.GuiManager");
-this.type_definitions.StmGuiInput_type_def = this.sdk.find_type_definition("snow.gui.StmGuiInput");
-this.type_definitions.PlayerLobbyBase_type_def = this.sdk.find_type_definition("snow.player.PlayerLobbyBase");
-this.type_definitions.PlayerQuestBase_type_def = this.sdk.find_type_definition("snow.player.PlayerQuestBase");
---
-this.Font = imgui.load_font("NotoSansKR-Bold.otf", 24, {
-	0x0020, 0x00FF, -- Basic Latin + Latin Supplement
-	0x2000, 0x206F, -- General Punctuation
-	0x3000, 0x30FF, -- CJK Symbols and Punctuations, Hiragana, Katakana
-	0x3130, 0x318F, -- Hangul Compatibility Jamo
-	0x31F0, 0x31FF, -- Katakana Phonetic Extensions
-	0xFF00, 0xFFEF, -- Half-width characters
-	0x4e00, 0x9FAF, -- CJK Ideograms
-	0xA960, 0xA97F, -- Hangul Jamo Extended-A
-	0xAC00, 0xD7A3, -- Hangul Syllables
-	0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
-	0
-});
---
-local getTrg_method = this.sdk.find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
+local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
 
 function this.checkKeyTrg(key)
 	return getTrg_method:call(nil, key);
 end
 --
-local findInventoryData_method = this.type_definitions.DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
-this.type_definitions.ItemInventoryData_type_def = findInventoryData_method:get_return_type();
-
-function this.findInventoryData(inventoryGroup, itemId)
-	return findInventoryData_method:call(nil, inventoryGroup, itemId);
-end
---
-local get_CurrentStatus_method = this.sdk.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
+local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
 function this.checkGameStatus(checkType)
-	local SnowGameManager = this.sdk.get_managed_singleton("snow.SnowGameManager");
+	local SnowGameManager = get_managed_singleton("snow.SnowGameManager");
 	return SnowGameManager ~= nil and checkType == get_CurrentStatus_method:call(SnowGameManager) or nil;
 end
 --
-local set_FadeMode_method = this.sdk.find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
 
 function this.ClearFade()
-	local FadeManager = this.sdk.get_managed_singleton("snow.FadeManager");
+	local FadeManager = get_managed_singleton("snow.FadeManager");
 	set_FadeMode_method:call(FadeManager, 3);
 	FadeManager:set_field("fadeOutInFlag", false);
 end
 --
-local get_Kitchen_method = this.type_definitions.FacilityDataManager_type_def:get_method("get_Kitchen");
-this.type_definitions.KitchenFacility_type_def = get_Kitchen_method:get_return_type();
+local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
 
-function this:get_KitchenFacility()
-	if self.Objects.KitchenFacility == nil or self.Objects.KitchenFacility:get_reference_count() <= 1 then
-		self.Objects.KitchenFacility = get_Kitchen_method:call(self:get_FacilityDataManager());
-	end
-
-	return self.Objects.KitchenFacility;
+function this:getQuestMapNo()
+	return getMapNo_method:call(self:get_QuestManager());
 end
 --
-local get_BbqFunc_method = this.type_definitions.KitchenFacility_type_def:get_method("get_BbqFunc");
-this.type_definitions.BbqFunc_type_def = get_BbqFunc_method:get_return_type();
+local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
+local getDeathNum_method = QuestManager_type_def:get_method("getDeathNum");
 
-local outputTicket_method = this.type_definitions.BbqFunc_type_def:get_method("outputTicket");
-
-function this:get_BbqFunc()
-	if self.Objects.BbqFunc == nil or self.Objects.BbqFunc:get_reference_count() <= 1 then
-		self.Objects.BbqFunc = get_BbqFunc_method:call(self:get_KitchenFacility());
-	end
-
-	return self.Objects.BbqFunc;
+function this:getQuestLife()
+	return getQuestLife_method:call(self:get_QuestManager());
 end
 
-function this.outputMealTicket()
-	outputTicket_method:call(this:get_BbqFunc());
+function this:getDeathNum()
+	return getDeathNum_method:call(self:get_QuestManager());
 end
 --
-this.QuestMapList = {
-	ShrineRuins = 1,
-	SandyPlains = 2,
-	FloodedForest = 3,
-	FrostIslands = 4,
-	LavaCaverns = 5,
-	Jungle = 12,
-	Citadel = 13
-};
+local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
-local getMapNo_method = this.type_definitions.QuestManager_type_def:get_method("getMapNo");
-
-function this.getQuestMapNo()
-	return getMapNo_method:call(this:get_QuestManager());
+function this:SendMessage(text)
+	reqAddChatInfomation_method:call(self:get_ChatManager(), text, 0); -- sound on : 2289944406
 end
 --
-local getQuestLife_method = this.type_definitions.QuestManager_type_def:get_method("getQuestLife");
-local getDeathNum_method = this.type_definitions.QuestManager_type_def:get_method("getDeathNum");
-
-function this.getQuestLife()
-	return getQuestLife_method:call(this:get_QuestManager());
-end
-
-function this.getDeathNum()
-	return getDeathNum_method:call(this:get_QuestManager());
-end
---
-local reqAddChatInfomation_method = this.type_definitions.ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
-
-function this.SendMessage(text)
-	reqAddChatInfomation_method:call(this:get_ChatManager(), text, 0); -- sound on : 2289944406
-end
---
-local VillagePoint_type_def = this.sdk.find_type_definition("snow.data.VillagePoint");
+local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
 local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
 local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
 
@@ -183,33 +159,33 @@ function this.subVillagePoint(count)
 	subPoint_method:call(nil, count);
 end
 --
-local getCountOfAll_method = this.sdk.find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
+local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
 
-function this.getCountOfAll(itemId)
-	return getCountOfAll_method:call(this:get_ContentsIdDataManager(), itemId);
+function this:getCountOfAll(itemId)
+	return getCountOfAll_method:call(self:get_ContentsIdDataManager(), itemId);
 end
 --
-local closeRewardDialog_method = this.type_definitions.GuiManager_type_def:get_method("closeRewardDialog");
+local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
 
-function this.closeRewardDialog()
-	closeRewardDialog_method:call(this:get_GuiManager());
+function this:closeRewardDialog()
+	closeRewardDialog_method:call(self:get_GuiManager());
 end
 --
 function this.SKIP_ORIGINAL_func()
-	return this.sdk.SKIP_ORIGINAL;
+	return SKIP_ORIGINAL;
 end
 
 function this.RETURN_TRUE_func()
-	return this.TRUE_POINTER;
+	return TRUE_POINTER;
 end
 
 function this.to_bool(value)
-	return (this.sdk.to_int64(value) & 1) == 1;
+	return (to_int64(value) & 1) == 1;
 end
 --
 function this:get_CameraManager()
 	if self.Objects.CameraManager == nil or self.Objects.CameraManager:get_reference_count() <= 1 then
-		self.Objects.CameraManager = self.sdk.get_managed_singleton("snow.QuestManager");
+		self.Objects.CameraManager = get_managed_singleton("snow.QuestManager");
 	end
 
 	return self.Objects.CameraManager;
@@ -217,7 +193,7 @@ end
 
 function this:get_QuestManager()
 	if self.Objects.QuestManager == nil or self.Objects.QuestManager:get_reference_count() <= 1 then
-		self.Objects.QuestManager = self.sdk.get_managed_singleton("snow.QuestManager");
+		self.Objects.QuestManager = get_managed_singleton("snow.QuestManager");
 	end
 
 	return self.Objects.QuestManager;
@@ -229,7 +205,7 @@ end
 
 function this:get_DemoCamera()
 	if self.Objects.DemoCamera == nil or self.Objects.DemoCamera:get_reference_count() <= 1 then
-		self.Objects.DemoCamera = self.sdk.get_managed_singleton("snow.camera.DemoCamera");
+		self.Objects.DemoCamera = get_managed_singleton("snow.camera.DemoCamera");
 	end
 
 	return self.Objects.DemoCamera;
@@ -237,7 +213,7 @@ end
 
 function this:get_ContentsIdDataManager()
 	if self.Objects.ContentsIdDataManager == nil or self.Objects.ContentsIdDataManager:get_reference_count() <= 1 then
-		self.Objects.ContentsIdDataManager = self.sdk.get_managed_singleton("snow.data.ContentsIdDataManager");
+		self.Objects.ContentsIdDataManager = get_managed_singleton("snow.data.ContentsIdDataManager");
 	end
 
 	return self.Objects.ContentsIdDataManager;
@@ -245,7 +221,7 @@ end
 
 function this:get_EquipDataManager()
 	if self.Objects.EquipDataManager == nil or self.Objects.EquipDataManager:get_reference_count() <= 1 then
-		self.Objects.EquipDataManager = self.sdk.get_managed_singleton("snow.data.EquipDataManager");
+		self.Objects.EquipDataManager = get_managed_singleton("snow.data.EquipDataManager");
 	end
 
 	return self.Objects.EquipDataManager;
@@ -253,15 +229,31 @@ end
 
 function this:get_FacilityDataManager()
 	if self.Objects.FacilityDataManager == nil or self.Objects.FacilityDataManager:get_reference_count() <= 1 then
-		self.Objects.FacilityDataManager = self.sdk.get_managed_singleton("snow.data.FacilityDataManager");
+		self.Objects.FacilityDataManager = get_managed_singleton("snow.data.FacilityDataManager");
 	end
 
 	return self.Objects.FacilityDataManager;
 end
 
+function this:get_KitchenFacility()
+	if self.Objects.KitchenFacility == nil or self.Objects.KitchenFacility:get_reference_count() <= 1 then
+		self.Objects.KitchenFacility = get_Kitchen_method:call(self:get_FacilityDataManager());
+	end
+
+	return self.Objects.KitchenFacility;
+end
+
+function this:get_BbqFunc()
+	if self.Objects.BbqFunc == nil or self.Objects.BbqFunc:get_reference_count() <= 1 then
+		self.Objects.BbqFunc = get_BbqFunc_method:call(self:get_KitchenFacility());
+	end
+
+	return self.Objects.BbqFunc;
+end
+
 function this:get_OtomoSpyUnitManager()
 	if self.Objects.OtomoSpyUnitManager == nil or self.Objects.OtomoSpyUnitManager:get_reference_count() <= 1 then
-		self.Objects.OtomoSpyUnitManager = self.sdk.get_managed_singleton("snow.data.OtomoSpyUnitManager");
+		self.Objects.OtomoSpyUnitManager = get_managed_singleton("snow.data.OtomoSpyUnitManager");
 	end
 
 	return self.Objects.OtomoSpyUnitManager;
@@ -269,7 +261,7 @@ end
 
 function this:get_SkillDataManager()
 	if self.Objects.SkillDataManager == nil or self.Objects.SkillDataManager:get_reference_count() <= 1 then
-		self.Objects.SkillDataManager = self.sdk.get_managed_singleton("snow.data.SkillDataManager");
+		self.Objects.SkillDataManager = get_managed_singleton("snow.data.SkillDataManager");
 	end
 
 	return self.Objects.SkillDataManager;
@@ -277,7 +269,7 @@ end
 
 function this:get_TradeCenterFacility()
 	if self.Objects.TradeCenterFacility == nil or self.Objects.TradeCenterFacility:get_reference_count() <= 1 then
-		self.Objects.TradeCenterFacility = self.sdk.get_managed_singleton("snow.facility.TradeCenterFacility");
+		self.Objects.TradeCenterFacility = get_managed_singleton("snow.facility.TradeCenterFacility");
 	end
 
 	return self.Objects.TradeCenterFacility;
@@ -285,7 +277,7 @@ end
 
 function this:get_ChatManager()
 	if self.Objects.ChatManager == nil or self.Objects.ChatManager:get_reference_count() <= 1 then
-		self.Objects.ChatManager = self.sdk.get_managed_singleton("snow.gui.ChatManager");
+		self.Objects.ChatManager = get_managed_singleton("snow.gui.ChatManager");
 	end
 
 	return self.Objects.ChatManager;
@@ -293,7 +285,7 @@ end
 
 function this:get_GuiManager()
 	if self.Objects.GuiManager == nil or self.Objects.GuiManager:get_reference_count() <= 1 then
-		self.Objects.GuiManager = self.sdk.get_managed_singleton("snow.gui.GuiManager");
+		self.Objects.GuiManager = get_managed_singleton("snow.gui.GuiManager");
 	end
 
 	return self.Objects.GuiManager;
@@ -301,7 +293,7 @@ end
 
 function this:get_OtomoManager()
 	if self.Objects.OtomoManager == nil or self.Objects.OtomoManager:get_reference_count() <= 1 then
-		self.Objects.OtomoManager = self.sdk.get_managed_singleton("snow.otomo.OtomoManager");
+		self.Objects.OtomoManager = get_managed_singleton("snow.otomo.OtomoManager");
 	end
 
 	return self.Objects.OtomoManager;
@@ -313,7 +305,7 @@ end
 
 function this:get_PlayerManager()
 	if self.Objects.PlayerManager == nil or self.Objects.PlayerManager:get_reference_count() <= 1 then
-		self.Objects.PlayerManager = self.sdk.get_managed_singleton("snow.player.PlayerManager");
+		self.Objects.PlayerManager = get_managed_singleton("snow.player.PlayerManager");
 	end
 
 	return self.Objects.PlayerManager;
@@ -321,7 +313,7 @@ end
 
 function this:get_ProgressOwlNestManager()
 	if self.Objects.ProgressOwlNestManager == nil or self.Objects.ProgressOwlNestManager:get_reference_count() <= 1 then
-		self.Objects.ProgressOwlNestManager = self.sdk.get_managed_singleton("snow.progress.ProgressOwlNestManager");
+		self.Objects.ProgressOwlNestManager = get_managed_singleton("snow.progress.ProgressOwlNestManager");
 	end
 
 	return self.Objects.ProgressOwlNestManager;
@@ -329,41 +321,47 @@ end
 
 function this:get_StagePointManager()
 	if self.Objects.StagePointManager == nil or self.Objects.StagePointManager:get_reference_count() <= 1 then
-		self.Objects.StagePointManager = self.sdk.get_managed_singleton("snow.stage.StagePointManager");
+		self.Objects.StagePointManager = get_managed_singleton("snow.stage.StagePointManager");
 	end
 
 	return self.Objects.StagePointManager;
 end
+
+function this:outputMealTicket()
+	outputTicket_method:call(self:get_BbqFunc());
+end
 --
-local PlayerLobbyBase_onDestroy_method = this.type_definitions.PlayerLobbyBase_type_def:get_method("onDestroy");
+local PlayerLobbyBase_onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");
 
 local function destroyPlayerLobbyBase()
 	this.Objects.MasterPlayerLobbyBase = nil;
 end
 
 local function getPlayerLobbyBase(args)
-	this.Objects.MasterPlayerLobbyBase = this.sdk.to_managed_object(args[2]);
-	this.sdk.hook_vtable(this.Objects.MasterPlayerLobbyBase, PlayerLobbyBase_onDestroy_method, nil, destroyPlayerLobbyBase);
+	local MasterPlayerLobbyBase = to_managed_object(args[2]);
+	this.Objects.MasterPlayerLobbyBase = MasterPlayerLobbyBase;
+	hook_vtable(MasterPlayerLobbyBase, PlayerLobbyBase_onDestroy_method, nil, destroyPlayerLobbyBase);
 end
-this.sdk.hook(this.type_definitions.PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
 
 local function getPlayerLobbyBaseFromUpdate(args)
 	if this.Objects.MasterPlayerLobbyBase == nil then
 		getPlayerLobbyBase(args);
 	end
 end
-this.sdk.hook(this.type_definitions.PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
+
+hook(PlayerLobbyBase_type_def:get_method("start"), getPlayerLobbyBase);
+hook(PlayerLobbyBase_type_def:get_method("update"), getPlayerLobbyBaseFromUpdate);
 --
-local VillageAreaManager_onDestroy_method = this.type_definitions.VillageAreaManager_type_def:get_method("onDestroy");
+local VillageAreaManager_onDestroy_method = VillageAreaManager_type_def:get_method("onDestroy");
 
 local function VillageAreaManager_onDestroy()
 	this.Objects.VillageAreaManager = nil;
 end
 
 local function getVillageAreaManager(args)
-	local VillageAreaManager = this.sdk.to_managed_object(args[2]);
+	local VillageAreaManager = to_managed_object(args[2]);
 	this.Objects.VillageAreaManager = VillageAreaManager;
-	this.sdk.hook_vtable(VillageAreaManager, VillageAreaManager_onDestroy_method, nil, VillageAreaManager_onDestroy);
+	hook_vtable(VillageAreaManager, VillageAreaManager_onDestroy_method, nil, VillageAreaManager_onDestroy);
 end
 
 local function VillageAreaManager_update(args)
@@ -372,7 +370,7 @@ local function VillageAreaManager_update(args)
 	end
 end
 
-this.sdk.hook(this.type_definitions.VillageAreaManager_type_def:get_method("start"), getVillageAreaManager);
-this.sdk.hook(this.type_definitions.VillageAreaManager_type_def:get_method("update"), VillageAreaManager_update);
+hook(VillageAreaManager_type_def:get_method("start"), getVillageAreaManager);
+hook(VillageAreaManager_type_def:get_method("update"), VillageAreaManager_update);
 --
 return this;

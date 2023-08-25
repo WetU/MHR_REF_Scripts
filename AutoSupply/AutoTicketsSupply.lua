@@ -7,10 +7,7 @@ local to_managed_object = Constants.sdk.to_managed_object;
 
 local FALSE_POINTER = Constants.FALSE_POINTER;
 
-local outputMealTicket = Constants.outputMealTicket;
 local to_bool = Constants.to_bool;
-
-local closeRewardDialog = Constants.closeRewardDialog;
 --
 local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
@@ -186,7 +183,7 @@ end
 
 local function PostHook_checkSupplyItem_BBQReward(retval)
 	if to_bool(retval) == true then
-		outputMealTicket();
+		Constants:outputMealTicket();
 		return FALSE_POINTER;
 	end
 
@@ -224,7 +221,7 @@ local function PreHook_openRewardDialog(args)
 end
 local function PostHook_openRewardDialog()
 	if RewardItemId_field:get_data(RewardDataList_get_Item_method:call(RewardItemDataList, 0)) == 68160340 then
-		closeRewardDialog();
+		Constants:closeRewardDialog();
 	end
 
 	RewardItemDataList = nil;

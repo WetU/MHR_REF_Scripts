@@ -10,11 +10,8 @@ local hook_vtable = Constants.sdk.hook_vtable;
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local checkKeyTrg = Constants.checkKeyTrg;
-local outputMealTicket = Constants.outputMealTicket;
 local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
-local SendMessage = Constants.SendMessage;
-local getCountOfAll = Constants.getCountOfAll;
 
 -- in Village hotkeys
 local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
@@ -91,9 +88,9 @@ local DailyDango = {
 };
 --
 local function orderBbq()
-	local meatCount = getCountOfAll(68157562);
+	local meatCount = Constants:getCountOfAll(68157562);
 	if meatCount == nil or meatCount <= 0 then
-		SendMessage("요리: 날고기가 없습니다!");
+		Constants:SendMessage("요리: 날고기가 없습니다!");
 		return;
 	end
 
@@ -113,16 +110,16 @@ local function orderBbq()
 		elseif MoneyVal >= MoneyCost then
 			paymentType = 2;
 			get_HandMoney_method:call(nil):set_field("_Value", MoneyVal - MoneyCost);
-			SendMessage("요리: 포인트가 부족합니다!\n소지금을 사용합니다");
+			Constants:SendMessage("요리: 포인트가 부족합니다!\n소지금을 사용합니다");
 		else
-			SendMessage("요리: 소지금과 포인트가 부족합니다!");
+			Constants:SendMessage("요리: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 
 		orderBbq_method:call(BbqFunc, BbqConvertData, orderCount);
 		addItemToBox_method:call(nil, 68157448, orderCount);
 		if isExistOutputTicket_method:call(BbqFunc) == true then
-			outputMealTicket();
+			Constants:outputMealTicket();
 		end
 	end
 end
@@ -181,7 +178,7 @@ local function orderDango(kitchenType)
 		local MealTicketNum = getMealTicketNum_method:call(MealFunc);
 
 		if MealTicketNum == nil or MealTicketNum <= 0 then
-			SendMessage("식사: 식사권이 없습니다!");
+			Constants:SendMessage("식사: 식사권이 없습니다!");
 			return;
 		end
 
@@ -191,9 +188,9 @@ local function orderDango(kitchenType)
 			paymentType = 0;
 		elseif checkVillagePoint_method:call(MealFunc) == true then
 			paymentType = 1;
-			SendMessage("식사: 소지금이 부족합니다!\n포인트를 사용합니다");
+			Constants:SendMessage("식사: 소지금이 부족합니다!\n포인트를 사용합니다");
 		else
-			SendMessage("식사: 소지금과 포인트가 부족합니다!");
+			Constants:SendMessage("식사: 소지금과 포인트가 부족합니다!");
 			return;
 		end
 

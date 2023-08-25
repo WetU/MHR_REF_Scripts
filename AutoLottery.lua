@@ -7,10 +7,6 @@ local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
-
-local findInventoryData = Constants.findInventoryData;
-local SendMessage = Constants.SendMessage;
-local closeRewardDialog = Constants.closeRewardDialog;
 --
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 local checkLotEventStatus_method = Constants.type_definitions.FacilityDataManager_type_def:get_method("checkLotEventStatus"); -- static
@@ -66,7 +62,8 @@ local LotStates = {
     LotAnim = 5,
     onLotResult = 6,
     setResultCursor = 7,
-    receivePrizes = 8,
+    fukudamaPrize = 8,
+    receivePrizes = 9,
     noTicketandMoney = 100,
     unAvail = 101
 };
@@ -86,7 +83,7 @@ local function PreHook_TopMenuStart(args)
             GuiItemShopFsmTopMenuAction = to_managed_object(args[2]);
         elseif LotEventStatus == 5 then
             LotState = LotStates.noTicketandMoney;
-            SendMessage("추첨권과 소지금이 없습니다!");
+            Constants:SendMessage("추첨권과 소지금이 없습니다!");
             LotEventStatus = nil;
         else
             LotState = LotStates.unAvail;
@@ -209,21 +206,26 @@ local function PostHook_LotResultStart()
 end
 hook(GuiItemShopFsmLotMenuResultSelectAction_type_def:get_method("start(via.behaviortree.ActionArg)"), PreHook_LotResultStart, PostHook_LotResultStart);
 
-local function PostHook_openRewardDialog()
-    if FukudamaPrizeData ~= nil then
-        closeRewardDialog();
+local function PreHook_openRewardDialog()
+    if LotState == LotStates.setResultCursor and FukudamaPrizeData ~= nil then
+        LotState = LotStates.fukudamaPrize;
     end
 end
-hook(GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), nil, PostHook_openRewardDialog);
+local function PostHook_openRewardDialog()
+    if LotState == LotStates.fukudamaPrize then
+        Constants:closeRewardDialog();
+    end
+end
+hook(GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
 
-local function PreHook_closeLotResultPanel(args)
-    if LotState == LotStates.setResultCursor then
+local function PreHook_closeLotResultPanel()
+    if LotState == LotStates.setResultCursor or LotState == LotStates.fukudamaPrize then
         LotState = LotStates.receivePrizes;
     end
 end
 hook(GuiItemShopLotMenu_type_def:get_method("closeLotResultPanel"), PreHook_closeLotResultPanel);
 
-local function PreHook_closeItemShop(args)
+local function PreHook_closeItemShop()
     LotState = nil;
 end
 local function PostHook_closeItemShop()

@@ -13,8 +13,6 @@ local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
 local to_int64 = Constants.sdk.to_int64;
 
-local QuestMapList = Constants.QuestMapList;
-local getQuestMapNo = Constants.getQuestMapNo;
 local to_bool = Constants.to_bool;
 --
 local this = {
@@ -65,6 +63,15 @@ local BuffTypes = {
 	3, -- Def
 	0, -- Vital
 	1  -- Stamina
+};
+local QuestMapList = {
+	["ShrineRuins"] = 1,
+	["SandyPlains"] = 2,
+	["FloodedForest"] = 3,
+	["FrostIslands"] = 4,
+	["LavaCaverns"] = 5,
+	["Jungle"] = 12,
+	["Citadel"] = 13
 };
 --
 local function Terminate()
@@ -199,7 +206,7 @@ local function init()
 end
 
 local function onQuestStart()
-	local QuestMapNo = getQuestMapNo();
+	local QuestMapNo = Constants:getQuestMapNo();
 
 	for _, v in pairs(QuestMapList) do
 		if v == QuestMapNo then

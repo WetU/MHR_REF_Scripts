@@ -8,7 +8,6 @@ local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 local pairs = Constants.lua.pairs;
 local tostring = Constants.lua.tostring;
 
-local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 
 local on_frame = Constants.on_frame;
@@ -33,7 +32,7 @@ local addItemToPouch_method = Constants.type_definitions.DataShortcut_type_def:g
 local QuestInfo_onQuestStart = QuestInfo.onQuestStart;
 local SpiribirdsStatus_onQuestStart = SpiribirdsStatus.onQuestStart;
 --
-local GuiQuestStart_type_def = find_type_definition("snow.gui.GuiQuestStart");
+local GuiQuestStart_type_def = Constants.sdk.find_type_definition("snow.gui.GuiQuestStart");
 local NowState_field = GuiQuestStart_type_def:get_field("_NowState");
 --
 local AutoAddItemIds = {
