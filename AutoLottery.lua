@@ -161,16 +161,14 @@ local function PostHook_LotResultStart()
                 local ListFukudamaPrize = get_ListFukudamaPrize_method:call(GuiItemShopLotMenu);
 
                 if LotResultDataList ~= nil then
-                    local ListSize = LotResultDataList:get_size();
-
                     PrizesData = {
                         ItemId = {},
                         Count = {},
                         SendInventoryStatus = {},
-                        Length = ListSize
+                        Length = LotResultDataList:get_size()
                     };
 
-                    for i = 0, ListSize - 1, 1 do
+                    for i = 0, PrizesData.Length - 1, 1 do
                         local data = LotResultDataList:get_element(i);
                         local count = get_Count_method:call(data);
                         PrizesData.ItemId[i + 1] = get_ItemId_method:call(data);
@@ -186,19 +184,15 @@ local function PostHook_LotResultStart()
                         FukudamaPrizeData = {
                             ItemId = {},
                             Count = {},
-                            SendInventoryStatus = {},
                             Length = ListSize
                         };
+
                         local arrayItems = ListFukudamaPrize_mItems_field:get_data(ListFukudamaPrize);
 
                         for i = 0, ListSize - 1, 1 do
                             local PrizeData = arrayItems:get_element(i);
-                            local itemId = PrizeItemId_field:get_data(PrizeData);
-                            local count = PrizeItemCount_field:get_data(PrizeData);
-                            local InventoryData = findInventoryData(1, itemId);
-                            FukudamaPrizeData.ItemId[i + 1] = itemId;
-                            FukudamaPrizeData.Count[i + 1] = count;
-                            FukudamaPrizeData.SendInventoryStatus[i + 1] = (InventoryData == nil or checkSendInventoryStatus_method:call(nil, InventoryData, 65536, count) == 0) and 0 or 1;
+                            FukudamaPrizeData.ItemId[i + 1] = PrizeItemId_field:get_data(PrizeData);
+                            FukudamaPrizeData.Count[i + 1] = PrizeItemCount_field:get_data(PrizeData);
                         end
                     end
                 end
@@ -243,7 +237,7 @@ local function PostHook_closeItemShop()
                     ChatManager,
                     FukudamaPrizeData.ItemId[i],
                     FukudamaPrizeData.Count[i],
-                    FukudamaPrizeData.SendInventoryStatus[i],
+                    0,
                     false
                 );
             end

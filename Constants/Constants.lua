@@ -95,17 +95,6 @@ function this.findInventoryData(inventoryGroup, itemId)
 	return findInventoryData_method:call(nil, inventoryGroup, itemId);
 end
 --
-local getMasterPlayerBase_method = this.sdk.find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
-this.type_definitions.PlayerBase_type_def = getMasterPlayerBase_method:get_return_type();
-
-function this:get_MasterPlayerBase()
-	if self.Objects.MasterPlayerBase == nil or self.Objects.MasterPlayerBase:get_reference_count() <= 1 then
-		self.Objects.MasterPlayerBase = getMasterPlayerBase_method:call(nil);
-	end
-
-	return self.Objects.MasterPlayerBase;
-end
---
 local get_CurrentStatus_method = this.sdk.find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
 
 function this.checkGameStatus(checkType)
@@ -201,7 +190,7 @@ function this.getCountOfAll(itemId)
 end
 --
 function this.SKIP_ORIGINAL_func()
-	return this.SKIP_ORIGINAL;
+	return this.sdk.SKIP_ORIGINAL;
 end
 
 function this.RETURN_TRUE_func()

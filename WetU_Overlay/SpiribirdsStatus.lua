@@ -7,6 +7,7 @@ local math_max = Constants.lua.math_max;
 
 local string_format = Constants.lua.string_format;
 
+local find_type_definition = Constants.sdk.find_type_definition;
 local to_managed_object = Constants.sdk.to_managed_object;
 local hook = Constants.sdk.hook;
 local hook_vtable = Constants.sdk.hook_vtable;
@@ -38,13 +39,15 @@ local getEquippingLvBuffcageData_method = EquipDataManager_type_def:get_method("
 
 local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_type():get_method("getStatusBuffLimit(snow.data.NormalLvBuffCageData.BuffTypes)");
 --
-local PlayerManager_type_def = Constants.sdk.find_type_definition("snow.player.PlayerManager");
+local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
 local PlayerQuestBase_type_def = Constants.type_definitions.PlayerQuestBase_type_def;
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 
-local PlayerBase_type_def = Constants.type_definitions.PlayerBase_type_def;
+local getMasterPlayerBase_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
+
+local PlayerBase_type_def = getMasterPlayerBase_method:get_return_type();
 local isMasterPlayer_method = PlayerBase_type_def:get_method("isMasterPlayer");
 local get_PlayerData_method = PlayerBase_type_def:get_method("get_PlayerData");
 
@@ -185,7 +188,7 @@ end
 
 local function updateEquipSkill211()
 	if this.SpiribirdsHudDataCreated == true then
-		this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(Constants:get_MasterPlayerBase())) / 60.0));
+		this.SpiribirdsCall_Timer = string_format("향응 타이머: %.f초", 60.0 - (SpiribirdsCallTimer_field:get_data(get_PlayerData_method:call(getMasterPlayerBase_method:call(nil))) / 60.0));
 	end
 end
 
