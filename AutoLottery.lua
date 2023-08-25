@@ -10,6 +10,7 @@ local TRUE_POINTER = Constants.TRUE_POINTER;
 
 local findInventoryData = Constants.findInventoryData;
 local SendMessage = Constants.SendMessage;
+local closeRewardDialog = Constants.closeRewardDialog;
 --
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
 local checkLotEventStatus_method = Constants.type_definitions.FacilityDataManager_type_def:get_method("checkLotEventStatus"); -- static
@@ -33,7 +34,8 @@ local decideSubMenu_method = GuiItemShopFsmTopSubMenuAction_type_def:get_method(
 local GuiItemShopFsmLotMenuResultSelectAction_type_def = find_type_definition("snow.gui.fsm.itemshop.GuiItemShopFsmLotMenuResultSelectAction");
 local LotResult_update_method = GuiItemShopFsmLotMenuResultSelectAction_type_def:get_method("update(via.behaviortree.ActionArg)");
 --
-local get_refGuiItemShopLotMenu_method = Constants.type_definitions.GuiManager_type_def:get_method("get_refGuiItemShopLotMenu");
+local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
+local get_refGuiItemShopLotMenu_method = GuiManager_type_def:get_method("get_refGuiItemShopLotMenu");
 
 local GuiItemShopLotMenu_type_def = get_refGuiItemShopLotMenu_method:get_return_type();
 local get__LotResultCursor_method = GuiItemShopLotMenu_type_def:get_method("get__LotResultCursor");
@@ -206,6 +208,13 @@ local function PostHook_LotResultStart()
     end
 end
 hook(GuiItemShopFsmLotMenuResultSelectAction_type_def:get_method("start(via.behaviortree.ActionArg)"), PreHook_LotResultStart, PostHook_LotResultStart);
+
+local function PostHook_openRewardDialog()
+    if FukudamaPrizeData ~= nil then
+        closeRewardDialog();
+    end
+end
+hook(GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), nil, PostHook_openRewardDialog);
 
 local function PreHook_closeLotResultPanel(args)
     if LotState == LotStates.setResultCursor then

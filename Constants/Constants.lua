@@ -189,6 +189,12 @@ function this.getCountOfAll(itemId)
 	return getCountOfAll_method:call(this:get_ContentsIdDataManager(), itemId);
 end
 --
+local closeRewardDialog_method = this.type_definitions.GuiManager_type_def:get_method("closeRewardDialog");
+
+function this.closeRewardDialog()
+	closeRewardDialog_method:call(this:get_GuiManager());
+end
+--
 function this.SKIP_ORIGINAL_func()
 	return this.sdk.SKIP_ORIGINAL;
 end

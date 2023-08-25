@@ -9,6 +9,8 @@ local FALSE_POINTER = Constants.FALSE_POINTER;
 
 local outputMealTicket = Constants.outputMealTicket;
 local to_bool = Constants.to_bool;
+
+local closeRewardDialog = Constants.closeRewardDialog;
 --
 local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
@@ -47,9 +49,6 @@ local talkAction2_SupplyMysteryResearchRequestReward_method = NpcTalkMessageCtrl
 --
 local RewardDataList_get_Item_method = find_type_definition("System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>"):get_method("get_Item(System.Int32)");
 local RewardItemId_field = RewardDataList_get_Item_method:get_return_type():get_field("Item1");
-
-local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
-local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
 --
 local MysteryResearchRequestEnd = nil;
 local CommercialStuffObtainable = nil;
@@ -225,7 +224,7 @@ local function PreHook_openRewardDialog(args)
 end
 local function PostHook_openRewardDialog()
 	if RewardItemId_field:get_data(RewardDataList_get_Item_method:call(RewardItemDataList, 0)) == 68160340 then
-		closeRewardDialog_method:call(Constants:get_GuiManager());
+		closeRewardDialog();
 	end
 
 	RewardItemDataList = nil;
@@ -248,7 +247,7 @@ local function init()
 	--hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
-	hook(GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
+	hook(Constants.type_definitions.GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
 end
 --
 local this = {
