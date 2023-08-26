@@ -1,35 +1,36 @@
 local Constants = _G.require("Constants.Constants");
 
-local pairs = Constants.lua.pairs;
+local lua = Constants.lua;
+local pairs = lua.pairs;
+local math_min = lua.math_min;
+local math_max = lua.math_max;
+local string_format = lua.string_format;
 
-local math_min = Constants.lua.math_min;
-local math_max = Constants.lua.math_max;
-
-local string_format = Constants.lua.string_format;
-
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
-local hook_vtable = Constants.sdk.hook_vtable;
-local to_int64 = Constants.sdk.to_int64;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
+local hook_vtable = sdk.hook_vtable;
+local to_int64 = sdk.to_int64;
 
 local to_bool = Constants.to_bool;
 --
 local this = {
-	init = true,
-	onQuestStart = true,
+	["init"] = true,
+	["onQuestStart"] = true,
 
-	SpiribirdsHudDataCreated = false,
+	["SpiribirdsHudDataCreated"] = false,
 
-	StatusBuffLimits = nil,
-	AcquiredValues = nil,
-	BirdsMaxCounts = nil,
-	AcquiredCounts = nil,
+	["StatusBuffLimits"] = nil,
+	["AcquiredValues"] = nil,
+	["BirdsMaxCounts"] = nil,
+	["AcquiredCounts"] = nil,
 
-	SpiribirdsCall_Timer = nil
+	["SpiribirdsCall_Timer"] = nil
 };
 --
-local EquipDataManager_type_def = Constants.type_definitions.EquipDataManager_type_def;
+local type_definitions = Constants.type_definitions;
+local EquipDataManager_type_def = type_definitions.EquipDataManager_type_def;
 local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
 local addLvBuffCount_method = EquipDataManager_type_def:get_method("addLvBuffCount(snow.data.NormalLvBuffCageData.BuffTypes, System.Int32)"); -- static
 local calcLvBuffValue_method = EquipDataManager_type_def:get_method("calcLvBuffValue(snow.data.NormalLvBuffCageData.BuffTypes)");
@@ -40,7 +41,7 @@ local getStatusBuffLimit_method = getEquippingLvBuffcageData_method:get_return_t
 local PlayerManager_type_def = find_type_definition("snow.player.PlayerManager");
 local getLvBuffCnt_method = PlayerManager_type_def:get_method("getLvBuffCnt(snow.player.PlayerDefine.LvBuff)");
 --
-local PlayerQuestBase_type_def = Constants.type_definitions.PlayerQuestBase_type_def;
+local PlayerQuestBase_type_def = type_definitions.PlayerQuestBase_type_def;
 local onDestroy_method = PlayerQuestBase_type_def:get_method("onDestroy");
 
 local getMasterPlayerBase_method = find_type_definition("snow.npc.NpcUtility"):get_method("getMasterPlayer"); -- static
@@ -199,13 +200,12 @@ local function updateEquipSkill211()
 	end
 end
 
-local function init()
+this.init = function()
 	hook(PlayerQuestBase_type_def:get_method("subLvBuffFromEnemy(snow.player.PlayerDefine.LvBuff, System.Int32)"), PreHook_subLvBuffFromEnemy, PostHook_subLvBuffFromEnemy);
 	hook(PlayerQuestBase_type_def:get_method("updateEquipSkill211"), nil, updateEquipSkill211);
 	hook(PlayerManager_type_def:get_method("addLvBuffCnt(System.Int32, snow.player.PlayerDefine.LvBuff)"), PreHook_addLvBuffCnt, PostHook_addLvBuffCnt);
 end
-
-local function onQuestStart()
+this.onQuestStart = function()
 	local QuestMapNo = Constants:getQuestMapNo();
 
 	for _, v in pairs(QuestMapList) do
@@ -220,8 +220,5 @@ local function onQuestStart()
 		end
 	end
 end
-
-this.init = init;
-this.onQuestStart = onQuestStart;
 --
 return this;

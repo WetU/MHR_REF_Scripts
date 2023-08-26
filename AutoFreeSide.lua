@@ -1,8 +1,9 @@
 local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 --

@@ -6,10 +6,10 @@ local InventorySupply = require("AutoSupply.AutoInventorySupply");
 local AutoTicketsSupply = require("AutoSupply.AutoTicketsSupply");
 local AutoMysteryPoint = require("AutoSupply.AutoMysteryPoint");
 
-local hook = Constants.sdk.hook;
-local to_int64 = Constants.sdk.to_int64;
-
-local find_type_definition = Constants.sdk.find_type_definition;
+local sdk = Constants.sdk;
+local hook = sdk.hook;
+local to_int64 = sdk.to_int64;
+local find_type_definition = sdk.find_type_definition;
 
 local WwiseChangeSpaceWatcher_type_def = find_type_definition("snow.wwise.WwiseChangeSpaceWatcher");
 --

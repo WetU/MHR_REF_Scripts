@@ -1,22 +1,22 @@
 local Constants = _G.require("Constants.Constants");
 
-local tostring = Constants.lua.tostring;
-local string_format = Constants.lua.string_format;
+local lua = Constants.lua;
+local tostring = lua.tostring;
+local string_format = lua.string_format;
 
-local hook = Constants.sdk.hook;
-
-local checkGameStatus = Constants.checkGameStatus;
+local sdk = Constants.sdk;
+local hook = sdk.hook;
 --
 local this = {
-	init = true,
-	onQuestStart = true,
+	["init"] = true,
+	["onQuestStart"] = true,
 
-	QuestInfoDataCreated = false,
-	QuestTimer = nil,
-	DeathCount = nil
+	["QuestInfoDataCreated"] = false,
+	["QuestTimer"] = nil,
+	["DeathCount"] = nil
 };
 --
-local getClearTimeFormatText_method = Constants.sdk.find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
+local getClearTimeFormatText_method = sdk.find_type_definition("snow.gui.SnowGuiCommonUtility"):get_method("getClearTimeFormatText(System.Single)"); -- static
 --
 local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
 local getQuestMaxTimeMin_method = QuestManager_type_def:get_method("getQuestMaxTimeMin");
@@ -63,8 +63,8 @@ local function Terminate()
 	curQuestMaxTimeMin = nil;
 end
 
-local function init()
-	if checkGameStatus(2) == true then
+this.init = function()
+	if Constants:checkGameStatus(2) == true then
 		onQuestStart();
 	end
 
@@ -72,8 +72,6 @@ local function init()
 	hook(QuestManager_type_def:get_method("updateQuestTime"), nil, updateQuestTimer);
 	hook(QuestManager_type_def:get_method("onQuestEnd"), nil, Terminate);
 end
-
-this.init = init;
 this.onQuestStart = onQuestStart;
 --
 return this;

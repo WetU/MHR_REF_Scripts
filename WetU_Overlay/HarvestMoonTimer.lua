@@ -2,10 +2,11 @@ local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
-local hook_vtable = Constants.sdk.hook_vtable;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
+local hook_vtable = sdk.hook_vtable;
 --
 local getMasterPlayerIndex_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayerIndex"); -- static
 --
@@ -25,9 +26,9 @@ local IsWarning_field = LongSwordShell010_type_def:get_field("_IsWarning");
 local get_OwnerId_method = LongSwordShell010_type_def:get_parent_type():get_method("get_OwnerId");
 --
 local this = {
-	init = true,
-	CircleTimer = nil,
-	IsWarning = false
+	["init"] = true,
+	["CircleTimer"] = nil,
+	["IsWarning"] = false
 };
 --
 local LongSwordShell010 = nil;
@@ -58,10 +59,10 @@ local function PostHook()
 	end
 end
 
-local function init()
+this.init = function()
 	local MasterPlayerIndex = getMasterPlayerIndex_method:call(nil);
 	if MasterPlayerIndex ~= nil then
-		local LongSwordShellManager = Constants.sdk.get_managed_singleton("snow.shell.LongSwordShellManager");
+		local LongSwordShellManager = sdk.get_managed_singleton("snow.shell.LongSwordShellManager");
 		if LongSwordShellManager ~= nil then
 			local MaseterLongSwordShell010s = getMaseterLongSwordShell010s_method:call(LongSwordShellManager, MasterPlayerIndex);
 			if MaseterLongSwordShell010s ~= nil then
@@ -85,7 +86,5 @@ local function init()
 
 	hook(LongSwordShell010_type_def:get_method("start"), PreHook, PostHook);
 end
-
-this.init = init;
 --
 return this;

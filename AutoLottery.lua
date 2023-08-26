@@ -1,16 +1,18 @@
 local Constants = _G.require("Constants.Constants");
 --
-local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
-local hook_vtable = Constants.sdk.hook_vtable;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local get_managed_singleton = sdk.get_managed_singleton;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
+local hook_vtable = sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 --
-local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
-local checkLotEventStatus_method = Constants.type_definitions.FacilityDataManager_type_def:get_method("checkLotEventStatus"); -- static
-local reqAddChatItemInfo_method = Constants.type_definitions.ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
+local type_definitions = Constants.type_definitions;
+local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
+local checkLotEventStatus_method = type_definitions.FacilityDataManager_type_def:get_method("checkLotEventStatus"); -- static
+local reqAddChatItemInfo_method = type_definitions.ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
 --
 local GuiItemShopFsmManager_type_def = find_type_definition("snow.gui.fsm.itemshop.GuiItemShopFsmManager");
 local get_ItemShopState_method = GuiItemShopFsmManager_type_def:get_method("get_ItemShopState");
@@ -30,7 +32,7 @@ local decideSubMenu_method = GuiItemShopFsmTopSubMenuAction_type_def:get_method(
 local GuiItemShopFsmLotMenuResultSelectAction_type_def = find_type_definition("snow.gui.fsm.itemshop.GuiItemShopFsmLotMenuResultSelectAction");
 local LotResult_update_method = GuiItemShopFsmLotMenuResultSelectAction_type_def:get_method("update(via.behaviortree.ActionArg)");
 --
-local GuiManager_type_def = Constants.type_definitions.GuiManager_type_def;
+local GuiManager_type_def = type_definitions.GuiManager_type_def;
 local get_refGuiItemShopLotMenu_method = GuiManager_type_def:get_method("get_refGuiItemShopLotMenu");
 
 local GuiItemShopLotMenu_type_def = get_refGuiItemShopLotMenu_method:get_return_type();
@@ -48,7 +50,7 @@ local FukudamaPrize_type_def = find_type_definition("System.ValueTuple`2<snow.da
 local PrizeItemId_field = FukudamaPrize_type_def:get_field("Item1");
 local PrizeItemCount_field = FukudamaPrize_type_def:get_field("Item2");
 --
-local ItemInventoryData_type_def = Constants.type_definitions.ItemInventoryData_type_def;
+local ItemInventoryData_type_def = type_definitions.ItemInventoryData_type_def;
 local get_ItemId_method = ItemInventoryData_type_def:get_method("get_ItemId");
 local get_Count_method = ItemInventoryData_type_def:get_method("get_Count");
 local checkSendInventoryStatus_method = ItemInventoryData_type_def:get_method("checkSendInventoryStatus(snow.data.ItemInventoryData, snow.data.InventoryData.InventoryType, System.UInt32)"); -- static

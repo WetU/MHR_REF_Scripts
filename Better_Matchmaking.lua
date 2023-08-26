@@ -1,17 +1,18 @@
 local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
-local to_int64 = Constants.sdk.to_int64;
-local to_valuetype = Constants.sdk.to_valuetype;
-local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
-local CALL_ORIGINAL = Constants.sdk.CALL_ORIGINAL;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
+local to_int64 = sdk.to_int64;
+local to_valuetype = sdk.to_valuetype;
+local SKIP_ORIGINAL = sdk.SKIP_ORIGINAL;
+local CALL_ORIGINAL = sdk.CALL_ORIGINAL;
+
+local type_definitions = Constants.type_definitions;
 
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
 local to_bool = Constants.to_bool;
-
-local checkGameStatus = Constants.checkGameStatus;
 
 -- Region lock fix
 local session_steam_type_def = find_type_definition("via.network.SessionSteam");
@@ -224,7 +225,7 @@ local function onCancelSearch(retval)
 
 	return retval;
 end
-hook(Constants.type_definitions.StmGuiInput_type_def:get_method("getCancelButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, onCancelSearch);
+hook(type_definitions.StmGuiInput_type_def:get_method("getCancelButtonTrg(snow.StmInputConfig.KeyConfigType, System.Boolean)"), nil, onCancelSearch);
 hook(session_manager_type_def:get_method("funcOnCompletedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
 hook(session_manager_type_def:get_method("funcOnOccuredMatchmakingFatalError(snow.network.session.SessionAttr)"), clearVars);
 hook(session_manager_type_def:get_method("funcOnRejectedMatchmaking(snow.network.session.SessionAttr)"), clearVars);
@@ -237,6 +238,6 @@ hook(session_manager_type_def:get_method("reqOnlineWarning"), SKIP_ORIGINAL_func
 
 -- misc fixes
 local function PreHook_setOpenNetworkErrorWindowSelection()
-	return checkGameStatus(2) == true and SKIP_ORIGINAL or CALL_ORIGINAL;
+	return Constants:checkGameStatus(2) == true and SKIP_ORIGINAL or CALL_ORIGINAL;
 end
-hook(Constants.type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);
+hook(type_definitions.GuiManager_type_def:get_method("setOpenNetworkErrorWindowSelection(System.Guid, System.Boolean, System.String, System.Boolean)"), PreHook_setOpenNetworkErrorWindowSelection);

@@ -1,9 +1,10 @@
 local Constants = _G.require("Constants.Constants");
 
-local hook = Constants.sdk.hook;
-local find_type_definition = Constants.sdk.find_type_definition;
-local get_managed_singleton = Constants.sdk.get_managed_singleton;
-local to_managed_object = Constants.sdk.to_managed_object;
+local sdk = Constants.sdk;
+local hook = sdk.hook;
+local find_type_definition = sdk.find_type_definition;
+local get_managed_singleton = sdk.get_managed_singleton;
+local to_managed_object = sdk.to_managed_object;
 
 local FALSE_POINTER = Constants.FALSE_POINTER;
 
@@ -23,7 +24,8 @@ local SwitchAction_supply_method = find_type_definition("snow.progress.ProgressS
 --
 local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");]]
 --
-local FacilityDataManager_type_def = Constants.type_definitions.FacilityDataManager_type_def;
+local type_definitions = Constants.type_definitions;
+local FacilityDataManager_type_def = type_definitions.FacilityDataManager_type_def;
 local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
 
 local get_LaboReward_method = getMysteryLaboFacility_method:get_return_type():get_method("get_LaboReward");
@@ -244,12 +246,10 @@ local function init()
 	--hook(NpcTalkMessageCtrl_type_def:get_method("checkNoteReward_SupplyAnyOrnament_MR(snow.npc.message.define.NpcMessageTalkTag)"), nil, getNoteReward);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkMysteryResearchRequestEnd(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkMysteryResearchRequestEnd);
 	hook(NpcTalkMessageCtrl_type_def:get_method("checkCommercialStuff(snow.npc.message.define.NpcMessageTalkTag)"), nil, PostHook_checkCommercialStuff);
-	hook(Constants.type_definitions.GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
+	hook(type_definitions.GuiManager_type_def:get_method("openRewardDialog(System.Collections.Generic.List`1<System.ValueTuple`2<snow.data.ContentsIdSystem.ItemId,System.Int32>>, System.String)"), PreHook_openRewardDialog, PostHook_openRewardDialog);
 end
 --
-local this = {
-	init = init,
-	talkHandler = talkHandler
+return {
+	["init"] = init,
+	["talkHandler"] = talkHandler
 };
---
-return this;

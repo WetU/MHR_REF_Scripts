@@ -12,8 +12,8 @@ local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManage
 local get__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("get__CurrentAreaNo");
 local set__CurrentAreaNo_method = VillageAreaManager_type_def:get_method("set__CurrentAreaNo(snow.stage.StageDef.AreaNoType)");
 --
-local this = {
-	Supply = function()
+return {
+	["Supply"] = function()
 		local ProgressOwlNestManager = Constants:get_ProgressOwlNestManager();
 		local SaveData = get_SaveData_method:call(ProgressOwlNestManager);
 
@@ -66,5 +66,3 @@ local this = {
 		end
 	end
 };
---
-return this;

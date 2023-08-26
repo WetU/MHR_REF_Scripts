@@ -29,6 +29,27 @@ local get_BbqFunc_method = KitchenFacility_type_def:get_method("get_BbqFunc");
 local BbqFunc_type_def = get_BbqFunc_method:get_return_type();
 local outputTicket_method = BbqFunc_type_def:get_method("outputTicket");
 --
+local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
+--
+local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
+--
+local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
+--
+local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
+--
+local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
+local getDeathNum_method = QuestManager_type_def:get_method("getDeathNum");
+--
+local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
+--
+local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
+local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
+local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
+--
+local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
+--
+local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
+--
 local this = {
 	["lua"] = {
 		["pairs"] = _G.pairs,
@@ -82,7 +103,29 @@ local this = {
 		["PlayerLobbyBase_type_def"] = PlayerLobbyBase_type_def,
 		["PlayerQuestBase_type_def"] = find_type_definition("snow.player.PlayerQuestBase")
 	},
-	["Objects"] = {},
+	["Objects"] = {
+		["FadeManager"] = get_managed_singleton("snow.FadeManager"),
+		["CameraManager"] = get_managed_singleton("snow.CameraManager"),
+		["QuestManager"] = get_managed_singleton("snow.QuestManager"),
+		["SnowGameManager"] = get_managed_singleton("snow.SnowGameManager"),
+		["VillageAreaManager"] = get_managed_singleton("snow.VillageAreaManager"),
+		["DemoCamera"] = get_managed_singleton("snow.camera.DemoCamera"),
+		["ContentsIdDataManager"] = get_managed_singleton("snow.data.ContentsIdDataManager"),
+		["EquipDataManager"] = get_managed_singleton("snow.data.EquipDataManager"),
+		["FacilityDataManager"] = get_managed_singleton("snow.data.FacilityDataManager"),
+		["KitchenFacility"] = nil,
+		["BbqFunc"] = nil,
+		["OtomoSpyUnitManager"] = get_managed_singleton("snow.data.OtomoSpyUnitManager"),
+		["SkillDataManager"] = get_managed_singleton("snow.data.SkillDataManager"),
+		["TradeCenterFacility"] = get_managed_singleton("snow.facility.TradeCenterFacility"),
+		["ChatManager"] = get_managed_singleton("snow.gui.ChatManager"),
+		["GuiManager"] = get_managed_singleton("snow.gui.GuiManager"),
+		["OtomoManager"] = get_managed_singleton("snow.otomo.OtomoManager"),
+		["MasterPlayerLobbyBase"] = nil,
+		["PlayerManager"] = get_managed_singleton("snow.player.PlayerManager"),
+		["ProgressOwlNestManager"] = get_managed_singleton("snow.progress.ProgressOwlNestManager"),
+		["StagePointManager"] = get_managed_singleton("snow.stage.StagePointManager")
+	},
 	["on_frame"] = _G.re.on_frame,
 	["Vector2f_new"] = _G.Vector2f.new,
 	["Vector3f_new"] = _G.Vector3f.new,
@@ -100,38 +143,41 @@ local this = {
 		0xAC00, 0xD7A3, -- Hangul Syllables
 		0xD7B0, 0xD7FF, -- Hangul Jamo Extended-B
 		0
-	})
+	}),
+	checkKeyTrg = function(key)
+		return getTrg_method:call(nil, key);
+	end,
+	getVillagePoint = function()
+		return get_Point_method:call(nil);
+	end,
+	subVillagePoint = function(count)
+		subPoint_method:call(nil, count);
+	end,
+	SKIP_ORIGINAL_func = function()
+		return SKIP_ORIGINAL;
+	end,
+	RETURN_TRUE_func = function()
+		return TRUE_POINTER;
+	end,
+	to_bool = function(value)
+		return (to_int64(value) & 1) == 1;
+	end
 };
 --
-local getTrg_method = find_type_definition("snow.GameKeyboard.HardwareKeyboard"):get_method("getTrg(via.hid.KeyboardKey)"); -- static
-
-function this.checkKeyTrg(key)
-	return getTrg_method:call(nil, key);
-end
---
-local get_CurrentStatus_method = find_type_definition("snow.SnowGameManager"):get_method("get_CurrentStatus");
-
-function this.checkGameStatus(checkType)
-	local SnowGameManager = get_managed_singleton("snow.SnowGameManager");
-	return SnowGameManager ~= nil and checkType == get_CurrentStatus_method:call(SnowGameManager) or nil;
-end
---
-local set_FadeMode_method = find_type_definition("snow.FadeManager"):get_method("set_FadeMode(snow.FadeManager.MODE)");
-
 function this.ClearFade()
-	local FadeManager = get_managed_singleton("snow.FadeManager");
+	local FadeManager = this:get_FadeManager();
 	set_FadeMode_method:call(FadeManager, 3);
 	FadeManager:set_field("fadeOutInFlag", false);
 end
---
-local getMapNo_method = QuestManager_type_def:get_method("getMapNo");
+
+function this:checkGameStatus(checkType)
+	local SnowGameManager = self:get_SnowGameManager();
+	return SnowGameManager ~= nil and checkType == get_CurrentStatus_method:call(SnowGameManager) or nil;
+end
 
 function this:getQuestMapNo()
 	return getMapNo_method:call(self:get_QuestManager());
 end
---
-local getQuestLife_method = QuestManager_type_def:get_method("getQuestLife");
-local getDeathNum_method = QuestManager_type_def:get_method("getDeathNum");
 
 function this:getQuestLife()
 	return getQuestLife_method:call(self:get_QuestManager());
@@ -140,49 +186,31 @@ end
 function this:getDeathNum()
 	return getDeathNum_method:call(self:get_QuestManager());
 end
---
-local reqAddChatInfomation_method = ChatManager_type_def:get_method("reqAddChatInfomation(System.String, System.UInt32)");
 
 function this:SendMessage(text)
 	reqAddChatInfomation_method:call(self:get_ChatManager(), text, 0); -- sound on : 2289944406
 end
---
-local VillagePoint_type_def = find_type_definition("snow.data.VillagePoint");
-local get_Point_method = VillagePoint_type_def:get_method("get_Point"); -- static
-local subPoint_method = VillagePoint_type_def:get_method("subPoint(System.UInt32)"); -- static
-
-function this.getVillagePoint()
-	return get_Point_method:call(nil);
-end
-
-function this.subVillagePoint(count)
-	subPoint_method:call(nil, count);
-end
---
-local getCountOfAll_method = find_type_definition("snow.data.ContentsIdDataManager"):get_method("getCountOfAll(snow.data.ContentsIdSystem.ItemId)");
 
 function this:getCountOfAll(itemId)
 	return getCountOfAll_method:call(self:get_ContentsIdDataManager(), itemId);
 end
---
-local closeRewardDialog_method = GuiManager_type_def:get_method("closeRewardDialog");
 
 function this:closeRewardDialog()
 	closeRewardDialog_method:call(self:get_GuiManager());
 end
---
-function this.SKIP_ORIGINAL_func()
-	return SKIP_ORIGINAL;
-end
 
-function this.RETURN_TRUE_func()
-	return TRUE_POINTER;
-end
-
-function this.to_bool(value)
-	return (to_int64(value) & 1) == 1;
+function this:outputMealTicket()
+	outputTicket_method:call(self:get_BbqFunc());
 end
 --
+function this:get_FadeManager()
+	if self.Objects.FadeManager == nil or self.Objects.FadeManager:get_reference_count() <= 1 then
+		self.Objects.FadeManager = get_managed_singleton("snow.FadeManager");
+	end
+
+	return self.Objects.FadeManager;
+end
+
 function this:get_CameraManager()
 	if self.Objects.CameraManager == nil or self.Objects.CameraManager:get_reference_count() <= 1 then
 		self.Objects.CameraManager = get_managed_singleton("snow.QuestManager");
@@ -197,6 +225,14 @@ function this:get_QuestManager()
 	end
 
 	return self.Objects.QuestManager;
+end
+
+function this:get_SnowGameManager()
+	if self.Objects.SnowGameManager == nil or self.Objects.SnowGameManager:get_reference_count() <= 1 then
+		self.Objects.SnowGameManager = get_managed_singleton("snow.SnowGameManager");
+	end
+
+	return self.Objects.SnowGameManager;
 end
 
 function this:get_VillageAreaManager()
@@ -325,10 +361,6 @@ function this:get_StagePointManager()
 	end
 
 	return self.Objects.StagePointManager;
-end
-
-function this:outputMealTicket()
-	outputTicket_method:call(self:get_BbqFunc());
 end
 --
 local PlayerLobbyBase_onDestroy_method = PlayerLobbyBase_type_def:get_method("onDestroy");

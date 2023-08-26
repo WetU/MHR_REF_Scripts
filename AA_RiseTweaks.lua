@@ -1,7 +1,8 @@
 local Constants = _G.require("Constants.Constants");
 
-local hook = Constants.sdk.hook;
-local find_type_definition = Constants.sdk.find_type_definition;
+local sdk = Constants.sdk;
+local hook = sdk.hook;
+local find_type_definition = sdk.find_type_definition;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;

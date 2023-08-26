@@ -1,11 +1,12 @@
 local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local to_int64 = Constants.sdk.to_int64;
-local to_float = Constants.sdk.to_float;
-local hook = Constants.sdk.hook;
-local SKIP_ORIGINAL = Constants.sdk.SKIP_ORIGINAL;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local to_int64 = sdk.to_int64;
+local to_float = sdk.to_float;
+local hook = sdk.hook;
+local SKIP_ORIGINAL = sdk.SKIP_ORIGINAL;
 
 local Vector3f_new = Constants.Vector3f_new;
 --
@@ -62,16 +63,10 @@ local function PreHook_startToPlayPlayerDieMusic()
 	local subCamps = SubCampRevivalPos[Constants:getQuestMapNo()];
 
 	if subCamps ~= nil and Constants:getDeathNum() < Constants:getQuestLife() then
-		local StagePointManager = Constants:get_StagePointManager();
-		local FastTravelPointList = get_FastTravelPointList_method:call(StagePointManager);
-		local FastTravelPoint_array = FastTravelPointList_mItems_field:get_data(FastTravelPointList);
-		local FastTravelPoint_array_size = FastTravelPointList_mSize_field:get_data(FastTravelPointList);
-		local FastTravelPoint = FastTravelPoint_array:get_element(0);
-		local Points = get_Points_method:call(FastTravelPoint);
-		local Point = Points_get_Item_method:call(Points, 0);
+		local FastTravelPointList = get_FastTravelPointList_method:call(Constants:get_StagePointManager());
 		local currentPos = get_Position_method:call(GetTransform_method:call(Constants:get_CameraManager(), 1));
-		local nearestDistance = calcDistance_method:call(nil, currentPos, Point);
-		local subCampCount = FastTravelPoint_array_size - 1;
+		local nearestDistance = calcDistance_method:call(nil, currentPos, Points_get_Item_method:call(get_Points_method:call(FastTravelPointList_mItems_field:get_data(FastTravelPointList):get_element(0)), 0));
+		local subCampCount = FastTravelPointList_mSize_field:get_data(FastTravelPointList) - 1;
 
 		for i = 1, subCampCount, 1 do
 			local subCampPos = subCamps[i];

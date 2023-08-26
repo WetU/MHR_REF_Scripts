@@ -1,7 +1,8 @@
 local Constants = _G.require("Constants.Constants");
 
-local find_type_definition = Constants.sdk.find_type_definition;
-local hook = Constants.sdk.hook;
+local sdk = Constants.sdk;
+local find_type_definition = sdk.find_type_definition;
+local hook = sdk.hook;
 
 local checkKeyTrg = Constants.checkKeyTrg;
 local ClearFade = Constants.ClearFade;

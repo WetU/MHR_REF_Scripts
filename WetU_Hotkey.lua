@@ -2,10 +2,11 @@ local Constants = _G.require("Constants.Constants");
 
 local math_min = Constants.lua.math_min;
 
-local create_managed_array = Constants.sdk.create_managed_array;
-local find_type_definition = Constants.sdk.find_type_definition;
-local hook = Constants.sdk.hook;
-local hook_vtable = Constants.sdk.hook_vtable;
+local sdk = Constants.sdk;
+local create_managed_array = sdk.create_managed_array;
+local find_type_definition = sdk.find_type_definition;
+local hook = sdk.hook;
+local hook_vtable = sdk.hook_vtable;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
 
@@ -14,10 +15,11 @@ local getVillagePoint = Constants.getVillagePoint;
 local subVillagePoint = Constants.subVillagePoint;
 
 -- in Village hotkeys
-local VillageAreaManager_type_def = Constants.type_definitions.VillageAreaManager_type_def;
+local type_definitions = Constants.type_definitions;
+local VillageAreaManager_type_def = type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
 --
-local get_MealFunc_method = Constants.type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
+local get_MealFunc_method = type_definitions.KitchenFacility_type_def:get_method("get_MealFunc");
 
 local MealFunc_type_def = get_MealFunc_method:get_return_type();
 local setWaitTimer_method = MealFunc_type_def:get_method("setWaitTimer");
@@ -35,7 +37,7 @@ local get_MySetDataList_method = MealFunc_type_def:get_method("get_MySetDataList
 local get_DailyDango_method = MealFunc_type_def:get_method("get_DailyDango");
 local resetDailyDango_method = MealFunc_type_def:get_method("resetDailyDango");
 --
-local BbqFunc_type_def = Constants.type_definitions.BbqFunc_type_def;
+local BbqFunc_type_def = type_definitions.BbqFunc_type_def;
 local get_CanUseFunc_method = BbqFunc_type_def:get_method("get_CanUseFunc");
 local get_MealConvertDataList_method = BbqFunc_type_def:get_method("get_MealConvertDataList");
 local orderBbq_method = BbqFunc_type_def:get_method("orderBbq(snow.facility.kitchen.BbqConvertData, System.UInt32)");
@@ -47,21 +49,21 @@ local BbqConvertData_type_def = find_type_definition("snow.facility.kitchen.BbqC
 local get_MoneyCost_method = BbqConvertData_type_def:get_method("get_MoneyCost");
 local get_PointCost_method = BbqConvertData_type_def:get_method("get_PointCost");
 --
-local DataShortcut_type_def = Constants.type_definitions.DataShortcut_type_def;
+local DataShortcut_type_def = type_definitions.DataShortcut_type_def;
 local get_HandMoney_method = DataShortcut_type_def:get_method("get_HandMoney"); -- static
 local getMoneyVal_method = DataShortcut_type_def:get_method("getMoneyVal"); -- static
 local addItemToBox_method = DataShortcut_type_def:get_method("addItemToBox(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 --
-local reqDangoLogStart_method = Constants.type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
+local reqDangoLogStart_method = type_definitions.GuiManager_type_def:get_method("reqDangoLogStart(snow.gui.GuiDangoLog.DangoLogParam, System.Single)");
 --
 local DangoLogParam_type_def = find_type_definition("snow.gui.GuiDangoLog.DangoLogParam");
 local setStatusParam_method = DangoLogParam_type_def:get_method("setStatusParam(snow.gui.GuiDangoLog.DangoLogParam.DangoLogStatusItemType, System.UInt32)");
 --
-local Lobby_setKitchenData_method = Constants.type_definitions.PlayerLobbyBase_type_def:get_method("setKitchenData");
+local Lobby_setKitchenData_method = type_definitions.PlayerLobbyBase_type_def:get_method("setKitchenData");
 --
-local getMasterPlayerQuestBase_method = Constants.type_definitions.EnemyUtility_type_def:get_method("getMasterPlayer"); -- static
+local getMasterPlayerQuestBase_method = type_definitions.EnemyUtility_type_def:get_method("getMasterPlayer"); -- static
 
-local Quest_setKitchenData_method = Constants.type_definitions.PlayerQuestBase_type_def:get_method("setKitchenData");
+local Quest_setKitchenData_method = type_definitions.PlayerQuestBase_type_def:get_method("setKitchenData");
 --
 local OtomoManager_type_def = find_type_definition("snow.otomo.OtomoManager");
 local getMasterFirstOtomo_method = OtomoManager_type_def:get_method("getMasterFirstOtomo");
@@ -229,7 +231,7 @@ end
 hook(find_type_definition("snow.facility.MealOrderData"):get_method("canOrder"), nil, PostHook_canOrder);
 
 -- Reset Quest hotkey
-local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
+local QuestManager_type_def = type_definitions.QuestManager_type_def;
 local notifyReset_method = QuestManager_type_def:get_method("notifyReset");
 
 local function PostHook_updateNormalQuest()

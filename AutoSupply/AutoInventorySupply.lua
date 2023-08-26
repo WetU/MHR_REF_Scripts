@@ -21,9 +21,9 @@ local PlEquipMySetData_get_Name_method = PlEquipMySetData_type_def:get_method("g
 local isSamePlEquipPack_method = PlEquipMySetData_type_def:get_method("isSamePlEquipPack");
 --
 local LocalizedStrings = {
-	FromLoadout = "장비 프리셋 [<COL YEL>%s</COL>]",
-	MismatchLoadout = "현재 장비와 일치하는 프리셋이 없습니다.",
-	OutOfStock = "아이템 프리셋의 <COL RED>물품이 부족</COL>하여 적용이 취소되었습니다."
+	["FromLoadout"] = "장비 프리셋 [<COL YEL>%s</COL>]",
+	["MismatchLoadout"] = "현재 장비와 일치하는 프리셋이 없습니다.",
+	["OutOfStock"] = "아이템 프리셋의 <COL RED>물품이 부족</COL>하여 적용이 취소되었습니다."
 };
 --
 local lastHitLoadoutIndex = nil;
@@ -54,8 +54,8 @@ local function AutoChooseItemLoadout(equipDataManager, expectedLoadoutIndex)
 	return 2, nil;
 end
 --
-local this = {
-	Restock = function(loadoutIndex)
+return {
+	["Restock"] = function(loadoutIndex)
 		local ItemMySet = get_ItemMySet_method:call(nil);
 		local msg = LocalizedStrings.OutOfStock;
 
@@ -69,5 +69,3 @@ local this = {
 		return msg;
 	end
 };
---
-return this;

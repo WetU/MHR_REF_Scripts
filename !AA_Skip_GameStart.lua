@@ -1,15 +1,17 @@
 local Constants = _G.require("Constants.Constants");
 
-local hook = Constants.sdk.hook;
+local sdk = Constants.sdk;
+local hook = sdk.hook;
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 
-local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
+local type_definitions = Constants.type_definitions;
+local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
 --
-if Constants.type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 35.0 then
-	local find_type_definition = Constants.sdk.find_type_definition;
-	local get_managed_singleton = Constants.sdk.get_managed_singleton;
-	local to_managed_object = Constants.sdk.to_managed_object;
-	local hook_vtable = Constants.sdk.hook_vtable;
+if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 35.0 then
+	local find_type_definition = sdk.find_type_definition;
+	local get_managed_singleton = sdk.get_managed_singleton;
+	local to_managed_object = sdk.to_managed_object;
+	local hook_vtable = sdk.hook_vtable;
 	local ClearFade = Constants.ClearFade;
 	--
 	local Movie_type_def = find_type_definition("via.movie.Movie");

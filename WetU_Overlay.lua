@@ -5,8 +5,9 @@ local OtomoSpyUnit = require("WetU_Overlay.OtomoSpyUnit");
 local QuestInfo = require("WetU_Overlay.QuestInfo");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
-local pairs = Constants.lua.pairs;
-local tostring = Constants.lua.tostring;
+local lua = Constants.lua;
+local pairs = lua.pairs;
+local tostring = lua.tostring;
 
 local to_managed_object = Constants.sdk.to_managed_object;
 
@@ -14,18 +15,19 @@ local on_frame = Constants.on_frame;
 
 local Font = Constants.Font;
 
-local push_font = Constants.imgui.push_font;
-local begin_window = Constants.imgui.begin_window;
-local end_window = Constants.imgui.end_window;
-local begin_table = Constants.imgui.begin_table;
-local table_setup_column = Constants.imgui.table_setup_column;
-local table_next_column = Constants.imgui.table_next_column;
-local table_headers_row = Constants.imgui.table_headers_row;
-local table_next_row = Constants.imgui.table_next_row;
-local end_table = Constants.imgui.end_table;
-local text = Constants.imgui.text;
-local text_colored = Constants.imgui.text_colored;
-local spacing = Constants.imgui.spacing;
+local imgui = Constants.imgui;
+local push_font = imgui.push_font;
+local begin_window = imgui.begin_window;
+local end_window = imgui.end_window;
+local begin_table = imgui.begin_table;
+local table_setup_column = imgui.table_setup_column;
+local table_next_column = imgui.table_next_column;
+local table_headers_row = imgui.table_headers_row;
+local table_next_row = imgui.table_next_row;
+local end_table = imgui.end_table;
+local text = imgui.text;
+local text_colored = imgui.text_colored;
+local spacing = imgui.spacing;
 --
 local addItemToPouch_method = Constants.type_definitions.DataShortcut_type_def:get_method("addItemToPouch(snow.data.ContentsIdSystem.ItemId, System.UInt32)"); -- static
 --

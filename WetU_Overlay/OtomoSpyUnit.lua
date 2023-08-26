@@ -2,18 +2,18 @@ local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
 
-local to_int64 = Constants.sdk.to_int64;
-local find_type_definition = Constants.sdk.find_type_definition;
-local to_managed_object = Constants.sdk.to_managed_object;
-local hook = Constants.sdk.hook;
+local sdk = Constants.sdk;
+local to_int64 = sdk.to_int64;
+local find_type_definition = sdk.find_type_definition;
+local to_managed_object = sdk.to_managed_object;
+local hook = sdk.hook;
 
 local TRUE_POINTER = Constants.TRUE_POINTER;
-local checkGameStatus = Constants.checkGameStatus;
 --
 local this = {
-	init = true,
-	get_currentStepCount = true,
-	currentStep = nil
+	["init"] = true,
+	["get_currentStepCount"] = true,
+	["currentStep"] = nil
 };
 --
 local StmGuiInput_type_def = Constants.type_definitions.StmGuiInput_type_def;
@@ -155,8 +155,8 @@ local function onChangedGameStatus(args)
 	end
 end
 
-local function init()
-	if checkGameStatus(1) == true then
+this.init = function()
+	if Constants:checkGameStatus(1) == true then
 		get_currentStepCount();
 	end
 
@@ -171,8 +171,6 @@ local function init()
 	hook(GuiOtomoSpyUnitMainControll_type_def:get_method("addAllGameItemtoBox(System.Boolean)"), PreHook_addAllGameItemtoBox);
 	hook(OtomoSpyUnitManager_type_def:get_method("onChangedGameStatus(snow.SnowGameManager.StatusType)"), onChangedGameStatus);
 end
-
-this.init = init;
 this.get_currentStepCount = get_currentStepCount;
 --
 return this;
