@@ -7,7 +7,7 @@ local subVillagePoint = Constants.subVillagePoint;
 --
 local type_definitions = Constants.type_definitions;
 local DataShortcut_type_def = type_definitions.DataShortcut_type_def;
-local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- staic
+local findInventoryData_method = DataShortcut_type_def:get_method("findInventoryData(snow.data.InventoryData.InventoryGroup, snow.data.ContentsIdSystem.ItemId)"); -- static
 local sendItemToBox_method = DataShortcut_type_def:get_method("sendItemToBox(snow.data.ItemInventoryData, System.Boolean)"); -- static
 
 local get_TradeFunc_method = find_type_definition("snow.facility.TradeCenterFacility"):get_method("get_TradeFunc");
@@ -30,7 +30,7 @@ local negotiationData = {
 };
 --
 return {
-	["autoArgosy"] = function()
+	autoArgosy = function()
 		local countUpdated = false;
 		local isReceived = false;
 		local acornInventoryData = findInventoryData_method:call(nil, 1, 68158481);

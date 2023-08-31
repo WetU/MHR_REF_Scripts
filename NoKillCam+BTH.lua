@@ -17,6 +17,8 @@ local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuest
 local nextEndFlowToCameraDemo_method = QuestManager_type_def:get_method("nextEndFlowToCameraDemo");
 local getQuestPlayerCount_method = QuestManager_type_def:get_method("getQuestPlayerCount");
 local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
+--
+local closeUiForQuestEnd_DemoStart_method = Constants.type_definitions.GuiManager_type_def:get_method("closeUiForQuestEnd_DemoStart");
 
 -- Skip Demo Camera
 local function skipDemo()
@@ -46,6 +48,7 @@ local function PostHook_updateQuestEndFlow()
 		end
 
 		if isQuestSuccess == true and (get_DeltaSec_method:call(QuestManager) >= getQuestReturnTimerSec_method:call(QuestManager) or (checkKeyTrg(36) == true and getQuestPlayerCount_method:call(QuestManager) == 1)) then
+			closeUiForQuestEnd_DemoStart_method:call(Constants:get_GuiManager());
 			nextEndFlowToCameraDemo_method:call(QuestManager);
 		end
 	end
