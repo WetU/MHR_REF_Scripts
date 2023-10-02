@@ -396,13 +396,13 @@ local function getVillageAreaManager(args)
 	hook_vtable(VillageAreaManager, VillageAreaManager_onDestroy_method, nil, VillageAreaManager_onDestroy);
 end
 
-local function VillageAreaManager_update(args)
+local function getVillageAreaManagerFromUpdate(args)
 	if this.Objects.VillageAreaManager == nil then
 		getVillageAreaManager(args);
 	end
 end
 
 hook(VillageAreaManager_type_def:get_method("start"), getVillageAreaManager);
-hook(VillageAreaManager_type_def:get_method("update"), VillageAreaManager_update);
+hook(VillageAreaManager_type_def:get_method("update"), getVillageAreaManagerFromUpdate);
 --
 return this;

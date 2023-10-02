@@ -1,5 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
+local pairs = Constants.lua.pairs;
+
 local sdk = Constants.sdk;
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
@@ -37,8 +39,10 @@ local function PostHook_updatePlayerInfo()
 
 		for i = 0, OtherPlayerInfos:get_size() - 1, 1 do
 			local OtherPlayerInfo = OtherPlayerInfos:get_element(i);
-			OtherPlayerInfo:set_field("_good", PlInfo_Enable_field:get_data(OtherPlayerInfo));
-			OtherPlayerInfos[i] = OtherPlayerInfo;
+			if PlInfo_Enable_field:get_data(OtherPlayerInfo) == true then
+				OtherPlayerInfo:set_field("_good", true);
+				OtherPlayerInfos[i] = OtherPlayerInfo;
+			end
 		end
 
 		sendReady = true;
