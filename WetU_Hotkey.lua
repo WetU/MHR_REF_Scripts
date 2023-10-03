@@ -3,19 +3,18 @@ local Constants = _G.require("Constants.Constants");
 local math_min = Constants.lua.math_min;
 
 local sdk = Constants.sdk;
+local type_definitions = Constants.type_definitions;
+local TRUE_POINTER = Constants.TRUE_POINTER;
+local checkKeyTrg = Constants.checkKeyTrg;
+local getVillagePoint = Constants.getVillagePoint;
+local subVillagePoint = Constants.subVillagePoint;
+
 local create_managed_array = sdk.create_managed_array;
 local find_type_definition = sdk.find_type_definition;
 local hook = sdk.hook;
 local hook_vtable = sdk.hook_vtable;
 
-local TRUE_POINTER = Constants.TRUE_POINTER;
-
-local checkKeyTrg = Constants.checkKeyTrg;
-local getVillagePoint = Constants.getVillagePoint;
-local subVillagePoint = Constants.subVillagePoint;
-
 -- in Village hotkeys
-local type_definitions = Constants.type_definitions;
 local VillageAreaManager_type_def = type_definitions.VillageAreaManager_type_def;
 local fastTravel_method = VillageAreaManager_type_def:get_method("fastTravel(snow.stage.StageDef.VillageFastTravelType)");
 --

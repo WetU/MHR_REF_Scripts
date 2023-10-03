@@ -1,11 +1,11 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
-local hook = sdk.hook;
-local find_type_definition = sdk.find_type_definition;
-
 local TRUE_POINTER = Constants.TRUE_POINTER;
 local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
+
+local hook = sdk.hook;
+local find_type_definition = sdk.find_type_definition;
 --
 local MAX_FPS = 119.98;
 --

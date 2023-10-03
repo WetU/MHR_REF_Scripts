@@ -1,14 +1,14 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
+local type_definitions = Constants.type_definitions;
+local FALSE_POINTER = Constants.FALSE_POINTER;
+local to_bool = Constants.to_bool;
+
 local hook = sdk.hook;
 local find_type_definition = sdk.find_type_definition;
 local get_managed_singleton = sdk.get_managed_singleton;
 local to_managed_object = sdk.to_managed_object;
-
-local FALSE_POINTER = Constants.FALSE_POINTER;
-
-local to_bool = Constants.to_bool;
 --
 local GoodReward_supplyReward_method = find_type_definition("snow.progress.ProgressGoodRewardManager"):get_method("supplyReward");
 --
@@ -24,7 +24,6 @@ local SwitchAction_supply_method = find_type_definition("snow.progress.ProgressS
 --
 local Note_supply_method = find_type_definition("snow.progress.ProgressNoteRewardManager"):get_method("supply");]]
 --
-local type_definitions = Constants.type_definitions;
 local FacilityDataManager_type_def = type_definitions.FacilityDataManager_type_def;
 local getMysteryLaboFacility_method = FacilityDataManager_type_def:get_method("getMysteryLaboFacility");
 

@@ -6,16 +6,15 @@ local QuestInfo = require("WetU_Overlay.QuestInfo");
 local SpiribirdsStatus = require("WetU_Overlay.SpiribirdsStatus");
 
 local lua = Constants.lua;
+local on_frame = Constants.on_frame;
+local Font = Constants.Font;
+local imgui = Constants.imgui;
+
 local pairs = lua.pairs;
 local tostring = lua.tostring;
 
 local to_managed_object = Constants.sdk.to_managed_object;
 
-local on_frame = Constants.on_frame;
-
-local Font = Constants.Font;
-
-local imgui = Constants.imgui;
 local push_font = imgui.push_font;
 local begin_window = imgui.begin_window;
 local end_window = imgui.end_window;

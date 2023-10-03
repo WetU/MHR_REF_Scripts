@@ -1,16 +1,17 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
-local find_type_definition = sdk.find_type_definition;
-local hook = sdk.hook;
-
+local type_definitions = Constants.type_definitions;
 local checkKeyTrg = Constants.checkKeyTrg;
 local ClearFade = Constants.ClearFade;
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
+
+local find_type_definition = sdk.find_type_definition;
+local hook = sdk.hook;
 --
 local DemoEnd_method = find_type_definition("snow.camera.DemoCamera"):get_method("DemoEnd");
 --
-local QuestManager_type_def = Constants.type_definitions.QuestManager_type_def;
+local QuestManager_type_def = type_definitions.QuestManager_type_def;
 local get_DeltaSec_method = QuestManager_type_def:get_method("get_DeltaSec");
 local checkStatus_method = QuestManager_type_def:get_method("checkStatus(snow.QuestManager.Status)");
 local getQuestReturnTimerSec_method = QuestManager_type_def:get_method("getQuestReturnTimerSec");
@@ -18,7 +19,7 @@ local nextEndFlowToCameraDemo_method = QuestManager_type_def:get_method("nextEnd
 local getQuestPlayerCount_method = QuestManager_type_def:get_method("getQuestPlayerCount");
 local EndFlow_field = QuestManager_type_def:get_field("_EndFlow");
 --
-local closeUiForQuestEnd_DemoStart_method = Constants.type_definitions.GuiManager_type_def:get_method("closeUiForQuestEnd_DemoStart");
+local closeUiForQuestEnd_DemoStart_method = type_definitions.GuiManager_type_def:get_method("closeUiForQuestEnd_DemoStart");
 
 -- Skip Demo Camera
 local function skipDemo()

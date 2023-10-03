@@ -1,10 +1,11 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
-local hook = sdk.hook;
+local type_definitions = Constants.type_definitions;
 local RETURN_TRUE_func = Constants.RETURN_TRUE_func;
 
-local type_definitions = Constants.type_definitions;
+local hook = sdk.hook;
+
 local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
 --
 if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 35.0 then
@@ -26,8 +27,8 @@ if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil
 	local function PreHook_play(args)
 		local GuiGameStartFsmManager = get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager ~= nil then
-			local gameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
-			if gameStartState ~= nil and gameStartState >= 0 and gameStartState <= 7 then
+			local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
+			if GameStartState ~= nil and GameStartState >= 0 and GameStartState <= 7 then
 				Movie = to_managed_object(args[2]);
 			end
 		end

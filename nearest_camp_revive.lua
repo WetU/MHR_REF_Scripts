@@ -1,14 +1,14 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
+local Vector3f_new = Constants.Vector3f_new;
+
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
 local to_int64 = sdk.to_int64;
 local to_float = sdk.to_float;
 local hook = sdk.hook;
 local SKIP_ORIGINAL = sdk.SKIP_ORIGINAL;
-
-local Vector3f_new = Constants.Vector3f_new;
 --
 local calcDistance_method = find_type_definition("snow.CharacterMathUtility"):get_method("calcDistance(via.vec3, via.vec3)"); -- static
 --

@@ -1,11 +1,11 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
+local TRUE_POINTER = Constants.TRUE_POINTER;
+
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
 local hook = sdk.hook;
-
-local TRUE_POINTER = Constants.TRUE_POINTER;
 --
 local function PreHook_doOpen(args)
 	local GuiSideQuestOrder = to_managed_object(args[2]);

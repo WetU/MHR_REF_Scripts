@@ -1,16 +1,16 @@
 local Constants = _G.require("Constants.Constants");
 
 local lua = Constants.lua;
+local sdk = Constants.sdk;
+
 local tostring = lua.tostring;
 local string_format = lua.string_format;
 
-local sdk = Constants.sdk;
 local hook = sdk.hook;
 --
 local this = {
 	["init"] = true,
 	["onQuestStart"] = true,
-
 	["QuestInfoDataCreated"] = false,
 	["QuestTimer"] = nil,
 	["DeathCount"] = nil

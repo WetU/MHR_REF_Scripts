@@ -1,6 +1,10 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
+local type_definitions = Constants.type_definitions;
+local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
+local to_bool = Constants.to_bool;
+
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
 local hook = sdk.hook;
@@ -8,11 +12,6 @@ local to_int64 = sdk.to_int64;
 local to_valuetype = sdk.to_valuetype;
 local SKIP_ORIGINAL = sdk.SKIP_ORIGINAL;
 local CALL_ORIGINAL = sdk.CALL_ORIGINAL;
-
-local type_definitions = Constants.type_definitions;
-
-local SKIP_ORIGINAL_func = Constants.SKIP_ORIGINAL_func;
-local to_bool = Constants.to_bool;
 
 -- Region lock fix
 local session_steam_type_def = find_type_definition("via.network.SessionSteam");

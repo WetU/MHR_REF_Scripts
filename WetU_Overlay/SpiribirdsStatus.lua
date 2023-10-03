@@ -1,19 +1,20 @@
 local Constants = _G.require("Constants.Constants");
 
 local lua = Constants.lua;
+local sdk = Constants.sdk;
+local type_definitions = Constants.type_definitions;
+local to_bool = Constants.to_bool;
+
 local pairs = lua.pairs;
 local math_min = lua.math_min;
 local math_max = lua.math_max;
 local string_format = lua.string_format;
 
-local sdk = Constants.sdk;
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
 local hook = sdk.hook;
 local hook_vtable = sdk.hook_vtable;
 local to_int64 = sdk.to_int64;
-
-local to_bool = Constants.to_bool;
 --
 local this = {
 	["init"] = true,
@@ -29,7 +30,6 @@ local this = {
 	["SpiribirdsCall_Timer"] = nil
 };
 --
-local type_definitions = Constants.type_definitions;
 local EquipDataManager_type_def = type_definitions.EquipDataManager_type_def;
 local calcLvBuffNumToMax_method = EquipDataManager_type_def:get_method("calcLvBuffNumToMax(snow.player.PlayerDefine.LvBuff)");
 local addLvBuffCount_method = EquipDataManager_type_def:get_method("addLvBuffCount(snow.data.NormalLvBuffCageData.BuffTypes, System.Int32)"); -- static
@@ -85,14 +85,12 @@ local function Terminate()
 end
 
 local function mkTable()
-	local table = {
+	return {
 		true,
 		true,
 		true,
 		true
 	};
-
-	return table;
 end
 
 local function CreateData()

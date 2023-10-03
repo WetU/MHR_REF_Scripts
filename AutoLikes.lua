@@ -1,11 +1,11 @@
 local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
+local TRUE_POINTER = Constants.TRUE_POINTER;
+
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
 local hook = sdk.hook;
-
-local TRUE_POINTER = Constants.TRUE_POINTER;
 -- Cache
 local GoodRelationship_type_def = find_type_definition("snow.gui.GuiHud_GoodRelationship");
 local OtherPlayerInfos_field = GoodRelationship_type_def:get_field("_OtherPlayerInfos");

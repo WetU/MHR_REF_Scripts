@@ -1,15 +1,15 @@
 local Constants = _G.require("Constants.Constants");
 --
 local sdk = Constants.sdk;
+local type_definitions = Constants.type_definitions;
+local TRUE_POINTER = Constants.TRUE_POINTER;
+
 local find_type_definition = sdk.find_type_definition;
 local get_managed_singleton = sdk.get_managed_singleton;
 local to_managed_object = sdk.to_managed_object;
 local hook = sdk.hook;
 local hook_vtable = sdk.hook_vtable;
-
-local TRUE_POINTER = Constants.TRUE_POINTER;
 --
-local type_definitions = Constants.type_definitions;
 local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
 local checkLotEventStatus_method = type_definitions.FacilityDataManager_type_def:get_method("checkLotEventStatus"); -- static
 local reqAddChatItemInfo_method = type_definitions.ChatManager_type_def:get_method("reqAddChatItemInfo(snow.data.ContentsIdSystem.ItemId, System.Int32, snow.gui.ChatManager.ItemMaxType, System.Boolean)");
