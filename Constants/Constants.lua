@@ -126,6 +126,7 @@ local this = {
 		["ProgressOwlNestManager"] = get_managed_singleton("snow.progress.ProgressOwlNestManager"),
 		["StagePointManager"] = get_managed_singleton("snow.stage.StagePointManager")
 	},
+	["get_hook_storage"] = _G.thread.get_hook_storage,
 	["on_frame"] = _G.re.on_frame,
 	["Vector2f_new"] = _G.Vector2f.new,
 	["Vector3f_new"] = _G.Vector3f.new,

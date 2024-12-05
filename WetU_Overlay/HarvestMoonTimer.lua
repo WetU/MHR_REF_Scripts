@@ -1,6 +1,7 @@
 local Constants = _G.require("Constants.Constants");
 
 local string_format = Constants.lua.string_format;
+local get_hook_storage = Constants.get_hook_storage;
 
 local sdk = Constants.sdk;
 local find_type_definition = sdk.find_type_definition;
@@ -31,31 +32,31 @@ local this = {
 	["IsWarning"] = false
 };
 --
-local LongSwordShell010 = nil;
-
 local function Terminate()
 	this.CircleTimer = nil;
 	this.IsWarning = false;
-	LongSwordShell010 = nil;
 end
 
-local function UpdateHarvestMoonTimer()
-	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(LongSwordShell010));
-	this.IsWarning = IsWarning_field:get_data(LongSwordShell010);
+local function UpdateHarvestMoonTimer(object)
+	this.CircleTimer = string_format("원월 타이머: %.f초", lifeTimer_field:get_data(object));
+	this.IsWarning = IsWarning_field:get_data(object);
 end
 
-local function HarvestMoon_init()
-	UpdateHarvestMoonTimer();
-	hook_vtable(LongSwordShell010, update_method, nil, UpdateHarvestMoonTimer);
-	hook_vtable(LongSwordShell010, onDestroy_method, nil, Terminate);
+local function HarvestMoon_init(object)
+	UpdateHarvestMoonTimer(object);
+	hook_vtable(object, update_method, nil, function()
+		UpdateHarvestMoonTimer(object)
+	end);
+	hook_vtable(object, onDestroy_method, nil, Terminate);
 end
 
 local function PreHook(args)
-	LongSwordShell010 = to_managed_object(args[2]);
+	get_hook_storage()["this"] = to_managed_object(args[2]);
 end
 local function PostHook()
+	local LongSwordShell010 = get_hook_storage()["this"];
 	if CircleType_field:get_data(LongSwordShell010) == 1 and get_OwnerId_method:call(LongSwordShell010) == getMasterPlayerIndex_method:call(nil) then
-		HarvestMoon_init();
+		HarvestMoon_init(LongSwordShell010);
 	end
 end
 
@@ -73,8 +74,7 @@ this.init = function()
 						for i = 0, ListSize - 1, 1 do
 							local MasterShell010 = MasterShell010List:get_element(i);
 							if CircleType_field:get_data(MasterShell010) == 1 then
-								LongSwordShell010 = MasterShell010;
-								HarvestMoon_init();
+								HarvestMoon_init(MasterShell010);
 								break;
 							end
 						end

@@ -4,6 +4,7 @@ local sdk = Constants.sdk;
 local type_definitions = Constants.type_definitions;
 local FALSE_POINTER = Constants.FALSE_POINTER;
 local to_bool = Constants.to_bool;
+local get_hook_storage = Constants.get_hook_storage;
 
 local hook = sdk.hook;
 local find_type_definition = sdk.find_type_definition;
@@ -75,19 +76,17 @@ end
 local CommercialNpcTalkMessageCtrl = nil;
 local MysteryLaboNpcTalkMessageCtrl = nil;
 
-local NpcTalkMessageCtrl = nil;
 local function PreHook_getTalkTarget(args)
-	NpcTalkMessageCtrl = to_managed_object(args[2]);
+	get_hook_storage()["this"] = to_managed_object(args[2]);
 end
 local function PostHook_getTalkTarget()
+	local NpcTalkMessageCtrl = get_hook_storage()["this"];
 	local NpcId = get_NpcId_method:call(NpcTalkMessageCtrl);
 	if NpcId == 106 and get_CanObtainCommercialStuff() == true then
 		CommercialNpcTalkMessageCtrl = NpcTalkMessageCtrl;
 	elseif NpcId == 78 and get_IsMysteryResearchRequestClear() == true then
 		MysteryLaboNpcTalkMessageCtrl = NpcTalkMessageCtrl;
 	end
-
-	NpcTalkMessageCtrl = nil;
 end
 
 local function talkHandler()
@@ -216,16 +215,13 @@ local function PostHook_checkCommercialStuff(retval)
 	return retval;
 end
 
-local RewardItemDataList = nil;
 local function PreHook_openRewardDialog(args)
-	RewardItemDataList = to_managed_object(args[3]);
+	get_hook_storage()["this"] = to_managed_object(args[3]);
 end
 local function PostHook_openRewardDialog()
-	if RewardItemId_field:get_data(RewardDataList_get_Item_method:call(RewardItemDataList, 0)) == 68160340 then
+	if RewardItemId_field:get_data(RewardDataList_get_Item_method:call(get_hook_storage()["this"], 0)) == 68160340 then
 		Constants:closeRewardDialog();
 	end
-
-	RewardItemDataList = nil;
 end
 
 local function init()

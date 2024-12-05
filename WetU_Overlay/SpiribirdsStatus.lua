@@ -4,6 +4,7 @@ local lua = Constants.lua;
 local sdk = Constants.sdk;
 local type_definitions = Constants.type_definitions;
 local to_bool = Constants.to_bool;
+local get_hook_storage = Constants.get_hook_storage;
 
 local pairs = lua.pairs;
 local math_min = lua.math_min;
@@ -140,18 +141,17 @@ local function getBuffParameters(buffType)
 	for i = 1, 4, 1 do
 		local LvBuffType = LvBuff[i];
 		if buffType == LvBuffType then
-			this.AcquiredCounts[i] = math_min(math_max(getLvBuffCnt_method:call(playerManager, LvBuffType), 0), this.BirdsMaxCounts[i]);
-			this.AcquiredValues[i] = math_min(math_max(calcLvBuffValue_method:call(equipDataManager, BuffTypes[i]), 0), this.StatusBuffLimits[i]);
+			this.AcquiredCounts[i] = math_min(math_max(getLvBuffCnt_method:call(PlayerManager, LvBuffType), 0), this.BirdsMaxCounts[i]);
+			this.AcquiredValues[i] = math_min(math_max(calcLvBuffValue_method:call(EquipDataManager, BuffTypes[i]), 0), this.StatusBuffLimits[i]);
 			break;
 		end
 	end
 end
 
-local PlayerQuestBase = nil;
 local function PreHook_subLvBuffFromEnemy(args)
 	local playerQuestBase = to_managed_object(args[2]);
 	if isMasterPlayer_method:call(playerQuestBase) == true then
-		PlayerQuestBase = playerQuestBase;
+		get_hook_storage()["PlayerQuestBase"] = playerQuestBase;
 
 		if this.SpiribirdsHudDataCreated ~= true then
 			CreateData();
@@ -160,24 +160,20 @@ local function PreHook_subLvBuffFromEnemy(args)
 	end
 end
 local function PostHook_subLvBuffFromEnemy(retval)
-	if PlayerQuestBase ~= nil then
-		if to_bool(retval) == true then
-			getAllBuffParameters();
-		end
-
-		PlayerQuestBase = nil;
+	if get_hook_storage()["PlayerQuestBase"] ~= nil and to_bool(retval) == true then
+		getAllBuffParameters();
 	end
 
 	return retval;
 end
 
-local addBuffType = nil;
 local function PreHook_addLvBuffCnt(args)
 	if this.SpiribirdsHudDataCreated == true then
-		addBuffType = to_int64(args[4]);
+		get_hook_storage()["addBuffType"] = to_int64(args[4]);
 	end
 end
 local function PostHook_addLvBuffCnt()
+	local addBuffType = get_hook_storage()["addBuffType"];
 	if addBuffType ~= nil then
 		if getLvBuffCnt_method:call(Constants:get_PlayerManager(), LvBuff[5]) > 0 then
 			for i = 1, 4, 1 do
@@ -187,8 +183,6 @@ local function PostHook_addLvBuffCnt()
 		else
 			getBuffParameters(addBuffType);
 		end
-
-		addBuffType = nil;
 	end
 end
 

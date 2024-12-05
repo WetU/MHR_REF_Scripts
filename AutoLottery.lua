@@ -3,6 +3,7 @@ local Constants = _G.require("Constants.Constants");
 local sdk = Constants.sdk;
 local type_definitions = Constants.type_definitions;
 local TRUE_POINTER = Constants.TRUE_POINTER;
+local get_hook_storage = Constants.get_hook_storage;
 
 local find_type_definition = sdk.find_type_definition;
 local get_managed_singleton = sdk.get_managed_singleton;
@@ -75,14 +76,13 @@ local All_Receive_Button_Index = Constants.Vector2f_new(0.0, 1.0);
 local LotState = nil;
 local LotEventStatus = nil;
 
-local GuiItemShopFsmTopMenuAction = nil;
 local function PreHook_TopMenuStart(args)
     if LotState == nil then
         LotState = LotStates.checkLotEvent;
         LotEventStatus = checkLotEventStatus_method:call(nil);
 
         if LotEventStatus >= 0 and LotEventStatus <= 2 then
-            GuiItemShopFsmTopMenuAction = to_managed_object(args[2]);
+            get_hook_storage()["this"] = to_managed_object(args[2]);
         elseif LotEventStatus == 5 then
             LotState = LotStates.noTicketandMoney;
             Constants:SendMessage("추첨권과 소지금이 없습니다!");
@@ -94,29 +94,28 @@ local function PreHook_TopMenuStart(args)
     end
 end
 local function PostHook_TopMenuStart()
-    if GuiItemShopFsmTopMenuAction ~= nil then
-        hook_vtable(GuiItemShopFsmTopMenuAction, TopMenu_update_method, function(args)
+    local this = get_hook_storage()["this"];
+    if this ~= nil then
+        hook_vtable(get_hook_storage()["this"], TopMenu_update_method, function(args)
             if LotState == LotStates.checkLotEvent then
                 MenuCursor_set_index_method:call(get_TopMenuCursor_method:call(get_managed_singleton("snow.gui.fsm.itemshop.GuiItemShopFsmManager")), 2);
                 decideTopMenu_method:call(to_managed_object(args[2]));
                 LotState = LotStates.setTopMenu;
             end
         end);
-
-        GuiItemShopFsmTopMenuAction = nil;
     end
 end
 hook(GuiItemShopFsmTopMenuAction_type_def:get_method("start(via.behaviortree.ActionArg)"), PreHook_TopMenuStart, PostHook_TopMenuStart);
 
-local GuiItemShopFsmTopSubMenuAction = nil;
 local function PreHook_TopSubMenuStart(args)
     if LotState == LotStates.setTopMenu then
-        GuiItemShopFsmTopSubMenuAction = to_managed_object(args[2]);
+        get_hook_storage()["this"] = to_managed_object(args[2]);
     end
 end
 local function PostHook_TopSubMenuStart()
-    if GuiItemShopFsmTopSubMenuAction ~= nil then
-        hook_vtable(GuiItemShopFsmTopSubMenuAction, SubMenu_update_method, function(args)
+    local this = get_hook_storage()["this"];
+    if this ~= nil then
+        hook_vtable(get_hook_storage()["this"], SubMenu_update_method, function(args)
             if LotState == LotStates.setTopMenu then
                 MenuCursor_set_index_method:call(get_TopSubMenuCursor_method:call(get_managed_singleton("snow.gui.fsm.itemshop.GuiItemShopFsmManager")), LotEventStatus == 2 and 0 or 1);
                 decideSubMenu_method:call(to_managed_object(args[2]));
@@ -124,8 +123,6 @@ local function PostHook_TopSubMenuStart()
                 LotEventStatus = nil;
             end
         end);
-
-        GuiItemShopFsmTopSubMenuAction = nil;
     end
 end
 hook(GuiItemShopFsmTopSubMenuAction_type_def:get_method("start(via.behaviortree.ActionArg)"), PreHook_TopSubMenuStart, PostHook_TopSubMenuStart);
@@ -146,16 +143,16 @@ hook(GuiItemShopLotMenu_type_def:get_method("initBallState"), nil, PostHook_init
 
 local PrizesData = nil;
 local FukudamaPrizeData = nil;
-local GuiItemShopFsmLotMenuResultSelectAction = nil;
 local function PreHook_LotResultStart(args)
     if LotState == LotStates.LotAnim then
         LotState = LotStates.onLotResult;
-        GuiItemShopFsmLotMenuResultSelectAction = to_managed_object(args[2]);
+        get_hook_storage()["this"] = to_managed_object(args[2]);
     end
 end
 local function PostHook_LotResultStart()
-    if GuiItemShopFsmLotMenuResultSelectAction ~= nil then
-        hook_vtable(GuiItemShopFsmLotMenuResultSelectAction, LotResult_update_method, nil, function()
+    local this = get_hook_storage()["this"];
+    if this ~= nil then
+        hook_vtable(get_hook_storage()["this"], LotResult_update_method, nil, function()
             if LotState == LotStates.onLotResult then
                 local GuiItemShopLotMenu = get_refGuiItemShopLotMenu_method:call(Constants:get_GuiManager());
                 local LotResultDataList = get_LotResultData_method:call(GuiItemShopLotMenu);
@@ -202,8 +199,6 @@ local function PostHook_LotResultStart()
                 LotState = LotStates.setResultCursor;
             end
         end);
-
-        GuiItemShopFsmLotMenuResultSelectAction = nil;
     end
 end
 hook(GuiItemShopFsmLotMenuResultSelectAction_type_def:get_method("start(via.behaviortree.ActionArg)"), PreHook_LotResultStart, PostHook_LotResultStart);

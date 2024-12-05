@@ -9,6 +9,7 @@ local lua = Constants.lua;
 local on_frame = Constants.on_frame;
 local Font = Constants.Font;
 local imgui = Constants.imgui;
+local get_hook_storage = Constants.get_hook_storage;
 
 local pairs = lua.pairs;
 local tostring = lua.tostring;
@@ -42,20 +43,17 @@ local AutoAddItemIds = {
 	[68157954] = 1  -- 지급전용 귀환옥
 };
 
-local GuiQuestStart = nil;
 local function Prehook_QuestStart(args)
-	GuiQuestStart = to_managed_object(args[2]);
+	get_hook_storage()["this"] = to_managed_object(args[2]);
 end
 local function PostHook_QuestStart()
-	if NowState_field:get_data(GuiQuestStart) == 3 then
+	if NowState_field:get_data(get_hook_storage()["this"]) == 3 then
 		QuestInfo_onQuestStart();
 		SpiribirdsStatus_onQuestStart();
 		for k, v in pairs(AutoAddItemIds) do
 			addItemToPouch_method:call(nil, k, v);
 		end
 	end
-
-	GuiQuestStart = nil;
 end
 Constants.sdk.hook(GuiQuestStart_type_def:get_method("lateUpdate"), Prehook_QuestStart, PostHook_QuestStart);
 --

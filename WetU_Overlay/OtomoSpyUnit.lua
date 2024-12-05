@@ -4,6 +4,7 @@ local string_format = Constants.lua.string_format;
 
 local sdk = Constants.sdk;
 local TRUE_POINTER = Constants.TRUE_POINTER;
+local get_hook_storage = Constants.get_hook_storage;
 
 local to_int64 = sdk.to_int64;
 local find_type_definition = sdk.find_type_definition;
@@ -74,19 +75,17 @@ local function get_currentStepCount()
 	end
 end
 
-local GuiRoomServiceFsmManager = nil;
 local function PreHook_openRoomService(args)
 	if isMaxStepCount == true then
-		GuiRoomServiceFsmManager = to_managed_object(args[2]);
+		get_hook_storage()["this"] = to_managed_object(args[2]);
 	end
 end
 local function PostHook_openRoomService()
+	local GuiRoomServiceFsmManager = get_hook_storage()["this"];
 	if GuiRoomServiceFsmManager ~= nil then
 		if get__MenuState_method:call(GuiRoomServiceFsmManager) == 13 then
 			set__MenuState_method:call(GuiRoomServiceFsmManager, 1);
 		end
-
-		GuiRoomServiceFsmManager = nil;
 	end
 end
 

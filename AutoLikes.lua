@@ -2,6 +2,7 @@ local Constants = _G.require("Constants.Constants");
 
 local sdk = Constants.sdk;
 local TRUE_POINTER = Constants.TRUE_POINTER;
+local get_hook_storage = Constants.get_hook_storage;
 
 local find_type_definition = sdk.find_type_definition;
 local to_managed_object = sdk.to_managed_object;
@@ -19,21 +20,21 @@ local NO_WAIT_TIME = 0.0;
 
 local sendReady = false;
 
-local GoodRelationshipHud = nil;
 local function PreHook_updatePlayerInfo(args)
-	GoodRelationshipHud = to_managed_object(args[2]);
+	local storage = get_hook_storage();
+	storage["this"] = to_managed_object(args[2]);
 
-	if gaugeAngleY_field:get_data(GoodRelationshipHud) ~= MAX_ANGLE_Y then
-		GoodRelationshipHud:set_field("_gaugeAngleY", MAX_ANGLE_Y);
+	if gaugeAngleY_field:get_data(storage["this"]) ~= MAX_ANGLE_Y then
+		storage["this"]:set_field("_gaugeAngleY", MAX_ANGLE_Y);
 	end
 
-	if WaitTime_field:get_data(GoodRelationshipHud) ~= NO_WAIT_TIME then
-		GoodRelationshipHud:set_field("WaitTime", NO_WAIT_TIME);
+	if WaitTime_field:get_data(storage["this"]) ~= NO_WAIT_TIME then
+		storage["this"]:set_field("WaitTime", NO_WAIT_TIME);
 	end
 end
 local function PostHook_updatePlayerInfo()
 	if sendReady ~= true then
-		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(GoodRelationshipHud);
+		local OtherPlayerInfos = OtherPlayerInfos_field:get_data(get_hook_storage()["this"]);
 
 		for i = 0, OtherPlayerInfos:get_size() - 1, 1 do
 			local OtherPlayerInfo = OtherPlayerInfos:get_element(i);
@@ -45,8 +46,6 @@ local function PostHook_updatePlayerInfo()
 
 		sendReady = true;
 	end
-
-	GoodRelationshipHud = nil;
 end
 
 local function PostHook_isOperationOn(retval)

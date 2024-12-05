@@ -9,6 +9,7 @@ local hook = sdk.hook;
 local StmGuiInput_type_def = type_definitions.StmGuiInput_type_def;
 --
 if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil) < 35.0 then
+	local get_hook_storage = Constants.get_hook_storage;
 	local find_type_definition = sdk.find_type_definition;
 	local get_managed_singleton = sdk.get_managed_singleton;
 	local to_managed_object = sdk.to_managed_object;
@@ -23,20 +24,19 @@ if type_definitions.Application_type_def:get_method("get_UpTimeSecond"):call(nil
 	--
 	local notifyActionEnd_method = find_type_definition("via.behaviortree.ActionArg"):get_method("notifyActionEnd");
 	--
-	local Movie = nil;
 	local function PreHook_play(args)
 		local GuiGameStartFsmManager = get_managed_singleton("snow.gui.fsm.title.GuiGameStartFsmManager");
 		if GuiGameStartFsmManager ~= nil then
 			local GameStartState = get_GameStartState_method:call(GuiGameStartFsmManager);
 			if GameStartState ~= nil and GameStartState >= 0 and GameStartState <= 7 then
-				Movie = to_managed_object(args[2]);
+				get_hook_storage()["this"] = to_managed_object(args[1]);
 			end
 		end
 	end
 	local function PostHook_play()
+		local Movie = get_hook_storage()["this"];
 		if Movie ~= nil then
 			seek_method:call(Movie, get_DurationTime_method:call(Movie));
-			Movie = nil;
 		end
 	end
 	--
