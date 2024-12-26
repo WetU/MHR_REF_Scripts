@@ -70,7 +70,7 @@ this.init = function()
 				local MasterShell010List = mItems_field:get_data(MaseterLongSwordShell010s);
 				if MasterShell010List ~= nil then
 					local ListSize = mSize_field:get_data(MasterShell010List);
-					if ListSize > 0 then
+					if ListSize ~= nil and ListSize > 0 then
 						for i = 0, ListSize - 1, 1 do
 							local MasterShell010 = MasterShell010List:get_element(i);
 							if CircleType_field:get_data(MasterShell010) == 1 then

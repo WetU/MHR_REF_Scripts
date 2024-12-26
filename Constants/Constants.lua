@@ -167,8 +167,10 @@ local this = {
 --
 function this.ClearFade()
 	local FadeManager = this:get_FadeManager();
-	set_FadeMode_method:call(FadeManager, 3);
-	FadeManager:set_field("fadeOutInFlag", false);
+	if FadeManager ~= nil then
+		set_FadeMode_method:call(FadeManager, 3);
+		FadeManager:set_field("fadeOutInFlag", false);
+	end
 end
 
 function this:checkGameStatus(checkType)
@@ -372,8 +374,10 @@ end
 
 local function getPlayerLobbyBase(args)
 	local MasterPlayerLobbyBase = to_managed_object(args[2]);
-	this.Objects.MasterPlayerLobbyBase = MasterPlayerLobbyBase;
-	hook_vtable(MasterPlayerLobbyBase, PlayerLobbyBase_onDestroy_method, nil, destroyPlayerLobbyBase);
+	if MasterPlayerLobbyBase ~= nil then
+		this.Objects.MasterPlayerLobbyBase = MasterPlayerLobbyBase;
+		hook_vtable(MasterPlayerLobbyBase, PlayerLobbyBase_onDestroy_method, nil, destroyPlayerLobbyBase);
+	end
 end
 
 local function getPlayerLobbyBaseFromUpdate(args)
@@ -393,8 +397,10 @@ end
 
 local function getVillageAreaManager(args)
 	local VillageAreaManager = to_managed_object(args[2]);
-	this.Objects.VillageAreaManager = VillageAreaManager;
-	hook_vtable(VillageAreaManager, VillageAreaManager_onDestroy_method, nil, VillageAreaManager_onDestroy);
+	if VillageAreaManager ~= nil then
+		this.Objects.VillageAreaManager = VillageAreaManager;
+		hook_vtable(VillageAreaManager, VillageAreaManager_onDestroy_method, nil, VillageAreaManager_onDestroy);
+	end
 end
 
 local function getVillageAreaManagerFromUpdate(args)
